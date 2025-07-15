@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 export default function BookingsPage() {
     const { role } = useRole();
@@ -14,6 +16,14 @@ export default function BookingsPage() {
     const bookings = isClient ? mockClientBookings : mockCandidateBookings;
     const title = isClient ? "Manage Bookings" : "My Bookings";
     const description = isClient ? "Review your past and upcoming candidate bookings." : "Review your past and upcoming job assignments.";
+    
+    const handleCancelBooking = (bookingId: string) => {
+        toast({
+            title: "Booking Cancelled",
+            description: `The booking has been successfully cancelled.`,
+        });
+        // In a real app, you'd update the state here.
+    };
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -30,7 +40,7 @@ export default function BookingsPage() {
                                 <TableHead>{isClient ? "Candidate" : "Role"}</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Status</TableHead>
-                                {isClient && <TableHead className="text-right">Action</TableHead>}
+                                <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -42,13 +52,30 @@ export default function BookingsPage() {
                                     </TableCell>
                                     <TableCell>{new Date(booking.date).toLocaleDateString()}</TableCell>
                                     <TableCell>
-                                        <Badge variant={booking.status === 'Completed' ? 'outline' : 'default'}>{booking.status}</Badge>
+                                        <Badge variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Confirmed' ? 'default' : 'secondary'}>{booking.status}</Badge>
                                     </TableCell>
-                                    {isClient && (
-                                        <TableCell className="text-right">
-                                            {booking.status === 'Completed' && <Button size="sm">Rebook</Button>}
-                                        </TableCell>
-                                    )}
+                                    <TableCell className="text-right">
+                                        {isClient && booking.status === 'Completed' && <Button size="sm">Rebook</Button>}
+                                        {isClient && booking.status === 'Confirmed' && (
+                                             <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button size="sm" variant="destructive">Cancel</Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will permanently cancel the booking with {booking.candidateName}.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Back</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleCancelBooking(booking.id)}>Confirm Cancellation</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
