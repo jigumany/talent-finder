@@ -90,6 +90,7 @@
   .rdp {
     --rdp-cell-size: 40px; /* Sensible default size */
     width: 100%;
+    margin: 1em 0;
   }
   
   .rdp-month {
@@ -99,7 +100,7 @@
   .rdp-table {
     width: 100%;
     max-width: none;
-    display: table; /* Ensure table layout */
+    display: table;
   }
   
   .rdp-day {
@@ -107,9 +108,8 @@
     height: var(--rdp-cell-size);
   }
 
-  .day-outside {
-      color: hsl(var(--muted-foreground));
-      opacity: 0.5;
+  .rdp-button:hover:not([aria-selected]):not([disabled]) {
+    background-color: hsl(var(--accent) / 0.5);
   }
 
   @media (max-width: 480px) {
