@@ -38,6 +38,9 @@ import {
     School,
     Settings,
     User,
+    Users,
+    Calendar,
+    Search,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -46,6 +49,9 @@ import { useRole } from '@/context/role-context';
 
 const clientNav = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Browse Candidates', href: '/#marketplace', icon: Users },
+    { name: 'Find Me Someone', href: '/find-me-someone', icon: Search },
+    { name: 'Diary', href: '/diary', icon: Calendar },
     { name: 'Bookings', href: '/bookings', icon: Briefcase },
     { name: 'Review Generator', href: '/review-generator', icon: PenSquare },
     { name: 'Profile', href: '/profile', icon: User },
