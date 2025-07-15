@@ -47,7 +47,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2">
         <Button variant="outline"><FileDown />CV</Button>
-        <Button className="bg-accent hover:bg-accent/90"><BookUser />Book Now</Button>
+        <Button variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90"><BookUser />Book Now</Button>
       </CardFooter>
     </Card>
   );
