@@ -2,6 +2,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { mockCandidates } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,17 @@ import { Button } from '@/components/ui/button';
 import { Calendar, DollarSign, Briefcase, Star, MapPin, FileText, CheckCircle } from 'lucide-react';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter
+} from "@/components/ui/dialog";
+
 
 export default function CandidatePublicProfilePage() {
   const params = useParams();
@@ -46,11 +58,37 @@ export default function CandidatePublicProfilePage() {
             </div>
             <div className="w-full md:w-auto flex flex-col gap-2">
                  <Button size="lg" className="w-full"><Calendar className="mr-2"/> Book Now</Button>
-                 <Button size="lg" variant="outline" className="w-full" asChild>
-                    <a href={candidate.cvUrl} target="_blank" rel="noopener noreferrer">
-                        <FileText className="mr-2"/> View CV
-                    </a>
-                 </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="lg" variant="outline" className="w-full">
+                      <FileText className="mr-2"/> View CV
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-3xl h-[90vh]">
+                    <DialogHeader>
+                      <DialogTitle>CV Preview</DialogTitle>
+                      <DialogDescription>
+                        A preview of the CV for {candidate.name}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="relative h-full w-full mt-4 rounded-md overflow-hidden">
+                        <Image 
+                            src="https://placehold.co/800x1100.png" 
+                            alt="CV Preview"
+                            layout="fill"
+                            objectFit="contain"
+                            data-ai-hint="document resume"
+                        />
+                    </div>
+                     <DialogFooter className="sm:justify-end">
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
             </div>
        </div>
 
