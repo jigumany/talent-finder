@@ -1,6 +1,6 @@
 
 import Image from 'next/image';
-import { Star, MapPin, FileDown, BookUser } from 'lucide-react';
+import { Star, MapPin, User, BookUser } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -48,8 +48,8 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2">
         <Button variant="outline" asChild>
-          <Link href={candidate.cvUrl} target="_blank" rel="noopener noreferrer">
-            <FileDown />CV
+          <Link href="/profile">
+            <User />View Profile
           </Link>
         </Button>
         <Button><BookUser />Book Now</Button>
