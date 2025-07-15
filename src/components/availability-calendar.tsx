@@ -3,8 +3,6 @@
 
 import { useState } from 'react';
 import { DayPicker, type DayProps } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
-
 import { Card } from '@/components/ui/card';
 import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
 
@@ -17,16 +15,17 @@ function DayWithCircle(props: DayProps) {
     const [availableDays] = useState<Date[]>(mockCandidates[2].availability.map(d => new Date(d)));
     const [bookedDays] = useState<Date[]>(mockClientBookings.filter(b => b.status === 'Confirmed').map(b => new Date(b.date)));
 
-    const isAvailable = availableDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth());
-    const isBooked = bookedDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth());
-    const isInterview = interviewDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth());
-
-    if (displayMonth.getMonth() !== date.getMonth()) {
-        return <div {...props.rootProps}>{props.formattedDate}</div>;
-    }
+    const isAvailable = availableDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear());
+    const isBooked = bookedDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear());
+    const isInterview = interviewDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear());
+    
+    // This style will only be applied if the day is not in the currently displayed month
+    const outsideStyle = displayMonth.getMonth() !== date.getMonth()
+        ? { color: 'hsl(var(--muted-foreground))', opacity: 0.5 }
+        : {};
 
     return (
-        <div {...props.rootProps} className="relative">
+        <div {...props.rootProps} className="relative flex items-center justify-center h-full w-full" style={outsideStyle}>
             {props.formattedDate}
             <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
                 {isAvailable && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
@@ -41,7 +40,7 @@ export function AvailabilityCalendar() {
     
     return (
         <div className="flex flex-col items-center">
-            <Card className="p-0 border-0 shadow-none flex justify-center">
+            <Card className="p-0 border-0 shadow-none flex justify-center w-full">
                 <DayPicker
                     mode="single"
                     className="w-full"
@@ -49,11 +48,9 @@ export function AvailabilityCalendar() {
                     styles={{
                         caption: { color: 'hsl(var(--primary))' },
                         head: { color: 'hsl(var(--muted-foreground))' },
-                        table: { width: '100%', maxWidth: 'none' },
-                        month: { width: '100%' },
                     }}
                     modifiersClassNames={{
-                        today: 'font-bold text-accent-foreground bg-accent/20',
+                        today: 'font-bold text-accent-foreground bg-accent/20 rounded-md',
                     }}
                 />
             </Card>
