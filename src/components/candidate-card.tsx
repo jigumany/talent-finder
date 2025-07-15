@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -46,7 +47,11 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         </div>
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2">
-        <Button variant="outline"><FileDown />CV</Button>
+        <Button variant="outline" asChild>
+          <Link href={candidate.cvUrl} target="_blank" rel="noopener noreferrer">
+            <FileDown />CV
+          </Link>
+        </Button>
         <Button><BookUser />Book Now</Button>
       </CardFooter>
     </Card>
