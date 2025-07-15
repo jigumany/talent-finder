@@ -11,7 +11,7 @@ const interviewDays: Date[] = [
 ];
 
 function DayWithCircle(props: DayProps) {
-    const { date, displayMonth } = props;
+    const { date } = props;
     const [availableDays] = useState<Date[]>(mockCandidates[2].availability.map(d => new Date(d)));
     const [bookedDays] = useState<Date[]>(mockClientBookings.filter(b => b.status === 'Confirmed').map(b => new Date(b.date)));
 
@@ -19,13 +19,8 @@ function DayWithCircle(props: DayProps) {
     const isBooked = bookedDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear());
     const isInterview = interviewDays.some(d => d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear());
     
-    // This style will only be applied if the day is not in the currently displayed month
-    const outsideStyle = displayMonth.getMonth() !== date.getMonth()
-        ? { color: 'hsl(var(--muted-foreground))', opacity: 0.5 }
-        : {};
-
     return (
-        <div {...props.rootProps} className="relative flex items-center justify-center h-full w-full" style={outsideStyle}>
+        <div {...props.rootProps} className="relative flex items-center justify-center h-full w-full">
             {props.formattedDate}
             <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
                 {isAvailable && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
