@@ -22,17 +22,17 @@ function DayWithIndicator({ date, modifiers }: { date: Date, modifiers: ReturnTy
   else if (isInterview) indicatorClass = 'bg-purple-500';
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center h-full w-full">
       {format(date, "d")}
       {indicatorClass && (
         <div
           className={cn(
-            'absolute bottom-1 h-1.5 w-1.5 rounded-full',
+            'h-1.5 w-1.5 rounded-full mt-0.5',
             indicatorClass
           )}
         />
       )}
-    </>
+    </div>
   );
 }
 
@@ -62,7 +62,11 @@ export function AvailabilityCalendar() {
                 styles={{
                     caption: { color: 'hsl(var(--primary))' },
                     head: { color: 'hsl(var(--muted-foreground))' },
-                    cell: { position: 'relative' }
+                    cell: { position: 'relative' },
+                    day_outside: {
+                        color: 'hsl(var(--muted-foreground))',
+                        opacity: 0.5,
+                    },
                 }}
                 modifiersClassNames={{
                     today: 'font-bold text-accent-foreground bg-accent/20 rounded-md',
