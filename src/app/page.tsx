@@ -1,3 +1,95 @@
-export default function Home() {
-  return <></>;
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { Briefcase, School } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+export default function AuthPage() {
+  return (
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+      <div className="relative hidden bg-muted lg:block">
+        <Image
+          src="https://placehold.co/1200x1200.png"
+          alt="A modern classroom with students and a teacher"
+          layout="fill"
+          objectFit="cover"
+          className="opacity-90"
+          data-ai-hint="school classroom"
+        />
+        <div className="relative z-10 flex flex-col justify-between h-full p-10 bg-gradient-to-b from-primary/80 to-primary/40 text-primary-foreground">
+          <Link href="/" className="flex items-center gap-2 text-2xl font-bold">
+            <School className="h-8 w-8" />
+            <span>Staffable</span>
+          </Link>
+          <div className="mt-auto">
+            <blockquote className="space-y-2">
+              <p className="text-lg">
+                “The best way to predict the future is to create it. Staffable helps us build the future of education, one great teacher at a time.”
+              </p>
+              <footer className="text-sm">Sofia Davis, Principal</footer>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold font-headline">Welcome to Staffable</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your credentials to access your account
+            </p>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Login</CardTitle>
+              <CardDescription>
+                Select your role and enter your details below to login to your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="#"
+                      className="ml-auto inline-block text-sm underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
+                  <Input id="password" type="password" required />
+                </div>
+                <Button type="submit" className="w-full as" asChild>
+                  <Link href="/dashboard">Login</Link>
+                </Button>
+                <Button variant="outline" className="w-full">
+                  Login with Google
+                </Button>
+              </div>
+              <div className="mt-4 text-center text-sm">
+                Don&apos;t have an account?{' '}
+                <Link href="#" className="underline">
+                  Sign up
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }
