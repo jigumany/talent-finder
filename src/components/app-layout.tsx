@@ -114,14 +114,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <ul className="space-y-1">
                         {desktopNav.map((item) => (
                              <li key={item.name}>
-                                <Link href={item.href} passHref legacyBehavior>
-                                    <a className={cn(
+                                <Link
+                                    href={item.href}
+                                    className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                                         (pathname === item.href || pathname.startsWith(item.href + '/')) && "bg-muted text-primary"
                                     )}>
-                                        <item.icon className="h-4 w-4" />
-                                        {item.name}
-                                    </a>
+                                    <item.icon className="h-4 w-4" />
+                                    {item.name}
                                 </Link>
                             </li>
                         ))}
@@ -174,9 +174,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 </div>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
-                            <Link href="/" passHref legacyBehavior>
-                                <DropdownMenuItem><LogOut className="mr-2 h-4 w-4" />Logout</DropdownMenuItem>
-                            </Link>
+                            <DropdownMenuItem asChild>
+                                <Link href="/"><LogOut className="mr-2 h-4 w-4" />Logout</Link>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
