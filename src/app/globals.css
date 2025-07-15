@@ -83,4 +83,28 @@
   body {
     @apply bg-background text-foreground;
   }
+  .rdp {
+    --rdp-cell-size: 40px; /* Sensible default size */
+    width: 100%;
+  }
+  
+  .rdp-month {
+    width: 100%;
+  }
+  
+  .rdp-table {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .rdp-day {
+    width: 100%;
+    height: var(--rdp-cell-size);
+  }
+
+  @media (max-width: 480px) {
+    .rdp {
+        --rdp-cell-size: 35px;
+    }
+  }
 }
