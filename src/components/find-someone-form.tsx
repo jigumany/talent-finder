@@ -140,7 +140,13 @@ export function FindSomeoneForm() {
                     <CardDescription>{result.bestMatch.reasoning}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                   {recommendedCandidate && <CandidateCard candidate={recommendedCandidate} />}
+                   {recommendedCandidate ? (
+                    <div className="max-w-sm mx-auto">
+                        <CandidateCard candidate={recommendedCandidate} />
+                    </div>
+                   ) : (
+                    <p>Could not find candidate details.</p>
+                   )}
                 </CardContent>
             </Card>
 
