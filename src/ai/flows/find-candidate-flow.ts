@@ -75,15 +75,6 @@ First, use the getAvailableCandidates tool to get a list of all candidates.
 
 Then, carefully analyze the client's request and the list of available candidates. Identify the single best match. Provide a concise, compelling reason for your choice. You must provide a best match.
 
-Available Candidates:
-{{#if toolResponse.getAvailableCandidates}}
-  {{#each toolResponse.getAvailableCandidates}}
-    - ID: {{this.id}}, Name: {{this.name}}, Role: {{this.role}}, Qualifications: [{{#each this.qualifications}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]
-  {{/each}}
-{{else}}
-  No candidates found.
-{{/if}}
-
 Client's Request:
 - Role: {{{role}}}
 - Subject: {{#if subject}}{{{subject}}}{{else}}N/A{{/if}}
