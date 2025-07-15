@@ -86,10 +86,9 @@
   .rdp-day:not(.rdp-day_outside) {
     @apply text-foreground;
   }
-
+  
   .rdp {
-    --rdp-cell-size: 40px; /* Sensible default size */
-    width: 100%;
+    --rdp-cell-size: 2.5rem; /* Default size for larger screens */
     margin: 1em 0;
   }
   
@@ -102,19 +101,33 @@
     max-width: none;
     display: table;
   }
-  
-  .rdp-day {
-    width: 100%;
+
+  .rdp-head_cell {
+    width: var(--rdp-cell-size);
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  .rdp-cell {
+    width: var(--rdp-cell-size);
     height: var(--rdp-cell-size);
+    text-align: center;
+    vertical-align: middle;
   }
 
   .rdp-button:hover:not([aria-selected]):not([disabled]) {
     background-color: hsl(var(--accent) / 0.5);
   }
 
+  @media (max-width: 768px) {
+    .rdp {
+      --rdp-cell-size: 11.11vw; /* Fit 7 days + space */
+    }
+  }
+
   @media (max-width: 480px) {
     .rdp {
-        --rdp-cell-size: 35px;
+      --rdp-cell-size: 12vw;
     }
   }
 }
