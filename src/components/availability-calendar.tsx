@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
-import { isSameDay } from 'date-fns';
+import { isSameDay, format } from 'date-fns';
 import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
@@ -22,17 +22,17 @@ function DayWithIndicator({ date, modifiers }: { date: Date, modifiers: ReturnTy
   else if (isInterview) indicatorClass = 'bg-purple-500';
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center">
-      <span>{date.getDate()}</span>
+    <>
+      {format(date, "d")}
       {indicatorClass && (
         <div
           className={cn(
-            'absolute bottom-1.5 h-1.5 w-1.5 rounded-full',
+            'absolute bottom-1 h-1.5 w-1.5 rounded-full',
             indicatorClass
           )}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -62,8 +62,9 @@ export function AvailabilityCalendar() {
                 styles={{
                     caption: { color: 'hsl(var(--primary))' },
                     head: { color: 'hsl(var(--muted-foreground))' },
+                    cell: { position: 'relative' }
                 }}
-                    modifiersClassNames={{
+                modifiersClassNames={{
                     today: 'font-bold text-accent-foreground bg-accent/20 rounded-md',
                 }}
             />
