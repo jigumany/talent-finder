@@ -15,10 +15,15 @@ export function AvailabilityCalendar() {
   );
 
   const handleDayClick = (day: Date, { selected }: { selected: boolean }) => {
+    // Prevent selecting dates in the past
+    if (day < new Date(new Date().setHours(0, 0, 0, 0))) {
+        return;
+    }
+
     if (selected) {
       setAvailableDays(currentDays => currentDays.filter(d => d.getTime() !== day.getTime()));
     } else {
-      setAvailableDays(currentDays => [...currentDays, day]);
+      setAvailableDays(currentDays => [...currentDays, day].sort((a,b) => a.getTime() - b.getTime()));
     }
   };
 
@@ -27,12 +32,13 @@ export function AvailabilityCalendar() {
     : `Click on dates to mark them as available.`;
 
   return (
-    <Card className="p-0 border-0 shadow-none">
+    <Card className="p-0 border-0 shadow-none flex justify-center">
       <DayPicker
         mode="multiple"
-        min={1}
+        min={0}
         selected={availableDays}
         onDayClick={handleDayClick}
+        disabled={{ before: new Date() }}
         footer={<div className="text-sm text-muted-foreground pt-4 text-center">{footer}</div>}
         styles={{
             caption: { color: 'hsl(var(--primary))' },
@@ -40,9 +46,8 @@ export function AvailabilityCalendar() {
         }}
         modifiersClassNames={{
             selected: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90',
-            today: 'font-bold text-accent'
+            today: 'font-bold text-accent-foreground bg-accent/50'
         }}
-        className="w-full flex justify-center"
       />
     </Card>
   );

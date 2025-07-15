@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Lock, FilePlus2, Calendar as CalendarIcon, Loader2 } from "lucide-react";
-import { mockTimesheets, mockCandidateBookings } from "@/lib/mock-data";
+import { mockTimesheets } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -16,6 +16,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogClose
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -110,6 +111,9 @@ export default function TimesheetsPage() {
                                 </div>
                             </div>
                             <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="ghost">Cancel</Button>
+                                </DialogClose>
                                 <Button type="submit" disabled={isSubmitting}>
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {isSubmitting ? 'Submitting...' : 'Submit'}
