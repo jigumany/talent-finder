@@ -12,9 +12,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { mockCandidates } from '@/lib/mock-data';
-import type { Candidate } from '@/lib/types';
 
-export const FindCandidateInputSchema = z.object({
+const FindCandidateInputSchema = z.object({
   role: z.string().describe('The desired role for the candidate (e.g., "Math Teacher", "Teaching Assistant").'),
   subject: z.string().optional().describe('The specific subject the candidate should be proficient in (e.g., "Algebra", "History").'),
   skills: z.string().describe('A description of the required skills, certifications, or qualifications.'),
@@ -22,7 +21,7 @@ export const FindCandidateInputSchema = z.object({
 });
 export type FindCandidateInput = z.infer<typeof FindCandidateInputSchema>;
 
-export const FindCandidateOutputSchema = z.object({
+const FindCandidateOutputSchema = z.object({
   bestMatch: z.object({
     id: z.string().describe("The ID of the recommended candidate."),
     name: z.string().describe("The name of the recommended candidate."),
