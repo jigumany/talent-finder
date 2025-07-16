@@ -127,7 +127,7 @@ export default function BookingsPage() {
                                         <Badge 
                                             variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Interview' ? 'secondary' : 'default'}
                                             className={cn({
-                                                'bg-primary': booking.status === 'Confirmed',
+                                                'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                                 'badge-yellow': booking.status === 'Interview'
                                             })}
                                         >
