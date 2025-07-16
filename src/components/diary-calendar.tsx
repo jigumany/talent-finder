@@ -31,14 +31,20 @@ function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] 
   );
 }
 
+interface DiaryCalendarProps {
+    selected: Date | undefined;
+    onSelect: (date: Date | undefined) => void;
+}
 
-export function DiaryCalendar() {
+export function DiaryCalendar({ selected, onSelect }: DiaryCalendarProps) {
     const [bookings] = useState<Booking[]>(mockClientBookings);
     
     return (
         <div className="flex flex-col items-center">
             <DayPicker
                 mode="single"
+                selected={selected}
+                onSelect={onSelect}
                 className="w-full"
                 components={{
                     DayContent: (props) => <DayWithIndicator date={props.date} bookings={bookings} />
@@ -54,6 +60,7 @@ export function DiaryCalendar() {
                 }}
                 modifiersClassNames={{
                     today: 'font-bold text-accent-foreground bg-accent/20 rounded-md',
+                    selected: 'bg-primary/20 text-primary rounded-md'
                 }}
             />
             <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
