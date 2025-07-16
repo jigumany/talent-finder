@@ -90,7 +90,7 @@ export default function ProfilePage() {
                         <CardContent className="space-y-6">
                              <div className="flex items-center gap-6">
                                 <Avatar className="h-20 w-20">
-                                    <AvatarImage src={candidateData.profilePhotoUrl} alt={candidateData.fullName} />
+                                    <AvatarImage src={candidateData.profilePhotoUrl} alt={candidateData.fullName} data-ai-hint="woman portrait"/>
                                     <AvatarFallback>{candidateData.fullName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-2 flex-1">
@@ -175,13 +175,13 @@ export default function ProfilePage() {
                                 <Label htmlFor="baseLocation">Base Location</Label>
                                 <Input id="baseLocation" defaultValue={candidateData.baseLocation} placeholder="e.g. London, UK" />
                             </div>
-                            <div className="flex items-center justify-between space-x-4">
-                                <Label htmlFor="canTravel" className="flex flex-col space-y-1">
-                                  <span>Willing to Travel</span>
-                                  <span className="font-normal leading-snug text-muted-foreground">
-                                    Are you open to roles outside your base location?
-                                  </span>
-                                </Label>
+                            <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                                <div className="flex flex-col space-y-1">
+                                    <Label htmlFor="canTravel">Willing to Travel</Label>
+                                    <span className="text-sm text-muted-foreground">
+                                        Are you open to roles outside your base location?
+                                    </span>
+                                </div>
                                 <Switch id="canTravel" defaultChecked={candidateData.canTravel} />
                             </div>
                             <div className="space-y-2">
@@ -212,24 +212,23 @@ export default function ProfilePage() {
                     <CardTitle>Notifications</CardTitle>
                     <CardDescription>Manage your notification preferences.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                     <div className="flex items-center justify-between space-x-4">
-                        <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
-                          <span>Email Notifications</span>
-                          <span className="font-normal leading-snug text-muted-foreground">
-                            Receive emails about new bookings and messages.
-                          </span>
-                        </Label>
+                <CardContent className="space-y-4">
+                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="flex flex-col space-y-1">
+                            <Label htmlFor="email-notifications">Email Notifications</Label>
+                            <span className="text-sm text-muted-foreground">
+                                Receive emails about new bookings and messages.
+                            </span>
+                        </div>
                         <Switch id="email-notifications" defaultChecked />
                       </div>
-                      <Separator />
-                       <div className="flex items-center justify-between space-x-4">
-                        <Label htmlFor="push-notifications" className="flex flex-col space-y-1">
-                          <span>Push Notifications</span>
-                           <span className="font-normal leading-snug text-muted-foreground">
-                            Get push notifications on your mobile device.
-                          </span>
-                        </Label>
+                       <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="flex flex-col space-y-1">
+                            <Label htmlFor="push-notifications">Push Notifications</Label>
+                            <span className="text-sm text-muted-foreground">
+                                Get push notifications on your mobile device.
+                            </span>
+                        </div>
                         <Switch id="push-notifications" />
                       </div>
                 </CardContent>
@@ -237,5 +236,3 @@ export default function ProfilePage() {
         </div>
     );
 }
-
-    
