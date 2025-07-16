@@ -13,7 +13,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, ClipboardEdit } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 
 
 export default function BookingsPage() {
@@ -23,12 +26,18 @@ export default function BookingsPage() {
     const title = isClient ? "Manage Bookings" : "My Bookings";
     const description = isClient ? "Review your past and upcoming candidate bookings." : "Review your past and upcoming job assignments.";
     
+    const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const { toast } = useToast();
+
     // State for rebooking dialog
     const [rebookDialogOpen, setRebookDialogOpen] = useState(false);
     const [rebookDates, setRebookDates] = useState<Date[] | undefined>([]);
-    const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
-    const { toast } = useToast();
+    // State for interview outcome dialog
+    const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
+    const [outcome, setOutcome] = useState<'hired' | 'rejected' | ''>('');
+    const [outcomeNotes, setOutcomeNotes] = useState('');
+
 
     const handleCancelBooking = (bookingId: string) => {
         // In a real app, you'd make an API call here to actually cancel the booking.
@@ -36,6 +45,7 @@ export default function BookingsPage() {
         toast({
             title: "Booking Cancelled",
             description: `The booking (ID: ${bookingId}) has been successfully cancelled.`,
+            variant: "destructive"
         });
         // Here you would also update the state to remove the cancelled booking from the list.
     };
@@ -56,6 +66,24 @@ export default function BookingsPage() {
         });
         setRebookDialogOpen(false);
     }
+    
+    const handleLogOutcomeClick = (booking: any) => {
+        setSelectedBooking(booking);
+        setOutcome('');
+        setOutcomeNotes('');
+        setOutcomeDialogOpen(true);
+    };
+
+    const handleConfirmOutcome = () => {
+        if (!selectedBooking || !outcome) return;
+
+        toast({
+            title: `Outcome Logged: ${outcome === 'hired' ? 'Hired' : 'Rejected'}`,
+            description: `You have logged the interview outcome for ${selectedBooking.candidateName}.`,
+        });
+        setOutcomeDialogOpen(false);
+    };
+
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -86,9 +114,15 @@ export default function BookingsPage() {
                                     <TableCell>
                                         <Badge variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Confirmed' ? 'default' : 'secondary'}>{booking.status}</Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right space-x-2">
                                         {isClient && booking.status === 'Completed' && (
                                             <Button size="sm" onClick={() => handleRebookClick(booking)}>Rebook</Button>
+                                        )}
+                                        {isClient && booking.status === 'Interview' && (
+                                            <Button size="sm" variant="outline" onClick={() => handleLogOutcomeClick(booking)}>
+                                                <ClipboardEdit className="mr-2 h-4 w-4" />
+                                                Log Outcome
+                                            </Button>
                                         )}
                                         {isClient && booking.status === 'Confirmed' && (
                                              <AlertDialog>
@@ -106,7 +140,7 @@ export default function BookingsPage() {
                                                         <AlertDialogCancel>Back</AlertDialogCancel>
                                                         <AlertDialogAction
                                                           onClick={() => handleCancelBooking(booking.id)}
-                                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                          className={buttonVariants({ variant: "destructive" })}
                                                         >
                                                           Confirm Cancellation
                                                         </AlertDialogAction>
@@ -148,6 +182,50 @@ export default function BookingsPage() {
                    <Button type="button" onClick={handleConfirmRebook} disabled={!rebookDates || rebookDates.length === 0}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         Confirm Booking
+                    </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Log Interview Outcome Dialog */}
+            <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Log Interview Outcome</DialogTitle>
+                  <DialogDescription>
+                    Record the result of the interview with {selectedBooking?.candidateName}.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)}>
+                        <Label>Outcome</Label>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="hired" id="hired" />
+                            <Label htmlFor="hired">Hire Candidate</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="rejected" id="rejected" />
+                            <Label htmlFor="rejected">Reject Candidate</Label>
+                        </div>
+                    </RadioGroup>
+                    <div className="grid w-full gap-1.5">
+                        <Label htmlFor="notes">Notes (Optional)</Label>
+                        <Textarea 
+                            placeholder="Add any relevant notes..." 
+                            id="notes" 
+                            value={outcomeNotes}
+                            onChange={(e) => setOutcomeNotes(e.target.value)}
+                        />
+                    </div>
+                </div>
+                 <DialogFooter className="sm:justify-end gap-2">
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                   <Button type="button" onClick={handleConfirmOutcome} disabled={!outcome}>
+                        Submit Outcome
                     </Button>
                 </DialogFooter>
               </DialogContent>
