@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { findCandidateAction } from '@/app/(app)/find-me-someone/actions';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -75,9 +75,12 @@ export function FindSomeoneForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Science Teacher" {...field} />
-                    </FormControl>
+                    <div className="relative">
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <FormControl>
+                          <Input placeholder="e.g., Science Teacher" {...field} className="pl-10" />
+                        </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -88,9 +91,12 @@ export function FindSomeoneForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Subject (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Chemistry" {...field} />
-                    </FormControl>
+                     <div className="relative">
+                        <Book className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <FormControl>
+                          <Input placeholder="e.g., Chemistry" {...field} className="pl-10" />
+                        </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -102,13 +108,17 @@ export function FindSomeoneForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Required Skills / Certifications</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g., 'PhD in History', '5+ Years Experience', 'First Aid certified'"
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
+                   <div className="relative">
+                      <ListChecks className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                      <FormControl>
+                        <Textarea
+                          placeholder="e.g., 'PhD in History', '5+ Years Experience', 'First Aid certified'"
+                          rows={3}
+                          {...field}
+                          className="pl-10 pt-2.5"
+                        />
+                      </FormControl>
+                  </div>
                   <FormDescription>
                     Provide a comma-separated list or a sentence describing the qualifications.
                   </FormDescription>
@@ -122,9 +132,12 @@ export function FindSomeoneForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Additional Notes (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Any other preferences or details..." rows={3} {...field} />
-                  </FormControl>
+                  <div className="relative">
+                      <Pencil className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                      <FormControl>
+                        <Textarea placeholder="Any other preferences or details..." rows={3} {...field} className="pl-10 pt-2.5" />
+                      </FormControl>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

@@ -4,7 +4,7 @@
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock } from "lucide-react";
+import { Lock, Wand2, Sparkles } from "lucide-react";
 import { FindSomeoneForm } from "@/components/find-someone-form";
 
 export default function FindMeSomeonePage() {
@@ -26,10 +26,16 @@ export default function FindMeSomeonePage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold font-headline mb-6">Find Me Someone</h1>
+            <h1 className="text-2xl font-bold font-headline mb-6 flex items-center gap-2">
+                <Wand2 className="h-6 w-6 text-primary" />
+                <span>Find Me Someone</span>
+            </h1>
             <Card>
                 <CardHeader>
-                    <CardTitle>Describe Your Ideal Candidate</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                         <Sparkles className="h-5 w-5 text-primary" />
+                         <span>Describe Your Ideal Candidate</span>
+                    </CardTitle>
                     <CardDescription>
                         Fill in your requirements below, and our AI will find the best match for you from our pool of talented candidates.
                     </CardDescription>
