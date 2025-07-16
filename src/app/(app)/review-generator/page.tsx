@@ -4,7 +4,7 @@ import { ReviewGeneratorForm } from "@/components/review-generator-form";
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock } from "lucide-react";
+import { Lock, PenSquare } from "lucide-react";
 
 export default function ReviewGeneratorPage() {
     const { role } = useRole();
@@ -25,7 +25,10 @@ export default function ReviewGeneratorPage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold font-headline mb-6">AI Review Generator</h1>
+            <h1 className="text-2xl font-bold font-headline mb-6 flex items-center gap-2">
+                <PenSquare className="h-6 w-6 text-primary" />
+                <span>AI Review Generator</span>
+            </h1>
             <Card>
                 <CardHeader>
                     <CardTitle>Create a Constructive Review</CardTitle>

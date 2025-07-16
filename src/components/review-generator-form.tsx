@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { generateReviewAction } from '@/app/(app)/review-generator/actions';
-import { Sparkles, Clipboard, Star } from 'lucide-react';
+import { Sparkles, Clipboard, Star, User, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -79,9 +79,12 @@ export function ReviewGeneratorForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Candidate Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Jane Doe" {...field} />
-                </FormControl>
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <FormControl>
+                      <Input placeholder="e.g., Jane Doe" {...field} className="pl-10" />
+                    </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -92,9 +95,12 @@ export function ReviewGeneratorForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Your Name (as the reviewer)</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., John Smith" {...field} />
-                </FormControl>
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <FormControl>
+                      <Input placeholder="e.g., John Smith" {...field} className="pl-10" />
+                    </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -138,13 +144,17 @@ export function ReviewGeneratorForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Candidate's Past Performance</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describe their key strengths, accomplishments, and areas for improvement..."
-                  rows={5}
-                  {...field}
-                />
-              </FormControl>
+               <div className="relative">
+                  <Clipboard className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe their key strengths, accomplishments, and areas for improvement..."
+                      rows={5}
+                      {...field}
+                      className="pl-10 pt-2.5"
+                    />
+                  </FormControl>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -155,9 +165,12 @@ export function ReviewGeneratorForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Specific Feedback Request (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Focus on communication skills" {...field} />
-              </FormControl>
+               <div className="relative">
+                  <Pencil className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <FormControl>
+                    <Input placeholder="e.g., Focus on communication skills" {...field} className="pl-10"/>
+                  </FormControl>
+              </div>
               <FormMessage />
             </FormItem>
           )}
