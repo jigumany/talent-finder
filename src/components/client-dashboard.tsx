@@ -120,7 +120,7 @@ export default function ClientDashboard() {
                 </CardHeader>
                 <CardContent>
                    <p className="text-xs text-muted-foreground mb-2">View and manage your booking schedule.</p>
-                   <Button variant="outline" size="sm" asChild>
+                   <Button size="sm" asChild>
                      <Link href="/diary">Open Diary</Link>
                    </Button>
                 </CardContent>
@@ -132,7 +132,7 @@ export default function ClientDashboard() {
                 </CardHeader>
                  <CardContent>
                     <p className="text-xs text-muted-foreground mb-2">Review all past and upcoming bookings.</p>
-                     <Button variant="outline" size="sm" asChild>
+                     <Button size="sm" asChild>
                         <Link href="/bookings">View Bookings</Link>
                     </Button>
                 </CardContent>
