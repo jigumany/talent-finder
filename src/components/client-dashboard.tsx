@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
-import { mockCandidates } from '@/lib/mock-data';
+import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
 import type { Candidate } from '@/lib/types';
 import { ListFilter, Search, UserCheck, CalendarCheck2, Users, Calendar, Briefcase } from 'lucide-react';
 import { Button } from './ui/button';
