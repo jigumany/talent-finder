@@ -74,6 +74,7 @@ const prompt = ai.definePrompt({
 First, use the getAvailableCandidates tool to get a list of all candidates.
 
 Then, carefully analyze the client's request and the list of available candidates. Identify the single best match. Provide a concise, compelling reason for your choice. You must provide a best match.
+IMPORTANT: The 'id' for the bestMatch in your output MUST be the exact 'id' from the candidate returned by the getAvailableCandidates tool. Do not modify it.
 
 Client's Request:
 - Role: {{{role}}}
