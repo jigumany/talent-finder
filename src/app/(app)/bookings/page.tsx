@@ -77,11 +77,22 @@ export default function BookingsPage() {
     const handleConfirmOutcome = () => {
         if (!selectedBooking || !outcome) return;
 
-        toast({
-            title: `Outcome Logged: ${outcome === 'hired' ? 'Hired' : 'Rejected'}`,
-            description: `You have logged the interview outcome for ${selectedBooking.candidateName}.`,
-        });
         setOutcomeDialogOpen(false);
+
+        if (outcome === 'hired') {
+            toast({
+                title: "Outcome Logged: Hired!",
+                description: `You've marked ${selectedBooking.candidateName} as hired. Please select their start date(s).`,
+            });
+            // Open the rebooking/scheduling modal
+            setRebookDates([]);
+            setRebookDialogOpen(true);
+        } else {
+            toast({
+                title: `Outcome Logged: Rejected`,
+                description: `You have logged the interview outcome for ${selectedBooking.candidateName}.`,
+            });
+        }
     };
 
 
@@ -160,7 +171,7 @@ export default function BookingsPage() {
             <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Rebook {selectedBooking?.candidateName}</DialogTitle>
+                  <DialogTitle>Book {selectedBooking?.candidateName}</DialogTitle>
                   <DialogDescription>
                     Select one or more new dates to book {selectedBooking?.candidateRole}.
                   </DialogDescription>
