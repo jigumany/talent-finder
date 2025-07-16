@@ -143,7 +143,7 @@ export default function ClientDashboard() {
                         <BarChart accessibilityLayer data={monthlyBookingsChartData}>
                            <CartesianGrid vertical={false} />
                            <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
-                            <Tooltip
+                            <ChartTooltip
                                 cursor={false}
                                 content={<ChartTooltipContent hideLabel />}
                             />
@@ -160,7 +160,7 @@ export default function ClientDashboard() {
                 <CardContent className="flex-1 pb-0">
                     <ChartContainer config={statusChartConfig} className="mx-auto aspect-square max-h-[250px]">
                         <PieChart>
-                            <Tooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
+                            <ChartTooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
                             <Pie data={statusDistributionChartData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={5} />
                              <ChartLegend content={<ChartLegendContent nameKey="name" />} />
                         </PieChart>
