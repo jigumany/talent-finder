@@ -28,6 +28,7 @@ export default function BookingsPage() {
     const [rebookDates, setRebookDates] = useState<Date[] | undefined>([]);
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
+    const { toast } = useToast();
 
     const handleCancelBooking = (bookingId: string) => {
         // In a real app, you'd make an API call here to actually cancel the booking.
@@ -35,7 +36,6 @@ export default function BookingsPage() {
         toast({
             title: "Booking Cancelled",
             description: `The booking (ID: ${bookingId}) has been successfully cancelled.`,
-            variant: "default",
         });
         // Here you would also update the state to remove the cancelled booking from the list.
     };
@@ -104,7 +104,12 @@ export default function BookingsPage() {
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Back</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleCancelBooking(booking.id)}>Confirm Cancellation</AlertDialogAction>
+                                                        <AlertDialogAction
+                                                          onClick={() => handleCancelBooking(booking.id)}
+                                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                        >
+                                                          Confirm Cancellation
+                                                        </AlertDialogAction>
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>
