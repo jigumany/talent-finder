@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from "react";
 import { useRole } from "@/context/role-context";
 import { mockClientBookings, mockCandidateBookings } from "@/lib/mock-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+
 
 export default function BookingsPage() {
     const { role } = useRole();
@@ -17,6 +23,12 @@ export default function BookingsPage() {
     const title = isClient ? "Manage Bookings" : "My Bookings";
     const description = isClient ? "Review your past and upcoming candidate bookings." : "Review your past and upcoming job assignments.";
     
+    // State for rebooking dialog
+    const [rebookDialogOpen, setRebookDialogOpen] = useState(false);
+    const [rebookDates, setRebookDates] = useState<Date[] | undefined>([]);
+    const [selectedBooking, setSelectedBooking] = useState<any>(null);
+
+
     const handleCancelBooking = (bookingId: string) => {
         toast({
             title: "Booking Cancelled",
@@ -24,6 +36,23 @@ export default function BookingsPage() {
         });
         // In a real app, you'd update the state here.
     };
+
+    const handleRebookClick = (booking: any) => {
+        setSelectedBooking(booking);
+        setRebookDates([]);
+        setRebookDialogOpen(true);
+    }
+
+    const handleConfirmRebook = () => {
+        if (!selectedBooking || !rebookDates || rebookDates.length === 0) return;
+        
+        const bookedDates = rebookDates.map(date => format(date, "PPP")).join(', ');
+        toast({
+            title: "Booking Request Sent!",
+            description: `Your request to re-book ${selectedBooking.candidateName} for ${bookedDates} has been sent.`,
+        });
+        setRebookDialogOpen(false);
+    }
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -55,7 +84,9 @@ export default function BookingsPage() {
                                         <Badge variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Confirmed' ? 'default' : 'secondary'}>{booking.status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {isClient && booking.status === 'Completed' && <Button size="sm">Rebook</Button>}
+                                        {isClient && booking.status === 'Completed' && (
+                                            <Button size="sm" onClick={() => handleRebookClick(booking)}>Rebook</Button>
+                                        )}
                                         {isClient && booking.status === 'Confirmed' && (
                                              <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -82,6 +113,38 @@ export default function BookingsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Rebook Dialog */}
+            <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Rebook {selectedBooking?.candidateName}</DialogTitle>
+                  <DialogDescription>
+                    Select one or more new dates to book {selectedBooking?.candidateRole}.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-center">
+                     <Calendar
+                        mode="multiple"
+                        min={0}
+                        selected={rebookDates}
+                        onSelect={setRebookDates}
+                        className="rounded-md border"
+                    />
+                </div>
+                 <DialogFooter className="sm:justify-end gap-2">
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                   <Button type="button" onClick={handleConfirmRebook} disabled={!rebookDates || rebookDates.length === 0}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        Confirm Booking
+                    </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
         </div>
     );
 }
