@@ -23,9 +23,11 @@ interface FiltersProps {
     setSubject: (subject: string) => void;
     location: string;
     setLocation: (location: string) => void;
+    rateType: string;
+    setRateType: (rateType: string) => void;
 }
 
-function Filters({ role, setRole, subject, setSubject, location, setLocation }: FiltersProps) {
+function Filters({ role, setRole, subject, setSubject, location, setLocation, rateType, setRateType }: FiltersProps) {
     return (
         <div className="grid gap-6">
             <div className="grid gap-3">
@@ -46,6 +48,18 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation }: 
                     <SelectContent>
                         <SelectItem value="all">All Subjects</SelectItem>
                          {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <Separator />
+             <div className="grid gap-3">
+                <h3 className="font-semibold">Rate Type</h3>
+                <Select value={rateType} onValueChange={setRateType}>
+                    <SelectTrigger><SelectValue placeholder="Select rate type" /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Rate Types</SelectItem>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="hourly">Hourly</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -71,6 +85,7 @@ export default function ClientDashboard() {
     const [roleFilter, setRoleFilter] = useState('all');
     const [subjectFilter, setSubjectFilter] = useState('all');
     const [locationFilter, setLocationFilter] = useState('');
+    const [rateTypeFilter, setRateTypeFilter] = useState('all');
     
     const confirmedBooking = mockClientBookings.find(b => b.status === 'Confirmed');
 
@@ -99,6 +114,11 @@ export default function ClientDashboard() {
                 candidate.role.toLowerCase().includes(subjectFilter)
             );
         }
+        
+        // Rate Type filter
+        if (rateTypeFilter !== 'all') {
+            filtered = filtered.filter(candidate => candidate.rateType === rateTypeFilter);
+        }
 
         // Location filter
         if (locationFilter) {
@@ -108,7 +128,7 @@ export default function ClientDashboard() {
         }
         
         setFilteredCandidates(filtered);
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, allCandidates]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, allCandidates]);
     
     const filterProps = {
         role: roleFilter,
@@ -117,6 +137,8 @@ export default function ClientDashboard() {
         setSubject: setSubjectFilter,
         location: locationFilter,
         setLocation: setLocationFilter,
+        rateType: rateTypeFilter,
+        setRateType: setRateTypeFilter,
     };
 
     return (
