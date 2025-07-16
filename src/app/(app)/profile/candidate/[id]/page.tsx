@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import Image from 'next/image';
 import { mockCandidates } from '@/lib/mock-data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,9 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 
-export default function CandidatePublicProfilePage({ params }: { params: { id: string } }) {
-  const id = params.id;
+export default function CandidatePublicProfilePage() {
+  const params = use(useParams());
+  const id = params.id as string;
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
 
