@@ -28,7 +28,7 @@ import { format } from 'date-fns';
 
 
 export default function CandidatePublicProfilePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+  const id = params.id;
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
 
