@@ -40,19 +40,29 @@ export function DiaryCalendar({ selected, onSelect }: DiaryCalendarProps) {
     const [bookings] = useState<Booking[]>(mockClientBookings);
     
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col">
             <DayPicker
                 mode="single"
                 selected={selected}
                 onSelect={onSelect}
                 className="w-full"
+                classNames={{
+                    month: 'w-full space-y-4',
+                    table: 'w-full border-collapse',
+                    head_row: 'flex justify-around',
+                    row: 'flex w-full mt-2 justify-around',
+                }}
                 components={{
                     DayContent: (props) => <DayWithIndicator date={props.date} bookings={bookings} />
                 }}
                 styles={{
                     caption: { color: 'hsl(var(--primary))' },
                     head: { color: 'hsl(var(--muted-foreground))' },
-                    cell: { position: 'relative' },
+                    cell: { 
+                        position: 'relative',
+                        width: '100%',
+                        height: '3rem'
+                    },
                     day_outside: {
                         color: 'hsl(var(--muted-foreground))',
                         opacity: 0.5,
