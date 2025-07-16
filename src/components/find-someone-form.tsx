@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -167,7 +166,7 @@ export function FindSomeoneForm() {
             </div>
 
             <div className="text-center">
-                <Button variant="outline" onClick={() => {
+                <Button onClick={() => {
                     setResult(null);
                     form.reset();
                 }}>
