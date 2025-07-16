@@ -13,10 +13,11 @@ import { findCandidateAction } from '@/app/(app)/find-me-someone/actions';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { mockCandidates } from '@/lib/mock-data';
 import { CandidateCard } from './candidate-card';
 import { Alert, AlertTitle, AlertDescription } from './ui/alert';
+import { Separator } from './ui/separator';
 
 const findSomeoneFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -59,6 +60,8 @@ export function FindSomeoneForm() {
   };
   
   const recommendedCandidate = result ? mockCandidates.find(c => c.id === result.bestMatch.id.toString()) : null;
+  const otherCandidates = result?.otherCandidates?.map(other => mockCandidates.find(c => c.id === other.id.toString())).filter(Boolean) || [];
+
 
   return (
     <>
@@ -135,37 +138,54 @@ export function FindSomeoneForm() {
       ) : (
         <div className="space-y-8">
             <div className="text-center">
-                <h2 className="text-2xl font-bold text-primary">We found a great match for you!</h2>
+                <h2 className="text-2xl font-bold text-primary">We found some great candidates for you!</h2>
             </div>
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-                 <div className="max-w-sm mx-auto">
-                    {recommendedCandidate ? (
-                        <CandidateCard candidate={recommendedCandidate} />
-                   ) : (
-                    <Alert variant="destructive">
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>
-                        Could not find the details for the recommended candidate (ID: {result.bestMatch.id}).
-                      </AlertDescription>
-                    </Alert>
-                   )}
-                </div>
-                <div className="space-y-4">
-                     <Card className="bg-primary/5 border-primary/20">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Sparkles className="h-5 w-5 text-primary" />
-                                <span>AI Recommendation</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <p className="text-muted-foreground italic">"{result.bestMatch.reasoning}"</p>
-                        </CardContent>
-                    </Card>
-                </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-center">Top Recommendation</h3>
+              <div className="grid md:grid-cols-2 gap-8 items-start">
+                  <div className="max-w-sm mx-auto">
+                      {recommendedCandidate ? (
+                          <CandidateCard candidate={recommendedCandidate} />
+                    ) : (
+                      <Alert variant="destructive">
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>
+                          Could not find the details for the recommended candidate (ID: {result.bestMatch.id}).
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                      <Card className="bg-primary/5 border-primary/20">
+                          <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                  <Sparkles className="h-5 w-5 text-primary" />
+                                  <span>AI Recommendation</span>
+                              </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                              <p className="text-muted-foreground italic">"{result.bestMatch.reasoning}"</p>
+                          </CardContent>
+                      </Card>
+                  </div>
+              </div>
             </div>
 
-            <div className="text-center">
+            {otherCandidates.length > 0 && (
+              <div>
+                <Separator className="my-8" />
+                <h3 className="text-xl font-semibold mb-4 text-center">Other Potential Candidates</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {otherCandidates.map(candidate => (
+                    candidate ? <CandidateCard key={candidate.id} candidate={candidate} /> : null
+                  ))}
+                </div>
+              </div>
+            )}
+
+
+            <div className="text-center mt-8">
                 <Button onClick={() => {
                     setResult(null);
                     form.reset();
