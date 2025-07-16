@@ -72,13 +72,12 @@ export default function DiaryPage() {
                                                 <p className="font-semibold text-primary flex items-center gap-2"><User className="h-4 w-4"/> {booking.candidateName}</p>
                                                 <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase className="h-4 w-4"/> {booking.candidateRole}</p>
                                             </div>
-                                             <Badge 
-                                                variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Interview' ? 'secondary' : 'default'}
+                                             <Badge
+                                                variant={'outline'}
                                                 className={cn({
-                                                    'bg-primary text-primary-foreground': booking.status === 'Confirmed',
-                                                    'badge-yellow': booking.status === 'Interview',
-                                                    'bg-green-600 text-white': booking.status === 'Completed'
-                                                })}
+                                                    'bg-primary text-primary-foreground border-transparent': booking.status === 'Confirmed',
+                                                    'bg-green-600 text-white border-transparent': booking.status === 'Completed'
+                                                }, booking.status === 'Interview' ? 'badge-yellow' : '')}
                                             >
                                                 {booking.status}
                                             </Badge>

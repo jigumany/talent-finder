@@ -128,8 +128,7 @@ export default function BookingsPage() {
                                             className={cn({
                                                 'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                                 'bg-green-600 text-white': booking.status === 'Completed',
-                                                'badge-yellow': booking.status === 'Interview'
-                                            })}
+                                            }, booking.status === 'Interview' ? 'badge-yellow' : '')}
                                         >
                                             {booking.status}
                                         </Badge>
