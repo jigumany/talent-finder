@@ -1,18 +1,45 @@
 
-import Image from 'next/image';
-import { Star, MapPin, User, BookUser } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Star, MapPin, User, BookUser, Calendar as CalendarIcon } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Calendar } from '@/components/ui/calendar';
+import { toast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+
 
 interface CandidateCardProps {
   candidate: Candidate;
 }
 
 export function CandidateCard({ candidate }: CandidateCardProps) {
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
+
+  const handleBooking = () => {
+    toast({
+        title: "Booking Confirmed!",
+        description: `${candidate.name} has been booked for ${format(date!, "PPP")}.`,
+    });
+    setBookingDialogOpen(false);
+  }
+
   return (
     <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-start gap-4 p-4 bg-card">
@@ -52,7 +79,37 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             <User />View Profile
           </Link>
         </Button>
-        <Button><BookUser />Book Now</Button>
+         <Dialog open={isBookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+          <DialogTrigger asChild>
+            <Button><BookUser />Book Now</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Book {candidate.name}</DialogTitle>
+              <DialogDescription>
+                Select a date to book {candidate.role} for your school.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center">
+                 <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="rounded-md border"
+                />
+            </div>
+             <DialogFooter className="sm:justify-end gap-2">
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  Cancel
+                </Button>
+              </DialogClose>
+               <Button type="button" onClick={handleBooking} disabled={!date}>
+                  Confirm Booking
+                </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardFooter>
     </Card>
   );
