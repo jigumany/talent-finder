@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const roles = [...new Set(mockCandidates.map(c => c.role))];
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS'];
@@ -32,84 +33,92 @@ interface FiltersProps {
 
 function Filters({ role, setRole, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate }: FiltersProps) {
     return (
-        <div className="grid gap-6">
-            <div className="grid gap-3">
-                <h3 className="font-semibold">Role</h3>
-                <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
-                        {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-            <Separator />
-            <div className="grid gap-3">
-                <h3 className="font-semibold">Subject / Qualification</h3>
-                 <Select value={subject} onValueChange={setSubject}>
-                    <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Subjects</SelectItem>
-                         {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-            <Separator />
-             <div className="grid gap-3">
-                <h3 className="font-semibold">Rate Type</h3>
-                <Select value={rateType} onValueChange={setRateType}>
-                    <SelectTrigger><SelectValue placeholder="Select rate type" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Rate Types</SelectItem>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="hourly">Hourly</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-             <Separator />
-             <div className="grid gap-3">
-                <h3 className="font-semibold">Rate Range</h3>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="min-rate">Min</Label>
-                        <div className="relative">
-                             <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                             <Input 
-                                id="min-rate"
-                                type="number"
-                                placeholder="0" 
-                                className="pl-7"
-                                value={minRate}
-                                onChange={(e) => setMinRate(e.target.value)}
-                            />
+        <Accordion type="multiple" defaultValue={['item-1', 'item-2']} className="w-full">
+            <AccordionItem value="item-1">
+                <AccordionTrigger className="text-base">Role & Subject</AccordionTrigger>
+                <AccordionContent>
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label>Role</Label>
+                            <Select value={role} onValueChange={setRole}>
+                                <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Roles</SelectItem>
+                                    {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Subject / Qualification</Label>
+                             <Select value={subject} onValueChange={setSubject}>
+                                <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Subjects</SelectItem>
+                                     {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
-                     <div className="grid gap-1.5">
-                        <Label htmlFor="max-rate">Max</Label>
-                         <div className="relative">
-                            <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+                <AccordionTrigger className="text-base">Rate & Location</AccordionTrigger>
+                <AccordionContent>
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label>Rate Type</Label>
+                            <Select value={rateType} onValueChange={setRateType}>
+                                <SelectTrigger><SelectValue placeholder="Select rate type" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Rate Types</SelectItem>
+                                    <SelectItem value="daily">Daily</SelectItem>
+                                    <SelectItem value="hourly">Hourly</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="grid gap-2">
+                            <Label>Rate Range</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="grid gap-1.5">
+                                    <div className="relative">
+                                         <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                         <Input 
+                                            id="min-rate"
+                                            type="number"
+                                            placeholder="Min" 
+                                            className="pl-7"
+                                            value={minRate}
+                                            onChange={(e) => setMinRate(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                 <div className="grid gap-1.5">
+                                     <div className="relative">
+                                        <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input 
+                                            id="max-rate"
+                                            type="number"
+                                            placeholder="Max" 
+                                            className="pl-7"
+                                            value={maxRate}
+                                            onChange={(e) => setMaxRate(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Location</Label>
                             <Input 
-                                id="max-rate"
-                                type="number"
-                                placeholder="500" 
-                                className="pl-7"
-                                value={maxRate}
-                                onChange={(e) => setMaxRate(e.target.value)}
+                                placeholder="e.g. London, UK" 
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
                             />
                         </div>
                     </div>
-                </div>
-            </div>
-            <Separator />
-            <div className="grid gap-3">
-                <h3 className="font-semibold">Location</h3>
-                <Input 
-                    placeholder="e.g. London, UK" 
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                />
-            </div>
-        </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
     )
 }
 
@@ -194,10 +203,10 @@ export default function BrowseCandidatesPage() {
     };
 
     return (
-        <div className="grid md:grid-cols-[240px_1fr] gap-8">
+        <div className="grid md:grid-cols-[280px_1fr] gap-8">
             <aside className="hidden md:block">
                 <div className="sticky top-20">
-                    <h2 className="text-lg font-semibold mb-4">Filters</h2>
+                    <h2 className="text-lg font-semibold mb-4 px-4">Filters</h2>
                     <Filters {...filterProps} />
                 </div>
             </aside>
@@ -212,7 +221,7 @@ export default function BrowseCandidatesPage() {
                                     <ListFilter className="h-4 w-4" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent>
+                            <SheetContent className="w-[300px] sm:w-[400px]">
                                 <h2 className="text-lg font-semibold my-4">Filters</h2>
                                 <Filters {...filterProps} />
                             </SheetContent>
