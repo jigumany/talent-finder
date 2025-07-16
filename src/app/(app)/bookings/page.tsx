@@ -82,7 +82,7 @@ export default function BookingsPage() {
                                         <div>{isClient ? booking.candidateName : booking.candidateRole}</div>
                                         {isClient && <div className="text-sm text-muted-foreground">{booking.candidateRole}</div>}
                                     </TableCell>
-                                    <TableCell>{new Date(booking.date).toLocaleDateString()}</TableCell>
+                                    <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
                                     <TableCell>
                                         <Badge variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Confirmed' ? 'default' : 'secondary'}>{booking.status}</Badge>
                                     </TableCell>
