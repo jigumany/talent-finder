@@ -78,6 +78,7 @@ export const mockClientBookings: Booking[] = [
   { id: 'b1', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2024-07-15', status: 'Completed' },
   { id: 'b2', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-07-18', status: 'Completed' },
   { id: 'b3', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-08-26', status: 'Confirmed' },
+  { id: 'b5', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2024-08-28', status: 'Interview' },
 ];
 
 export const mockCandidateBookings: Booking[] = [

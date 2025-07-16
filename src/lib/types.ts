@@ -19,7 +19,7 @@ export type Booking = {
   candidateName: string;
   candidateRole: string;
   date: string; // as ISO date string
-  status: 'Confirmed' | 'Completed' | 'Pending';
+  status: 'Confirmed' | 'Completed' | 'Pending' | 'Interview';
 };
 
 export type Timesheet = {
