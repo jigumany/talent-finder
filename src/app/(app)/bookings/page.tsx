@@ -139,7 +139,7 @@ export default function BookingsPage() {
                                             <Button size="sm" onClick={() => handleRebookClick(booking)}>Rebook</Button>
                                         )}
                                         {isClient && booking.status === 'Interview' && (
-                                            <Button size="sm" variant="outline" onClick={() => handleLogOutcomeClick(booking)}>
+                                            <Button size="sm" className="badge-yellow" onClick={() => handleLogOutcomeClick(booking)}>
                                                 <ClipboardEdit className="mr-2 h-4 w-4" />
                                                 Log Outcome
                                             </Button>
