@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -14,6 +15,7 @@ import {z} from 'genkit';
 const ReviewGeneratorInputSchema = z.object({
   candidateName: z.string().describe('The name of the candidate being reviewed.'),
   clientName: z.string().describe('The name of the client writing the review.'),
+  rating: z.number().min(1).max(5).describe('A star rating from 1 to 5.'),
   pastPerformance: z
     .string()
     .describe(
@@ -44,10 +46,11 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI-powered review generator, designed to help clients write personalized and targeted reviews for candidates based on their past performance.
 
   You will generate a review for the candidate, incorporating details from their past performance and any specific feedback requests from the client.
-  The review should be constructive, specific, and helpful for the candidate’s professional development.
+  The review should be constructive, specific, and helpful for the candidate’s professional development. The tone of the review should reflect the provided star rating.
 
   Candidate Name: {{{candidateName}}}
   Client Name: {{{clientName}}}
+  Rating: {{{rating}}}/5
   Past Performance: {{{pastPerformance}}}
   Specific Feedback Request: {{{specificFeedbackRequest}}}
 

@@ -11,12 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { generateReviewAction } from '@/app/(app)/review-generator/actions';
-import { Sparkles, Clipboard } from 'lucide-react';
+import { Sparkles, Clipboard, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const reviewFormSchema = z.object({
   candidateName: z.string().min(1, 'Candidate name is required.'),
   clientName: z.string().min(1, 'Your name is required.'),
+  rating: z.number().min(1, "A rating of at least 1 star is required.").max(5),
   pastPerformance: z.string().min(10, 'Please describe their performance (at least 10 characters).'),
   specificFeedbackRequest: z.string().optional(),
 });
@@ -26,6 +28,8 @@ type ReviewFormValues = z.infer<typeof reviewFormSchema>;
 export function ReviewGeneratorForm() {
   const [isPending, startTransition] = useTransition();
   const [generatedReview, setGeneratedReview] = useState('');
+  const [hoverRating, setHoverRating] = useState(0);
+
   const { toast } = useToast();
 
   const form = useForm<ReviewFormValues>({
@@ -35,6 +39,7 @@ export function ReviewGeneratorForm() {
       clientName: '',
       pastPerformance: '',
       specificFeedbackRequest: '',
+      rating: 0,
     },
   });
 
@@ -61,6 +66,8 @@ export function ReviewGeneratorForm() {
         description: 'Review copied to clipboard.',
     });
   }
+
+  const currentRating = form.watch('rating');
 
   return (
     <Form {...form}>
@@ -93,6 +100,38 @@ export function ReviewGeneratorForm() {
             )}
           />
         </div>
+        
+        <FormField
+            control={form.control}
+            name="rating"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rating</FormLabel>
+                 <FormControl>
+                     <div 
+                        className="flex items-center gap-1"
+                        onMouseLeave={() => setHoverRating(0)}
+                     >
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={cn(
+                              'h-8 w-8 cursor-pointer transition-colors',
+                              (hoverRating >= star || currentRating >= star)
+                                ? 'text-amber-400 fill-amber-400'
+                                : 'text-muted-foreground/50'
+                            )}
+                            onClick={() => form.setValue('rating', star, { shouldValidate: true })}
+                            onMouseEnter={() => setHoverRating(star)}
+                          />
+                        ))}
+                    </div>
+                 </FormControl>
+                 <FormMessage />
+              </FormItem>
+            )}
+        />
+        
         <FormField
           control={form.control}
           name="pastPerformance"

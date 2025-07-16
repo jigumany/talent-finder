@@ -7,6 +7,7 @@ import { z } from 'zod';
 const ReviewSchema = z.object({
   candidateName: z.string().min(1, { message: 'Candidate name is required.' }),
   clientName: z.string().min(1, { message: 'Your name is required.' }),
+  rating: z.number().min(1, {message: "Rating is required."}).max(5),
   pastPerformance: z.string().min(10, { message: 'Please provide some details on performance.' }),
   specificFeedbackRequest: z.string().optional(),
 });
@@ -15,6 +16,11 @@ export async function generateReviewAction(values: ReviewGeneratorInput) {
   const validatedFields = ReviewSchema.safeParse(values);
 
   if (!validatedFields.success) {
+    // Manually check for rating error to provide a more specific message
+    const ratingError = validatedFields.error.flatten().fieldErrors.rating;
+    if (ratingError) {
+        return { error: "Please select a star rating." };
+    }
     return {
       error: "Invalid input.",
       fieldErrors: validatedFields.error.flatten().fieldErrors,
