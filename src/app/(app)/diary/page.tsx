@@ -5,18 +5,22 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DiaryCalendar } from "@/components/diary-calendar";
 import { mockClientBookings } from "@/lib/mock-data";
-import { isSameDay, format } from "date-fns";
+import { isSameDay, format, parseISO } from "date-fns";
 import type { Booking } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Calendar, Briefcase, User } from "lucide-react";
 
 export default function DiaryPage() {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [bookings] = useState<Booking[]>(mockClientBookings);
+    
+    // Default to the first date that has a booking to show functionality
+    const firstBookingDate = bookings.length > 0 ? parseISO(bookings[0].date) : new Date();
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(firstBookingDate);
+
 
     const selectedDayBookings = bookings.filter(booking => 
-        selectedDate && isSameDay(new Date(booking.date), selectedDate)
+        selectedDate && isSameDay(parseISO(booking.date), selectedDate)
     );
 
     return (
@@ -35,6 +39,7 @@ export default function DiaryPage() {
                             <DiaryCalendar 
                                 selected={selectedDate}
                                 onSelect={setSelectedDate}
+                                month={selectedDate}
                             />
                         </CardContent>
                     </Card>
@@ -64,7 +69,7 @@ export default function DiaryPage() {
                                                 className={cn({
                                                     'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                                     'badge-yellow': booking.status === 'Interview',
-                                                    'bg-green-600 text-primary-foreground': booking.status === 'Completed'
+                                                    'bg-green-600 text-white': booking.status === 'Completed'
                                                 })}
                                             >
                                                 {booking.status}
