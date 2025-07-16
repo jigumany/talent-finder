@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, Calendar as CalendarIcon, PoundSterling } from 'lucide-react';
+import { Star, MapPin, User, BookUser, Calendar as CalendarIcon, PoundSterling, BookOpenText } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -58,9 +58,13 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 flex-grow">
+      <CardContent className="p-4 flex-grow space-y-4">
         <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-start gap-2 text-muted-foreground">
+                <BookOpenText className="h-4 w-4 mt-1 flex-shrink-0" />
+                <p className="italic">{candidate.bio}</p>
+            </div>
+             <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>{candidate.location}</span>
             </div>
@@ -74,7 +78,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             </p>
         </div>
       </CardContent>
-      <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2">
+      <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2 mt-auto">
         <Button variant="outline" asChild>
           <Link href={`/profile/candidate/${candidate.id}`}>
             <User />View Profile

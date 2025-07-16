@@ -15,6 +15,7 @@ export const mockCandidates: Candidate[] = [
     availability: ['2024-08-19', '2024-08-20', '2024-08-21'],
     imageUrl: 'https://placehold.co/100x100.png',
     cvUrl: '#',
+    bio: 'Passionate historian with a knack for making the past come alive for students of all ages.',
   },
   {
     id: '2',
@@ -29,6 +30,7 @@ export const mockCandidates: Candidate[] = [
     availability: ['2024-08-22', '2024-08-23'],
     imageUrl: 'https://placehold.co/100x100.png',
     cvUrl: '#',
+    bio: 'An experienced math educator who excels at breaking down complex concepts into understandable lessons.',
   },
   {
     id: '3',
@@ -43,6 +45,7 @@ export const mockCandidates: Candidate[] = [
     availability: ['2024-08-19', '2024-08-26', '2024-08-27'],
     imageUrl: 'https://placehold.co/100x100.png',
     cvUrl: '#',
+    bio: 'A nurturing and patient teaching assistant dedicated to creating a supportive and positive learning environment.',
   },
     {
     id: '4',
@@ -57,6 +60,7 @@ export const mockCandidates: Candidate[] = [
     availability: ['2024-08-20', '2024-08-21', '2024-08-28'],
     imageUrl: 'https://placehold.co/100x100.png',
     cvUrl: '#',
+    bio: 'Engaging science teacher who loves sparking curiosity through hands-on experiments and real-world examples.',
   },
   {
     id: '5',
@@ -71,6 +75,7 @@ export const mockCandidates: Candidate[] = [
     availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
     imageUrl: 'https://placehold.co/100x100.png',
     cvUrl: '#',
+    bio: 'A literature enthusiast committed to developing strong reading and writing skills in her students.',
   },
 ];
 

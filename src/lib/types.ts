@@ -12,6 +12,7 @@ export type Candidate = {
   availability: string[]; // as ISO date strings
   imageUrl: string;
   cvUrl: string;
+  bio: string;
 };
 
 export type Booking = {
