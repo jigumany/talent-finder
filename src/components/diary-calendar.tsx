@@ -98,7 +98,7 @@ export function DiaryCalendar({ selected, onSelect, month, onMonthChange }: Diar
                     <span>Completed</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full badge-yellow"></span>
+                    <span className="w-3 h-3 rounded-full bg-amber-400"></span>
                     <span>Interview</span>
                 </div>
             </div>
