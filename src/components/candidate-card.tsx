@@ -29,13 +29,14 @@ interface CandidateCardProps {
 }
 
 export function CandidateCard({ candidate }: CandidateCardProps) {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   const handleBooking = () => {
+    const bookedDates = dates?.map(date => format(date, "PPP")).join(', ') || 'your selected dates';
     toast({
-        title: "Booking Confirmed!",
-        description: `${candidate.name} has been booked for ${format(date!, "PPP")}.`,
+        title: "Booking Request Sent!",
+        description: `Your request to book ${candidate.name} for ${bookedDates} has been sent.`,
     });
     setBookingDialogOpen(false);
   }
@@ -87,14 +88,15 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             <DialogHeader>
               <DialogTitle>Book {candidate.name}</DialogTitle>
               <DialogDescription>
-                Select a date to book {candidate.role} for your school.
+                Select one or more dates to book {candidate.role} for your school.
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center">
                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
+                    mode="multiple"
+                    min={0}
+                    selected={dates}
+                    onSelect={setDates}
                     className="rounded-md border"
                 />
             </div>
@@ -104,7 +106,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                   Cancel
                 </Button>
               </DialogClose>
-               <Button type="button" onClick={handleBooking} disabled={!date}>
+               <Button type="button" onClick={handleBooking} disabled={!dates || dates.length === 0}>
                   Confirm Booking
                 </Button>
             </DialogFooter>
