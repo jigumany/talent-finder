@@ -12,7 +12,7 @@ export const mockCandidates: Candidate[] = [
     reviews: 24,
     location: 'London, UK',
     qualifications: ['PhD in History', 'QTS'],
-    availability: ['2024-08-19', '2024-08-20', '2024-08-21'],
+    availability: ['2024-08-19', '2024-08-20', '2024-08-21', '2025-01-20', '2025-01-21'],
     imageUrl: 'https://placehold.co/100x100.png',
     cvUrl: '#',
     bio: 'Passionate historian with a knack for making the past come alive for students of all ages.',
@@ -94,6 +94,11 @@ export const mockClientBookings: Booking[] = [
   { id: 'b13', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-09-05', status: 'Interview' },
   { id: 'b14', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-09-09', status: 'Confirmed' },
   { id: 'b15', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-07-29', status: 'Completed' },
+  // 2025 Data
+  { id: 'b16', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2025-01-20', status: 'Confirmed' },
+  { id: 'b17', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2025-01-22', status: 'Interview' },
+  { id: 'b18', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2025-02-10', status: 'Confirmed' },
+  { id: 'b19', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2025-02-14', status: 'Completed' },
 ];
 
 export const mockCandidateBookings: Booking[] = [
