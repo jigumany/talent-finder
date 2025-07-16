@@ -1,16 +1,80 @@
 
 'use client';
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { mockClientBookings } from '@/lib/mock-data';
 import { CalendarCheck2, Calendar, Briefcase, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { format } from 'date-fns';
-
+import { format, getMonth, getYear, parseISO } from 'date-fns';
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Tooltip } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from './ui/chart';
 
 export default function ClientDashboard() {
     
     const confirmedBooking = mockClientBookings.find(b => b.status === 'Confirmed');
+
+    const monthlyBookingsChartData = useMemo(() => {
+        const counts: {[key: string]: number} = {};
+        mockClientBookings.forEach(booking => {
+            const date = parseISO(booking.date);
+            const month = format(date, 'MMM');
+            counts[month] = (counts[month] || 0) + 1;
+        });
+
+        const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        
+        return monthOrder.map(month => ({
+            month,
+            bookings: counts[month] || 0,
+        })).filter(d => d.bookings > 0);
+    }, []);
+
+    const monthlyChartConfig = {
+        bookings: {
+            label: "Bookings",
+            color: "hsl(var(--primary))",
+        },
+    } satisfies ChartConfig;
+
+     const statusDistributionChartData = useMemo(() => {
+        const counts: Record<string, number> = {
+            Completed: 0,
+            Confirmed: 0,
+            Interview: 0,
+        };
+
+        mockClientBookings.forEach(booking => {
+            if (counts.hasOwnProperty(booking.status)) {
+                counts[booking.status]++;
+            }
+        });
+
+        return Object.keys(counts).map((status, index) => ({
+            name: status,
+            value: counts[status],
+            fill: `hsl(var(--chart-${index + 1}))`,
+        }));
+    }, []);
+
+    const statusChartConfig = {
+        value: {
+            label: "Bookings",
+        },
+        Completed: {
+            label: "Completed",
+            color: "hsl(var(--chart-1))",
+        },
+        Confirmed: {
+            label: "Confirmed",
+            color: "hsl(var(--chart-2))",
+        },
+        Interview: {
+            label: "Interview",
+            color: "hsl(var(--chart-3))",
+        },
+    } satisfies ChartConfig;
+
 
     return (
       <div className="flex flex-col gap-8">
@@ -34,7 +98,7 @@ export default function ClientDashboard() {
                         <>
                             <div className="text-2xl font-bold">{confirmedBooking.candidateName}</div>
                             <p className="text-xs text-muted-foreground">
-                                For {format(new Date(confirmedBooking.date), "dd/MM/yyyy")}
+                                For {format(parseISO(confirmedBooking.date), "dd/MM/yyyy")}
                             </p>
                         </>
                     ) : (
@@ -64,6 +128,43 @@ export default function ClientDashboard() {
                      <Button variant="outline" size="sm" asChild>
                         <Link href="/bookings">View Bookings</Link>
                     </Button>
+                </CardContent>
+            </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Bookings per Month</CardTitle>
+                    <CardDescription>A summary of your booking activity over the recent months.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ChartContainer config={monthlyChartConfig} className="min-h-[200px] w-full">
+                        <BarChart accessibilityLayer data={monthlyBookingsChartData}>
+                           <CartesianGrid vertical={false} />
+                           <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
+                            <Tooltip
+                                cursor={false}
+                                content={<ChartTooltipContent hideLabel />}
+                            />
+                           <Bar dataKey="bookings" fill="var(--color-bookings)" radius={8} />
+                        </BarChart>
+                    </ChartContainer>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Booking Status Distribution</CardTitle>
+                    <CardDescription>A breakdown of your bookings by their current status.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                    <ChartContainer config={statusChartConfig} className="mx-auto aspect-square max-h-[250px]">
+                        <PieChart>
+                            <Tooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
+                            <Pie data={statusDistributionChartData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={5} />
+                             <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+                        </PieChart>
+                    </ChartContainer>
                 </CardContent>
             </Card>
         </div>
