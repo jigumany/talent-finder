@@ -124,12 +124,13 @@ export default function BookingsPage() {
                                     </TableCell>
                                     <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
                                     <TableCell>
-                                        <Badge 
-                                            variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Interview' ? 'secondary' : 'default'}
-                                            className={cn({
-                                                'bg-primary text-primary-foreground': booking.status === 'Confirmed',
+                                        <Badge
+                                            className={cn("text-white", {
+                                                'bg-primary': booking.status === 'Confirmed',
+                                                'bg-green-600': booking.status === 'Completed',
                                                 'badge-yellow': booking.status === 'Interview'
                                             })}
+                                            variant={booking.status === 'Completed' ? 'default' : booking.status === 'Interview' ? 'secondary' : 'default'}
                                         >
                                             {booking.status}
                                         </Badge>
