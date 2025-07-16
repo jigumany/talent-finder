@@ -81,7 +81,7 @@ export default function ClientDashboard() {
          <div className="flex justify-between items-start">
             <h1 className="text-2xl font-bold font-headline">Client Dashboard</h1>
             <div className="flex gap-2">
-                 <Button asChild variant="outline">
+                 <Button asChild>
                     <Link href="/browse-candidates">
                         <Users className="mr-2 h-4 w-4"/> Go to Marketplace
                     </Link>
