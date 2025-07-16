@@ -24,7 +24,7 @@ export default function CandidateDashboard() {
                 <CardContent className="space-y-4">
                    {upcomingBooking ? (
                      <div className="flex items-start gap-4">
-                        <CalendarClock className="h-6 w-6 text-primary mt-1" />
+                        <CalendarClock className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">Upcoming Booking</p>
                             <p className="text-sm text-muted-foreground">
@@ -34,7 +34,7 @@ export default function CandidateDashboard() {
                     </div>
                    ) : (
                      <div className="flex items-start gap-4">
-                        <ListChecks className="h-6 w-6 text-green-600 mt-1" />
+                        <ListChecks className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">All Caught Up!</p>
                             <p className="text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export default function CandidateDashboard() {
                    <Separator />
                    {recentTimesheet ? (
                      <div className="flex items-start gap-4">
-                        {recentTimesheet.status === 'Rejected' ? <AlertCircle className="h-6 w-6 text-destructive mt-1" /> : <FileClock className="h-6 w-6 text-primary mt-1" />}
+                        {recentTimesheet.status === 'Rejected' ? <AlertCircle className="h-6 w-6 text-destructive mt-1 flex-shrink-0" /> : <FileClock className="h-6 w-6 text-primary mt-1 flex-shrink-0" />}
                         <div>
                            <div className="flex items-center gap-2">
                              <p className="font-semibold">Latest Timesheet</p>
@@ -61,7 +61,7 @@ export default function CandidateDashboard() {
                     </div>
                    ) : (
                      <div className="flex items-start gap-4">
-                        <FileClock className="h-6 w-6 text-muted-foreground mt-1" />
+                        <FileClock className="h-6 w-6 text-muted-foreground mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">No Timesheets Submitted</p>
                             <p className="text-sm text-muted-foreground">
