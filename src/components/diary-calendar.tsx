@@ -8,7 +8,7 @@ import { mockClientBookings } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import type { Booking } from '@/lib/types';
 
-function DayWithIndicator({ date, modifiers, bookings }: { date: Date, modifiers: ReturnType<typeof useModifiers>, bookings: Booking[] }) {
+function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] }) {
   const dayBooking = bookings.find(booking => isSameDay(new Date(booking.date), date));
   
   let indicatorClass = '';
@@ -22,7 +22,7 @@ function DayWithIndicator({ date, modifiers, bookings }: { date: Date, modifiers
       {indicatorClass && (
         <div
           className={cn(
-            'h-1.5 w-1.5 rounded-full mt-0.5',
+            'h-1.5 w-1.5 rounded-full absolute bottom-1.5',
             indicatorClass
           )}
         />
@@ -31,17 +31,8 @@ function DayWithIndicator({ date, modifiers, bookings }: { date: Date, modifiers
   );
 }
 
-function useModifiers() {
-    return {
-        booked: (date: Date) => mockClientBookings.some(b => b.status === 'Confirmed' && isSameDay(new Date(b.date), date)),
-        interview: (date: Date) => mockClientBookings.some(b => b.status === 'Interview' && isSameDay(new Date(b.date), date)),
-        completed: (date: Date) => mockClientBookings.some(b => b.status === 'Completed' && isSameDay(new Date(b.date), date)),
-    };
-}
-
 
 export function DiaryCalendar() {
-    const modifiers = useModifiers();
     const [bookings] = useState<Booking[]>(mockClientBookings);
     
     return (
@@ -50,7 +41,7 @@ export function DiaryCalendar() {
                 mode="single"
                 className="w-full"
                 components={{
-                    DayContent: (props) => <DayWithIndicator date={props.date} modifiers={modifiers} bookings={bookings} />
+                    DayContent: (props) => <DayWithIndicator date={props.date} bookings={bookings} />
                 }}
                 styles={{
                     caption: { color: 'hsl(var(--primary))' },

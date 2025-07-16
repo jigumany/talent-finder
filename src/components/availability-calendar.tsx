@@ -22,12 +22,12 @@ function DayWithIndicator({ date, modifiers }: { date: Date, modifiers: ReturnTy
   else if (isInterview) indicatorClass = 'bg-purple-500';
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full">
-      {format(date, "d")}
+    <div className="flex flex-col items-center justify-center h-full w-full relative">
+      <span>{format(date, "d")}</span>
       {indicatorClass && (
         <div
           className={cn(
-            'h-1.5 w-1.5 rounded-full mt-0.5',
+            'h-1.5 w-1.5 rounded-full absolute bottom-1.5',
             indicatorClass
           )}
         />
