@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CandidateCard } from '@/components/candidate-card';
 import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, UserCheck, CalendarCheck2, Users, Calendar, Briefcase } from 'lucide-react';
+import { ListFilter, Search, UserCheck, CalendarCheck2, Users, Calendar, Briefcase, PoundSterling } from 'lucide-react';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Separator } from './ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Label } from './ui/label';
+
 
 const roles = [...new Set(mockCandidates.map(c => c.role))];
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS'];
@@ -25,9 +27,13 @@ interface FiltersProps {
     setLocation: (location: string) => void;
     rateType: string;
     setRateType: (rateType: string) => void;
+    minRate: string;
+    setMinRate: (rate: string) => void;
+    maxRate: string;
+    setMaxRate: (rate: string) => void;
 }
 
-function Filters({ role, setRole, subject, setSubject, location, setLocation, rateType, setRateType }: FiltersProps) {
+function Filters({ role, setRole, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate }: FiltersProps) {
     return (
         <div className="grid gap-6">
             <div className="grid gap-3">
@@ -63,6 +69,40 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation, ra
                     </SelectContent>
                 </Select>
             </div>
+             <Separator />
+             <div className="grid gap-3">
+                <h3 className="font-semibold">Rate Range</h3>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="min-rate">Min</Label>
+                        <div className="relative">
+                             <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                             <Input 
+                                id="min-rate"
+                                type="number"
+                                placeholder="0" 
+                                className="pl-7"
+                                value={minRate}
+                                onChange={(e) => setMinRate(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                     <div className="grid gap-1.5">
+                        <Label htmlFor="max-rate">Max</Label>
+                         <div className="relative">
+                            <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                id="max-rate"
+                                type="number"
+                                placeholder="500" 
+                                className="pl-7"
+                                value={maxRate}
+                                onChange={(e) => setMaxRate(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
             <Separator />
             <div className="grid gap-3">
                 <h3 className="font-semibold">Location</h3>
@@ -86,6 +126,8 @@ export default function ClientDashboard() {
     const [subjectFilter, setSubjectFilter] = useState('all');
     const [locationFilter, setLocationFilter] = useState('');
     const [rateTypeFilter, setRateTypeFilter] = useState('all');
+    const [minRate, setMinRate] = useState('');
+    const [maxRate, setMaxRate] = useState('');
     
     const confirmedBooking = mockClientBookings.find(b => b.status === 'Confirmed');
 
@@ -119,6 +161,17 @@ export default function ClientDashboard() {
         if (rateTypeFilter !== 'all') {
             filtered = filtered.filter(candidate => candidate.rateType === rateTypeFilter);
         }
+        
+        // Rate Range filter
+        const minRateNum = parseFloat(minRate);
+        const maxRateNum = parseFloat(maxRate);
+        
+        if (!isNaN(minRateNum)) {
+            filtered = filtered.filter(c => c.rate >= minRateNum);
+        }
+        if (!isNaN(maxRateNum)) {
+            filtered = filtered.filter(c => c.rate <= maxRateNum);
+        }
 
         // Location filter
         if (locationFilter) {
@@ -128,7 +181,7 @@ export default function ClientDashboard() {
         }
         
         setFilteredCandidates(filtered);
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, allCandidates]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates]);
     
     const filterProps = {
         role: roleFilter,
@@ -139,6 +192,10 @@ export default function ClientDashboard() {
         setLocation: setLocationFilter,
         rateType: rateTypeFilter,
         setRateType: setRateTypeFilter,
+        minRate,
+        setMinRate,
+        maxRate,
+        setMaxRate,
     };
 
     return (

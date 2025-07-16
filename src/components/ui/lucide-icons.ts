@@ -32,7 +32,8 @@ import {
     Loader2,
     ListChecks,
     AlertCircle,
-    FileClock
+    FileClock,
+    Lock
 } from 'lucide-react';
 export {
     Briefcase,
@@ -66,5 +67,6 @@ export {
     Loader2,
     ListChecks,
     AlertCircle,
-    FileClock
+    FileClock,
+    Lock
 };
