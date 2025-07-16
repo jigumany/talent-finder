@@ -111,8 +111,10 @@
   .rdp-cell {
     width: var(--rdp-cell-size);
     height: var(--rdp-cell-size);
-    text-align: center;
-    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
 
   .rdp-button:hover:not([aria-selected]):not([disabled]) {
@@ -130,4 +132,10 @@
       --rdp-cell-size: 12vw;
     }
   }
+}
+
+@layer components {
+    .badge-yellow {
+        @apply bg-amber-400 text-amber-900 border-transparent hover:bg-amber-400/80;
+    }
 }

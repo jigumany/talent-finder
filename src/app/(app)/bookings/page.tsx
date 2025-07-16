@@ -17,6 +17,7 @@ import { Calendar as CalendarIcon, ClipboardEdit } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 
 export default function BookingsPage() {
@@ -123,7 +124,15 @@ export default function BookingsPage() {
                                     </TableCell>
                                     <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
                                     <TableCell>
-                                        <Badge variant={booking.status === 'Completed' ? 'outline' : booking.status === 'Confirmed' ? 'default' : 'secondary'}>{booking.status}</Badge>
+                                        <Badge 
+                                            variant={booking.status === 'Completed' ? 'outline' : 'default'}
+                                            className={cn({
+                                                'bg-primary': booking.status === 'Confirmed',
+                                                'badge-yellow': booking.status === 'Interview'
+                                            })}
+                                        >
+                                            {booking.status}
+                                        </Badge>
                                     </TableCell>
                                     <TableCell className="text-right space-x-2">
                                         {isClient && booking.status === 'Completed' && (
