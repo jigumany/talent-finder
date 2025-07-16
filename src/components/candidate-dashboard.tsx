@@ -6,7 +6,7 @@ import { mockCandidateBookings, mockTimesheets } from '@/lib/mock-data';
 import { ListChecks, CalendarClock, AlertCircle, FileClock } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 export default function CandidateDashboard() {
   const upcomingBooking = mockCandidateBookings.find(b => b.status === 'Confirmed');
@@ -28,7 +28,7 @@ export default function CandidateDashboard() {
                         <div>
                             <p className="font-semibold">Upcoming Booking</p>
                             <p className="text-sm text-muted-foreground">
-                                {upcomingBooking.candidateRole} on {format(new Date(upcomingBooking.date), "dd/MM/yyyy")}.
+                                {upcomingBooking.candidateRole} on {format(parseISO(upcomingBooking.date), "dd/MM/yyyy")}.
                             </p>
                         </div>
                     </div>
@@ -55,7 +55,7 @@ export default function CandidateDashboard() {
                             </Badge>
                            </div>
                            <p className="text-sm text-muted-foreground">
-                                Submitted for {format(new Date(recentTimesheet.date), "dd/MM/yyyy")} for {recentTimesheet.hours} hours.
+                                Submitted for {format(parseISO(recentTimesheet.date), "dd/MM/yyyy")} for {recentTimesheet.hours} hours.
                            </p>
                         </div>
                     </div>

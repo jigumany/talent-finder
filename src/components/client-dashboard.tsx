@@ -6,7 +6,7 @@ import { mockClientBookings } from '@/lib/mock-data';
 import { CalendarCheck2, Calendar, Briefcase, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { format, getMonth, getYear, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from './ui/chart';
 
