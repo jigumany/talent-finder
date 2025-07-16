@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { mockCandidates } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
@@ -28,8 +27,7 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 
-export default function CandidatePublicProfilePage() {
-  const params = useParams();
+export default function CandidatePublicProfilePage({ params }: { params: { id: string } }) {
   const { id } = params;
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
@@ -146,8 +144,7 @@ export default function CandidatePublicProfilePage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground whitespace-pre-wrap">
-                            {/* A placeholder bio as we don't have one in mock-data yet */}
-                            Enthusiastic and certified professional with {candidate.rating}+ years of experience. Proven ability to create engaging learning environments and support student success. Passionate about fostering a love for learning.
+                            {candidate.bio}
                         </p>
                     </CardContent>
                 </Card>
