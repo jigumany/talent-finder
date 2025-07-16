@@ -13,38 +13,50 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Separator } from './ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
-function Filters() {
+const roles = [...new Set(mockCandidates.map(c => c.role))];
+const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry'];
+
+interface FiltersProps {
+    role: string;
+    setRole: (role: string) => void;
+    subject: string;
+    setSubject: (subject: string) => void;
+    location: string;
+    setLocation: (location: string) => void;
+}
+
+function Filters({ role, setRole, subject, setSubject, location, setLocation }: FiltersProps) {
     return (
         <div className="grid gap-6">
             <div className="grid gap-3">
                 <h3 className="font-semibold">Role</h3>
-                <Select>
+                <Select value={role} onValueChange={setRole}>
                     <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="teacher">Teacher</SelectItem>
-                        <SelectItem value="ta">Teaching Assistant</SelectItem>
-                        <SelectItem value="science">Science Teacher</SelectItem>
-                        <SelectItem value="math">Math Teacher</SelectItem>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
             <Separator />
             <div className="grid gap-3">
                 <h3 className="font-semibold">Subject</h3>
-                <Select>
+                 <Select value={subject} onValueChange={setSubject}>
                     <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="history">History</SelectItem>
-                        <SelectItem value="math">Mathematics</SelectItem>
-                        <SelectItem value="science">Science</SelectItem>
-                        <SelectItem value="english">English</SelectItem>
+                        <SelectItem value="all">All Subjects</SelectItem>
+                         {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
             <Separator />
             <div className="grid gap-3">
                 <h3 className="font-semibold">Location</h3>
-                <Input placeholder="e.g. New York, NY" />
+                <Input 
+                    placeholder="e.g. New York, NY" 
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                />
             </div>
         </div>
     )
@@ -53,19 +65,60 @@ function Filters() {
 export default function ClientDashboard() {
     const [allCandidates] = useState<Candidate[]>(mockCandidates);
     const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(allCandidates);
+    
+    // Filter states
     const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [subjectFilter, setSubjectFilter] = useState('all');
+    const [locationFilter, setLocationFilter] = useState('');
+    
     const confirmedBooking = mockClientBookings.find(b => b.status === 'Confirmed');
 
     useEffect(() => {
-        const lowercasedTerm = searchTerm.toLowerCase();
-        const filtered = allCandidates.filter(candidate => 
-            candidate.name.toLowerCase().includes(lowercasedTerm) ||
-            candidate.role.toLowerCase().includes(lowercasedTerm) ||
-            candidate.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
-        );
+        let filtered = allCandidates;
+
+        // Search term filter
+        if (searchTerm) {
+            const lowercasedTerm = searchTerm.toLowerCase();
+            filtered = filtered.filter(candidate => 
+                candidate.name.toLowerCase().includes(lowercasedTerm) ||
+                candidate.role.toLowerCase().includes(lowercasedTerm) ||
+                candidate.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
+            );
+        }
+
+        // Role filter
+        if (roleFilter !== 'all') {
+            filtered = filtered.filter(candidate => candidate.role === roleFilter);
+        }
+
+        // Subject filter
+        if (subjectFilter !== 'all') {
+            filtered = filtered.filter(candidate => 
+                candidate.qualifications.some(q => q.toLowerCase().includes(subjectFilter)) ||
+                candidate.role.toLowerCase().includes(subjectFilter)
+            );
+        }
+
+        // Location filter
+        if (locationFilter) {
+            filtered = filtered.filter(candidate => 
+                candidate.location.toLowerCase().includes(locationFilter.toLowerCase())
+            );
+        }
+        
         setFilteredCandidates(filtered);
-    }, [searchTerm, allCandidates]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, allCandidates]);
     
+    const filterProps = {
+        role: roleFilter,
+        setRole: setRoleFilter,
+        subject: subjectFilter,
+        setSubject: setSubjectFilter,
+        location: locationFilter,
+        setLocation: setLocationFilter,
+    };
+
     return (
       <div className="flex flex-col gap-8">
          <div className="flex justify-between items-start">
@@ -126,7 +179,7 @@ export default function ClientDashboard() {
             <aside className="hidden md:block">
                 <div className="sticky top-20">
                     <h2 className="text-lg font-semibold mb-4">Filters</h2>
-                    <Filters />
+                    <Filters {...filterProps} />
                 </div>
             </aside>
             
@@ -142,7 +195,7 @@ export default function ClientDashboard() {
                             </SheetTrigger>
                             <SheetContent>
                                 <h2 className="text-lg font-semibold my-4">Filters</h2>
-                                <Filters />
+                                <Filters {...filterProps} />
                             </SheetContent>
                         </Sheet>
                     </div>
