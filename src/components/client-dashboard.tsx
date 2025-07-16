@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { mockClientBookings } from '@/lib/mock-data';
-import { CalendarCheck2, Calendar, Briefcase, Search } from 'lucide-react';
+import { CalendarCheck2, Calendar, Briefcase, Search, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { format, parseISO } from 'date-fns';
@@ -80,11 +80,18 @@ export default function ClientDashboard() {
       <div className="flex flex-col gap-8">
          <div className="flex justify-between items-start">
             <h1 className="text-2xl font-bold font-headline">Client Dashboard</h1>
-             <Button asChild>
-                <Link href="/find-me-someone">
-                    <Search className="mr-2 h-4 w-4"/> Find Me Someone
-                </Link>
-            </Button>
+            <div className="flex gap-2">
+                 <Button asChild variant="outline">
+                    <Link href="/browse-candidates">
+                        <Users className="mr-2 h-4 w-4"/> Go to Marketplace
+                    </Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/find-me-someone">
+                        <Search className="mr-2 h-4 w-4"/> Find Me Someone
+                    </Link>
+                </Button>
+            </div>
          </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -168,26 +175,6 @@ export default function ClientDashboard() {
                 </CardContent>
             </Card>
         </div>
-
-        <Card>
-            <CardHeader>
-                <CardTitle>Browse Candidates</CardTitle>
-                <CardDescription>
-                    Explore our pool of qualified candidates to find the perfect fit for your school.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground mb-4">
-                    Our marketplace allows you to filter by role, subject, location, and rate to quickly find available staff.
-                </p>
-                <Button asChild>
-                    <Link href="/browse-candidates">
-                        <Search className="mr-2 h-4 w-4"/> Go to Marketplace
-                    </Link>
-                </Button>
-            </CardContent>
-        </Card>
-
       </div>
     );
 }
