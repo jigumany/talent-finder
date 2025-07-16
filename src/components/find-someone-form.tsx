@@ -11,12 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { findCandidateAction } from '@/app/(app)/find-me-someone/actions';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { mockCandidates } from '@/lib/mock-data';
 import { CandidateCard } from './candidate-card';
+import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 
 const findSomeoneFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -58,13 +59,13 @@ export function FindSomeoneForm() {
     });
   };
   
-  const recommendedCandidate = result ? mockCandidates.find(c => c.id === result.bestMatch.id) : null;
+  const recommendedCandidate = result ? mockCandidates.find(c => c.id === result.bestMatch.id.toString()) : null;
 
   return (
     <>
       {!result ? (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -107,7 +108,7 @@ export function FindSomeoneForm() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Please provide a comma-separated list or a sentence describing the qualifications.
+                    Provide a comma-separated list or a sentence describing the qualifications.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -134,28 +135,46 @@ export function FindSomeoneForm() {
         </Form>
       ) : (
         <div className="space-y-8">
-            <Card className="bg-primary/5 border-primary/20">
-                <CardHeader>
-                    <CardTitle>We found a great match for you!</CardTitle>
-                    <CardDescription>{result.bestMatch.reasoning}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   {recommendedCandidate ? (
-                    <div className="max-w-sm mx-auto">
+            <div className="text-center">
+                <h2 className="text-2xl font-bold text-primary">We found a great match for you!</h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 items-start">
+                 <div className="max-w-sm mx-auto">
+                    {recommendedCandidate ? (
                         <CandidateCard candidate={recommendedCandidate} />
-                    </div>
                    ) : (
-                    <p>Could not find candidate details.</p>
+                    <Alert variant="destructive">
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>
+                        Could not find the details for the recommended candidate (ID: {result.bestMatch.id}).
+                      </AlertDescription>
+                    </Alert>
                    )}
-                </CardContent>
-            </Card>
+                </div>
+                <div className="space-y-4">
+                     <Card className="bg-primary/5 border-primary/20">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                <span>AI Recommendation</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <p className="text-muted-foreground italic">"{result.bestMatch.reasoning}"</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
 
-            <Button onClick={() => {
-                setResult(null);
-                form.reset();
-            }}>
-                Start a New Search
-            </Button>
+            <div className="text-center">
+                <Button variant="outline" onClick={() => {
+                    setResult(null);
+                    form.reset();
+                }}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Start a New Search
+                </Button>
+            </div>
         </div>
       )}
     </>
