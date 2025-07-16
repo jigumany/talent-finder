@@ -1,11 +1,11 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
-import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
+import { mockCandidates } from '@/lib/mock-data';
 import type { Candidate } from '@/lib/types';
 import { ListFilter, Search, UserCheck, CalendarCheck2, Users, Calendar, Briefcase } from 'lucide-react';
 import { Button } from './ui/button';
@@ -51,8 +51,20 @@ function Filters() {
 }
 
 export default function ClientDashboard() {
-    const [candidates] = useState<Candidate[]>(mockCandidates);
+    const [allCandidates] = useState<Candidate[]>(mockCandidates);
+    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(allCandidates);
+    const [searchTerm, setSearchTerm] = useState('');
     const confirmedBooking = mockClientBookings.find(b => b.status === 'Confirmed');
+
+    useEffect(() => {
+        const lowercasedTerm = searchTerm.toLowerCase();
+        const filtered = allCandidates.filter(candidate => 
+            candidate.name.toLowerCase().includes(lowercasedTerm) ||
+            candidate.role.toLowerCase().includes(lowercasedTerm) ||
+            candidate.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
+        );
+        setFilteredCandidates(filtered);
+    }, [searchTerm, allCandidates]);
     
     return (
       <div className="flex flex-col gap-8">
@@ -138,14 +150,25 @@ export default function ClientDashboard() {
 
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input placeholder="Search by name or keyword..." className="pl-10" />
+                    <Input 
+                        placeholder="Search by name or keyword..." 
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {candidates.map(candidate => (
+                    {filteredCandidates.map(candidate => (
                         <CandidateCard key={candidate.id} candidate={candidate} />
                     ))}
                 </div>
+                 {filteredCandidates.length === 0 && (
+                    <div className="text-center text-muted-foreground col-span-full py-12">
+                        <p className="text-lg font-semibold">No candidates found.</p>
+                        <p>Try adjusting your search or filters.</p>
+                    </div>
+                 )}
             </div>
         </div>
       </div>
