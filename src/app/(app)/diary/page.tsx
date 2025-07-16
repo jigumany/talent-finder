@@ -17,6 +17,7 @@ export default function DiaryPage() {
     // Default to the first date that has a booking to show functionality
     const firstBookingDate = bookings.length > 0 ? parseISO(bookings[0].date) : new Date();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(firstBookingDate);
+    const [displayedMonth, setDisplayedMonth] = useState<Date>(firstBookingDate);
 
 
     const selectedDayBookings = bookings.filter(booking => 
@@ -39,7 +40,8 @@ export default function DiaryPage() {
                             <DiaryCalendar 
                                 selected={selectedDate}
                                 onSelect={setSelectedDate}
-                                month={selectedDate}
+                                month={displayedMonth}
+                                onMonthChange={setDisplayedMonth}
                             />
                         </CardContent>
                     </Card>

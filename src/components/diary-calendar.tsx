@@ -41,10 +41,11 @@ function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] 
 interface DiaryCalendarProps {
     selected: Date | undefined;
     onSelect: (date: Date | undefined) => void;
-    month?: Date;
+    month: Date;
+    onMonthChange: (date: Date) => void;
 }
 
-export function DiaryCalendar({ selected, onSelect, month }: DiaryCalendarProps) {
+export function DiaryCalendar({ selected, onSelect, month, onMonthChange }: DiaryCalendarProps) {
     const [bookings] = useState<Booking[]>(mockClientBookings);
     
     return (
@@ -54,6 +55,7 @@ export function DiaryCalendar({ selected, onSelect, month }: DiaryCalendarProps)
                 selected={selected}
                 onSelect={onSelect}
                 month={month}
+                onMonthChange={onMonthChange}
                 className="w-full"
                 classNames={{
                     month: 'w-full space-y-4',
