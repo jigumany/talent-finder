@@ -143,7 +143,7 @@ export default function TimesheetsPage() {
                         <TableBody>
                             {mockTimesheets.map((sheet) => (
                                 <TableRow key={sheet.id}>
-                                    <TableCell className="font-medium">{new Date(sheet.date).toLocaleDateString()}</TableCell>
+                                    <TableCell className="font-medium">{format(new Date(sheet.date), "dd/MM/yyyy")}</TableCell>
                                     <TableCell>{sheet.hours}</TableCell>
                                     <TableCell className="text-right">
                                         <Badge variant={sheet.status === 'Approved' ? 'default' : sheet.status === 'Rejected' ? 'destructive' : 'secondary'}

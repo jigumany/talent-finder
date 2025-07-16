@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Separator } from './ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
+import { format } from 'date-fns';
 
 
 const roles = [...new Set(mockCandidates.map(c => c.role))];
@@ -220,7 +221,7 @@ export default function ClientDashboard() {
                         <>
                             <div className="text-2xl font-bold">{confirmedBooking.candidateName}</div>
                             <p className="text-xs text-muted-foreground">
-                                For {new Date(confirmedBooking.date).toLocaleDateString()}
+                                For {format(new Date(confirmedBooking.date), "dd/MM/yyyy")}
                             </p>
                         </>
                     ) : (
