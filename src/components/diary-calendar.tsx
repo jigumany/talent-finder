@@ -16,7 +16,7 @@ function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] 
   // This logic now supports multiple bookings on the same day by prioritizing the status for display
   const getIndicatorClass = () => {
     if (dayBookings.some(b => b.status === 'Confirmed')) return 'bg-primary';
-    if (dayBookings.some(b => b.status === 'Interview')) return 'badge-yellow';
+    if (dayBookings.some(b => b.status === 'Interview')) return 'bg-amber-400';
     if (dayBookings.some(b => b.status === 'Completed')) return 'bg-green-500';
     return '';
   }
