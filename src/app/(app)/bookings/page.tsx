@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
@@ -30,11 +30,14 @@ export default function BookingsPage() {
 
 
     const handleCancelBooking = (bookingId: string) => {
+        // In a real app, you'd make an API call here to actually cancel the booking.
+        // For now, we'll just show a confirmation toast.
         toast({
             title: "Booking Cancelled",
-            description: `The booking has been successfully cancelled.`,
+            description: `The booking (ID: ${bookingId}) has been successfully cancelled.`,
+            variant: "default",
         });
-        // In a real app, you'd update the state here.
+        // Here you would also update the state to remove the cancelled booking from the list.
     };
 
     const handleRebookClick = (booking: any) => {
@@ -126,7 +129,6 @@ export default function BookingsPage() {
                 <div className="flex justify-center">
                      <Calendar
                         mode="multiple"
-                        min={0}
                         selected={rebookDates}
                         onSelect={setRebookDates}
                         className="rounded-md border"
