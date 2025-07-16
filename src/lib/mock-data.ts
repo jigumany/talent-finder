@@ -79,12 +79,16 @@ export const mockClientBookings: Booking[] = [
   { id: 'b2', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-07-18', status: 'Completed' },
   { id: 'b3', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-08-26', status: 'Confirmed' },
   { id: 'b5', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2024-08-28', status: 'Interview' },
-  // Add more data for visualization
   { id: 'b6', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-07-22', status: 'Completed' },
   { id: 'b7', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2024-08-12', status: 'Confirmed' },
   { id: 'b8', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-08-15', status: 'Confirmed' },
   { id: 'b9', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-08-21', status: 'Interview' },
   { id: 'b10', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-08-05', status: 'Completed' },
+  { id: 'b11', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2024-08-01', status: 'Completed' },
+  { id: 'b12', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2024-09-02', status: 'Confirmed' },
+  { id: 'b13', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-09-05', status: 'Interview' },
+  { id: 'b14', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-09-09', status: 'Confirmed' },
+  { id: 'b15', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-07-29', status: 'Completed' },
 ];
 
 export const mockCandidateBookings: Booking[] = [
