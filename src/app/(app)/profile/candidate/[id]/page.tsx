@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, DollarSign, Briefcase, Star, MapPin, FileText, CheckCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, PoundSterling, Briefcase, Star, MapPin, FileText, CheckCircle } from 'lucide-react';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -174,12 +174,12 @@ export default function CandidatePublicProfilePage() {
                     <CardContent className="space-y-4">
                         <div className="flex justify-between items-baseline">
                              <span className="text-muted-foreground">Daily Rate</span>
-                             <span className="text-2xl font-bold">${candidate.rateType === 'daily' ? candidate.rate : 'N/A'}</span>
+                             <span className="text-2xl font-bold">£{candidate.rateType === 'daily' ? candidate.rate : 'N/A'}</span>
                         </div>
                         <Separator/>
                         <div className="flex justify-between items-baseline">
                              <span className="text-muted-foreground">Hourly Rate</span>
-                             <span className="text-2xl font-bold">${candidate.rateType === 'hourly' ? candidate.rate : 'N/A'}</span>
+                             <span className="text-2xl font-bold">£{candidate.rateType === 'hourly' ? candidate.rate : 'N/A'}</span>
                         </div>
                     </CardContent>
                 </Card>

@@ -30,7 +30,7 @@ export default function AuthPage() {
               <p className="text-lg">
                 “The best way to predict the future is to create it. Staffable helps us build the future of education, one great teacher at a time.”
               </p>
-              <footer className="text-sm">Sofia Davis, Principal</footer>
+              <footer className="text-sm">Sofia Davis, Headteacher</footer>
             </blockquote>
           </div>
         </div>
@@ -57,7 +57,7 @@ export default function AuthPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="me@example.co.uk"
                     required
                   />
                 </div>

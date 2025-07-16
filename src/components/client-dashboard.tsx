@@ -14,7 +14,7 @@ import { Separator } from './ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 const roles = [...new Set(mockCandidates.map(c => c.role))];
-const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry'];
+const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS'];
 
 interface FiltersProps {
     role: string;
@@ -40,7 +40,7 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation }: 
             </div>
             <Separator />
             <div className="grid gap-3">
-                <h3 className="font-semibold">Subject</h3>
+                <h3 className="font-semibold">Subject / Qualification</h3>
                  <Select value={subject} onValueChange={setSubject}>
                     <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                     <SelectContent>
@@ -53,7 +53,7 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation }: 
             <div className="grid gap-3">
                 <h3 className="font-semibold">Location</h3>
                 <Input 
-                    placeholder="e.g. New York, NY" 
+                    placeholder="e.g. London, UK" 
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                 />

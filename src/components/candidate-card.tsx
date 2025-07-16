@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, Calendar as CalendarIcon } from 'lucide-react';
+import { Star, MapPin, User, BookUser, Calendar as CalendarIcon, PoundSterling } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,8 +69,8 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                     <Badge key={q} variant="secondary">{q}</Badge>
                 ))}
             </div>
-            <p className="text-lg font-semibold text-primary">
-                ${candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
+            <p className="text-lg font-semibold text-primary flex items-center">
+                <PoundSterling className="h-5 w-5 -ml-1" />{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
             </p>
         </div>
       </CardContent>

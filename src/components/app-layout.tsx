@@ -80,7 +80,7 @@ function BottomNavBar() {
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
     const pathname = usePathname();
-    const user = role === 'client' ? { name: 'Hill Valley School', email: 'contact@hillvalley.edu', fallback: 'HV' } : { name: 'Jane Doe', email: 'jane.doe@example.com', fallback: 'JD' };
+    const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
 
     // Combine nav items for desktop sidebar
     const desktopClientNav = [

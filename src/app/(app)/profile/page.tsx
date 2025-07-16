@@ -17,9 +17,9 @@ export default function ProfilePage() {
 
     // Placeholder data for the candidate view
     const candidateData = {
-        fullName: 'Jane Doe',
-        email: 'jane.doe@example.com',
-        phoneNumber: '123-456-7890',
+        fullName: 'Amelia Collins',
+        email: 'amelia.collins@example.co.uk',
+        phoneNumber: '07700 900123',
         profilePhotoUrl: 'https://placehold.co/100x100.png',
         cvUrl: 'my_cv_2024.pdf',
         roleType: 'Teaching Assistant',
@@ -27,16 +27,16 @@ export default function ProfilePage() {
         qualifications: 'Child Development Cert., First Aid',
         experienceYears: 3,
         bio: 'Enthusiastic and certified Teaching Assistant with 3+ years of experience supporting lead teachers and students in a dynamic classroom environment.',
-        baseLocation: 'Chicago, IL',
+        baseLocation: 'Manchester, UK',
         canTravel: true,
-        preferredRadiusKm: 20,
+        preferredRadiusKm: 30,
         hourlyRate: 25,
         dailyRate: 180,
     };
 
     const clientData = {
-        schoolName: 'Hill Valley School',
-        contactEmail: 'contact@hillvalley.edu',
+        schoolName: 'Oakwood Primary School',
+        contactEmail: 'contact@oakwoodprimary.org.uk',
         profilePhotoUrl: 'https://placehold.co/100x100.png',
     };
 
