@@ -58,9 +58,14 @@ export default function ProfilePage() {
                                 <AvatarFallback>{clientData.schoolName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div className="grid gap-2 flex-1">
-                                <Label htmlFor="profile-photo">School Logo</Label>
-                                <Input id="profile-photo" type="file" />
-                                <p className="text-sm text-muted-foreground">Upload a new logo.</p>
+                                <Label>School Logo</Label>
+                                <div className="flex gap-2">
+                                     <Button variant="outline">
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Upload Logo
+                                     </Button>
+                                </div>
+                                {/* <Input id="profile-photo" type="file" className="hidden" /> */}
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -89,9 +94,14 @@ export default function ProfilePage() {
                                     <AvatarFallback>{candidateData.fullName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-2 flex-1">
-                                    <Label htmlFor="profile-photo">Profile Photo</Label>
-                                    <Input id="profile-photo" type="file" />
-                                    <p className="text-sm text-muted-foreground">Upload a new photo.</p>
+                                    <Label>Profile Photo</Label>
+                                     <div className="flex gap-2">
+                                         <Button variant="outline">
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Upload Photo
+                                         </Button>
+                                    </div>
+                                    {/* <Input id="profile-photo" type="file" className="hidden" /> */}
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -142,9 +152,15 @@ export default function ProfilePage() {
                                 <Textarea id="bio" placeholder="Tell us about your experience..." defaultValue={candidateData.bio} rows={5} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="cv">Upload CV</Label>
-                                <Input id="cv" type="file" />
-                                <p className="text-sm text-muted-foreground">Current file: {candidateData.cvUrl}</p>
+                                <Label>Upload CV</Label>
+                                <div className="flex items-center gap-2">
+                                     <Button variant="outline">
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Upload CV
+                                     </Button>
+                                     {candidateData.cvUrl && <p className="text-sm text-muted-foreground">Current file: {candidateData.cvUrl}</p>}
+                                </div>
+                                {/* <Input id="cv" type="file" className="hidden"/> */}
                             </div>
                         </CardContent>
                     </Card>
@@ -221,3 +237,5 @@ export default function ProfilePage() {
         </div>
     );
 }
+
+    
