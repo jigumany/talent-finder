@@ -14,11 +14,17 @@ import { Calendar, Briefcase, User } from "lucide-react";
 export default function DiaryPage() {
     const [bookings] = useState<Booking[]>(mockClientBookings);
     
-    // Default to the first date that has a booking to show functionality
-    const firstBookingDate = bookings.length > 0 ? parseISO(bookings[0].date) : new Date();
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(firstBookingDate);
-    const [displayedMonth, setDisplayedMonth] = useState<Date>(firstBookingDate);
+    // Default to the current date
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+    const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
 
+
+    const handleMonthChange = (month: Date) => {
+        setDisplayedMonth(month);
+        // Also update the selected date to the first of the new month
+        // to ensure the side panel updates accordingly.
+        setSelectedDate(month);
+    }
 
     const selectedDayBookings = bookings.filter(booking => 
         selectedDate && isSameDay(parseISO(booking.date), selectedDate)
@@ -41,7 +47,7 @@ export default function DiaryPage() {
                                 selected={selectedDate}
                                 onSelect={setSelectedDate}
                                 month={displayedMonth}
-                                onMonthChange={setDisplayedMonth}
+                                onMonthChange={handleMonthChange}
                             />
                         </CardContent>
                     </Card>
