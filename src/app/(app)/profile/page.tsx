@@ -37,6 +37,7 @@ export default function ProfilePage() {
     const clientData = {
         schoolName: 'Hill Valley School',
         contactEmail: 'contact@hillvalley.edu',
+        profilePhotoUrl: 'https://placehold.co/100x100.png',
     };
 
     return (
@@ -51,6 +52,17 @@ export default function ProfilePage() {
                         <CardDescription>Update your school's information.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                        <div className="flex items-center gap-6">
+                            <Avatar className="h-20 w-20">
+                                <AvatarImage src={clientData.profilePhotoUrl} alt={clientData.schoolName} />
+                                <AvatarFallback>{clientData.schoolName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            <div className="grid gap-2 flex-1">
+                                <Label htmlFor="profile-photo">School Logo</Label>
+                                <Input id="profile-photo" type="file" />
+                                <p className="text-sm text-muted-foreground">Upload a new logo.</p>
+                            </div>
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="schoolName">School Name</Label>
                             <Input id="schoolName" defaultValue={clientData.schoolName} />
