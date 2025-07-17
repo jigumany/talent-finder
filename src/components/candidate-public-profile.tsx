@@ -100,14 +100,14 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                       <FileText className="mr-2"/> View CV
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-3xl h-[90vh]">
+                  <DialogContent className="sm:max-w-3xl flex flex-col h-[90vh]">
                     <DialogHeader>
                       <DialogTitle>CV Preview</DialogTitle>
                       <DialogDescriptionComponent>
                         A preview of the CV for {candidate.name}.
                       </DialogDescriptionComponent>
                     </DialogHeader>
-                    <div className="relative h-full w-full mt-4 rounded-md overflow-hidden">
+                    <div className="relative flex-1 mt-4 rounded-md overflow-hidden bg-muted/50">
                         <Image 
                             src="https://placehold.co/800x1100.png" 
                             alt="CV Preview"
@@ -116,9 +116,9 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                             data-ai-hint="document resume"
                         />
                     </div>
-                     <DialogFooter className="sm:justify-end">
+                     <DialogFooter className="sm:justify-end mt-4">
                       <DialogClose asChild>
-                        <Button type="button" variant="secondary">
+                        <Button type="button" variant="outline">
                           Close
                         </Button>
                       </DialogClose>
