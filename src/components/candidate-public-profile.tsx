@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import type { Candidate } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -69,9 +69,9 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Book {candidate.name}</DialogTitle>
-                      <DialogDescription>
+                      <DialogDescriptionComponent>
                         Select one or more dates to book {candidate.role} for your school.
-                      </DialogDescription>
+                      </DialogDescriptionComponent>
                     </DialogHeader>
                     <div className="flex justify-center">
                          <Calendar
@@ -103,9 +103,9 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                   <DialogContent className="sm:max-w-3xl h-[90vh]">
                     <DialogHeader>
                       <DialogTitle>CV Preview</DialogTitle>
-                      <DialogDescription>
+                      <DialogDescriptionComponent>
                         A preview of the CV for {candidate.name}.
-                      </DialogDescription>
+                      </DialogDescriptionComponent>
                     </DialogHeader>
                     <div className="relative h-full w-full mt-4 rounded-md overflow-hidden">
                         <Image 
