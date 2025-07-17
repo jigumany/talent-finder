@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const interDisplay = Inter({ subsets: ['latin'], variable: '--font-sans-display' });
 
 export const metadata: Metadata = {
-  title: 'Staffable',
+  title: 'Talent Marketplace',
   description: 'Connecting schools with qualified staff, seamlessly.',
 };
 

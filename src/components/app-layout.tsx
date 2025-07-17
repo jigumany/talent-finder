@@ -107,7 +107,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex h-[60px] items-center border-b px-6">
                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
                         <School className="h-6 w-6" />
-                        <span>Staffable</span>
+                        <span>Talent Marketplace</span>
                     </Link>
                 </div>
                 <nav className="flex-1 overflow-y-auto p-4">
@@ -136,7 +136,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="md:hidden flex-1">
                          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
                             <School className="h-6 w-6" />
-                            <span>Staffable</span>
+                            <span>Talent Marketplace</span>
                         </Link>
                     </div>
 
