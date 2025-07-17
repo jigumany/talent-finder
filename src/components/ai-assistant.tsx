@@ -19,7 +19,7 @@ interface Message {
 export function AIAssistant() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', text: "Hello! How can I help you with the Staffable app today?" }
+        { role: 'assistant', text: "Hello! I'm Ash, your AI assistant. How can I help you with Staffable today?" }
     ]);
     const [input, setInput] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -69,7 +69,7 @@ export function AIAssistant() {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Bot className="h-6 w-6 text-primary" />
-                            <CardTitle>AI Assistant</CardTitle>
+                            <CardTitle>Ash</CardTitle>
                         </div>
                         <Button variant="ghost" size="icon" onClick={toggleOpen}>
                             <X className="h-4 w-4" />
