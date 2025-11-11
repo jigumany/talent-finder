@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
   DropdownMenuGroup,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -35,6 +34,7 @@ import {
     MoreVertical,
     XCircle,
     Pencil as PencilIcon,
+    Loader2,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -43,6 +43,7 @@ import { cn } from '@/lib/utils';
 import { Logo } from './logo';
 import images from '@/lib/placeholder-images.json';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useState, useEffect } from 'react';
 
 
 const clientNav = [
@@ -96,8 +97,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
     const avatarImage = images['user-avatar-fallback'];
     const isMobile = useIsMobile();
+    const [isClient, setIsClient] = useState(false);
 
-    const navItems = role === 'client' ? clientNav : candidateNav;
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+
+    if (!isClient) {
+        return (
+             <div className="flex items-center justify-center h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     if (isMobile) {
         return (

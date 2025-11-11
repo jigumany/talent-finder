@@ -27,8 +27,10 @@ interface ActivityLogProps {
 
 function LogItem({ log, isLast }: { log: AuditLog, isLast: boolean }) {
   const [timeAgo, setTimeAgo] = useState('');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     setTimeAgo(formatDistanceToNow(new Date(log.date), { addSuffix: true }));
   }, [log.date]);
 
@@ -55,7 +57,7 @@ function LogItem({ log, isLast }: { log: AuditLog, isLast: boolean }) {
         <div className="flex justify-between items-center">
            <p className="font-semibold">{log.action}</p>
            <p className="text-xs text-muted-foreground" title={format(new Date(log.date), "PPP p")}>
-              {timeAgo}
+              {isClient ? timeAgo : ''}
           </p>
         </div>
         <p className="text-sm text-muted-foreground">by {log.user}</p>

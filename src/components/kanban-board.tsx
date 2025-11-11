@@ -26,8 +26,10 @@ interface KanbanCardProps {
 
 function KanbanCard({ application, candidate }: KanbanCardProps) {
   const [appliedAt, setAppliedAt] = useState('');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     setAppliedAt(formatDistanceToNow(new Date(application.dateApplied), { addSuffix: true }));
   }, [application.dateApplied]);
 
@@ -51,7 +53,7 @@ function KanbanCard({ application, candidate }: KanbanCardProps) {
         </div>
         <div className="mt-3 flex justify-between items-center">
              <p className="text-xs text-muted-foreground">
-                Applied {appliedAt}
+                {isClient ? `Applied ${appliedAt}` : ''}
             </p>
             <Button variant="outline" size="sm" asChild>
                 <Link href={`/profile/candidate/${candidate.id}`}>

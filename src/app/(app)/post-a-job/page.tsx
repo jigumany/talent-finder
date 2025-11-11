@@ -36,8 +36,10 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
     const shortlistedCount = job.shortlisted ?? 0;
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [postedAt, setPostedAt] = useState('');
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
+        setIsClient(true);
         setPostedAt(formatDistanceToNow(new Date(job.datePosted), { addSuffix: true }));
     }, [job.datePosted]);
 
@@ -83,7 +85,7 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                     </div>
                 </div>
                 <CardDescription>
-                    Posted {postedAt}
+                    {isClient ? `Posted ${postedAt}` : ''}
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
