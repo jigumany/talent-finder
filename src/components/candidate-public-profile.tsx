@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import type { Candidate } from '@/lib/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -111,8 +111,8 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                         <Image 
                             src="https://placehold.co/800x1100.png" 
                             alt="CV Preview"
-                            layout="fill"
-                            objectFit="contain"
+                            fill
+                            style={{objectFit: 'contain'}}
                             data-ai-hint="document resume"
                         />
                     </div>

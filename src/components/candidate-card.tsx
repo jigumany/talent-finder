@@ -79,7 +79,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         </div>
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2 mt-auto">
-        <Button variant="warning" asChild>
+        <Button variant="outline" className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-primary-foreground" asChild>
           <Link href={`/profile/candidate/${candidate.id}`}>
             <User />View Profile
           </Link>

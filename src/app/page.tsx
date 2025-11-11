@@ -15,8 +15,8 @@ export default function AuthPage() {
         <Image
           src="https://placehold.co/1200x1200.png"
           alt="A modern classroom with students and a teacher"
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{objectFit: 'cover'}}
           className="opacity-90"
           data-ai-hint="school classroom"
         />
