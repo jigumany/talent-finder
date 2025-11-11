@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -14,11 +14,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { KanbanBoard } from '@/components/kanban-board';
-import { Separator } from '@/components/ui/separator';
 import { EditJobForm } from '@/components/edit-job-form';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ActivityLog } from '@/components/activity-log';
 
 interface JobCardProps {
     job: Job;
@@ -249,9 +250,9 @@ export default function PostAJobPage() {
             </div>
 
             {selectedJob && (
-                <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
+                 <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
                     <DialogContent className="sm:max-w-6xl h-[90vh] flex flex-col">
-                        {isEditingJob ? (
+                         {isEditingJob ? (
                             <>
                                 <DialogHeader>
                                     <DialogTitle>Edit Job Posting</DialogTitle>
@@ -264,23 +265,33 @@ export default function PostAJobPage() {
                                 </div>
                             </>
                         ) : (
-                             <>
+                            <Tabs defaultValue="applicants" className="flex-1 flex flex-col">
                                 <DialogHeader>
-                                    <DialogTitle className="text-2xl flex items-center gap-3">
-                                        <span>{selectedJob.title}</span>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingJob(true)}>
-                                            <Pencil className="h-4 w-4" />
-                                        </Button>
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {selectedJob.description}
-                                    </DialogDescription>
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <DialogTitle className="text-2xl flex items-center gap-3">
+                                                <span>{selectedJob.title}</span>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingJob(true)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                Manage applicants and view job activity.
+                                            </DialogDescription>
+                                        </div>
+                                         <TabsList>
+                                            <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
+                                            <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity Log</TabsTrigger>
+                                        </TabsList>
+                                    </div>
                                 </DialogHeader>
-                                <Separator />
-                                <div className="flex-1 overflow-auto -mx-6 px-6">
-                                    <KanbanBoard applications={jobApplications} />
-                                </div>
-                            </>
+                                <TabsContent value="applicants" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+                                     <KanbanBoard applications={jobApplications} />
+                                </TabsContent>
+                                <TabsContent value="activity" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+                                    <ActivityLog jobId={selectedJob.id} />
+                                </TabsContent>
+                            </Tabs>
                         )}
                     </DialogContent>
                 </Dialog>

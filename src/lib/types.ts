@@ -74,7 +74,16 @@ export type ClientReview = {
     reviewText: string;
 };
 
+export type AuditLog = {
+    id: string;
+    jobId: string;
+    date: string; // ISO date string
+    action: string;
+    user: string;
+    details?: string;
+};
     
 
     
+
 
