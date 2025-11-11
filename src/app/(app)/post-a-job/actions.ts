@@ -1,8 +1,8 @@
 
 'use server';
 
-import { findCandidate, type FindCandidateInput } from '@/ai/flows/find-candidate-flow';
 import { z } from 'zod';
+import type { Job } from '@/lib/types';
 
 const PostJobSchema = z.object({
   role: z.string().min(1, { message: 'Role is required.' }),
@@ -11,7 +11,7 @@ const PostJobSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function postJobAction(values: FindCandidateInput) {
+export async function postJobAction(values: z.infer<typeof PostJobSchema>): Promise<{ success?: Job, error?: string, fieldErrors?: any }> {
   const validatedFields = PostJobSchema.safeParse(values);
 
   if (!validatedFields.success) {
@@ -22,10 +22,23 @@ export async function postJobAction(values: FindCandidateInput) {
   }
 
   try {
-    const result = await findCandidate(validatedFields.data);
-    return { success: result };
+    // In a real app, this would save to a database and return the new job.
+    // Here, we simulate creating a new job object.
+    const newJob: Job = {
+        id: `job-${Date.now()}`,
+        title: validatedFields.data.role,
+        description: validatedFields.data.skills, // Using skills for description as per form
+        datePosted: new Date().toISOString(),
+        status: 'Active',
+        applicants: 0,
+        shortlisted: 0
+    };
+    
+    // We're not calling an AI flow here, just creating the job.
+    // The success property now returns the full job object.
+    return { success: newJob };
   } catch (error) {
-    console.error("Candidate finding failed:", error);
-    return { error: 'Failed to find a candidate. Please try again.' };
+    console.error("Job posting failed:", error);
+    return { error: 'Failed to post the job. Please try again.' };
   }
 }

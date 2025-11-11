@@ -83,9 +83,9 @@ export default function PostAJobPage() {
         )
     }
 
-    const handleJobPosted = () => {
+    const handleJobPosted = (newJob: Job) => {
+        setJobs(prevJobs => [newJob, ...prevJobs]);
         setPostJobDialogOpen(false);
-        // In a real app, you would refetch the jobs list here
     }
 
     const handleManageClick = (job: Job) => {

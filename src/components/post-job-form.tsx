@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,14 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { postJobAction } from '@/app/(app)/post-a-job/actions';
-import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Loader2 } from 'lucide-react';
+import { Sparkles, Briefcase, Book, ListChecks, Pencil, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { mockCandidates } from '@/lib/mock-data';
-import { CandidateCard } from './candidate-card';
-import { Alert, AlertTitle, AlertDescription } from './ui/alert';
-import { Separator } from './ui/separator';
+import type { Job } from '@/lib/types';
 
 const postJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -30,12 +25,11 @@ const postJobFormSchema = z.object({
 type PostJobFormValues = z.infer<typeof postJobFormSchema>;
 
 interface PostJobFormProps {
-  onJobPosted: () => void;
+  onJobPosted: (newJob: Job) => void;
 }
 
 export function PostJobForm({ onJobPosted }: PostJobFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<FindCandidateOutput | null>(null);
   const { toast } = useToast();
 
   const form = useForm<PostJobFormValues>({
@@ -49,19 +43,15 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
   });
 
   const onSubmit = (values: PostJobFormValues) => {
-    setResult(null);
     startTransition(async () => {
-      // In a real app, this would create a job and then find candidates.
-      // For now, we simulate success and show the candidates.
       const response = await postJobAction(values);
       if (response.success) {
         toast({
-            title: "Job Posted & Candidates Found!",
-            description: "We've posted your job and found some initial candidates for you.",
+            title: "Job Posted!",
+            description: "Your new job has been added to your postings.",
         });
-        onJobPosted();
-        // Maybe we want to show candidates in the dialog? For now, we just close it.
-        // setResult(response.success);
+        onJobPosted(response.success);
+        form.reset();
       } else if (response.error) {
         toast({
           title: 'Error',
@@ -160,7 +150,7 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
               ) : (
                 <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Post Job and Find Candidates
+                    Post Job
                 </>
               )}
             </Button>
