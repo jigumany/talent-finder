@@ -1,0 +1,14 @@
+--- a/node_modules/@genkit-ai/next/dist/index.mjs
++++ b/node_modules/@genkit-ai/next/dist/index.mjs
+@@ -35,6 +35,11 @@
+ let genkitServer;
+ if (process.env.NODE_ENV === 'development') {
+     const { dev } = await import('genkit/dev');
++    const shutdown = () => {
++        genkitServer === null || genkitServer === void 0 ? void 0 : genkitServer.shutdown();
++    };
++    process.on('SIGTERM', shutdown);
++    process.on('SIGINT', shutdown);
+     genkitServer = dev({
+         plugins: options.plugins,
+         flowRender: 'long',
