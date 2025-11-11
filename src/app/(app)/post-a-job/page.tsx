@@ -348,7 +348,7 @@ export default function PostAJobPage() {
                                         </div>
                                     </div>
                                 </DialogHeader>
-                                <TabsContent value="applicants" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+                                <TabsContent value="applicants" className="flex-1 overflow-auto mt-4">
                                      <KanbanBoard applications={jobApplications} />
                                 </TabsContent>
                                 <TabsContent value="details" className="flex-1 overflow-auto -mx-6 px-6 mt-4">

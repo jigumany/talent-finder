@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 
 const kanbanColumns: { title: string; status: ApplicationStatus, headerColor: string, bodyColor: string }[] = [
   { title: 'Applied', status: 'Applied', headerColor: 'bg-sky-600', bodyColor: 'bg-sky-50' },
@@ -69,35 +70,38 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
   };
 
   return (
-    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-      {kanbanColumns.map(column => {
-        const columnApps = getApplicationsByStatus(column.status);
-        return (
-          <div key={column.status} className="flex flex-col h-full">
-            <div className={cn("flex flex-col rounded-lg border overflow-hidden", column.bodyColor)}>
-                <div className={cn("p-3", column.headerColor)}>
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-base font-semibold text-white">{column.title}</h3>
-                        <span className="text-sm font-normal text-white bg-black/20 rounded-full px-2 py-0.5">
-                            {columnApps.length}
-                        </span>
+    <ScrollArea className="w-full">
+        <div className="flex gap-6 pb-4">
+            {kanbanColumns.map(column => {
+                const columnApps = getApplicationsByStatus(column.status);
+                return (
+                <div key={column.status} className="w-[280px] flex-shrink-0">
+                    <div className={cn("flex flex-col rounded-lg border overflow-hidden h-full", column.bodyColor)}>
+                        <div className={cn("p-3", column.headerColor)}>
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-base font-semibold text-white">{column.title}</h3>
+                                <span className="text-sm font-normal text-white bg-black/20 rounded-full px-2 py-0.5">
+                                    {columnApps.length}
+                                </span>
+                            </div>
+                        </div>
+                    <div className="p-2 flex-1">
+                        {columnApps.length > 0 ? (
+                        columnApps.map(item => (
+                            <KanbanCard key={item.application.id} application={item.application} candidate={item.candidate} />
+                        ))
+                        ) : (
+                        <div className="flex items-center justify-center h-full text-center text-sm text-muted-foreground p-4">
+                            <p>No candidates in this stage.</p>
+                        </div>
+                        )}
+                    </div>
                     </div>
                 </div>
-              <div className="p-2 flex-1">
-                {columnApps.length > 0 ? (
-                  columnApps.map(item => (
-                    <KanbanCard key={item.application.id} application={item.application} candidate={item.candidate} />
-                  ))
-                ) : (
-                  <div className="flex items-center justify-center h-full text-center text-sm text-muted-foreground p-4">
-                    <p>No candidates in this stage.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
+                );
+            })}
+        </div>
+        <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
