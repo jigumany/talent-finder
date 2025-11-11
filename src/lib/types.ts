@@ -46,7 +46,7 @@ export type Job = {
   title: string;
   description: string;
   datePosted: string; // ISO date string
-  status: 'Active' | 'Closed' | 'Draft';
+  status: 'Active' | 'Closed' | 'Draft' | 'Paused';
   applicants?: number;
   shortlisted?: number;
 };
@@ -68,5 +68,7 @@ export type ClientReview = {
     rating: number;
     reviewText: string;
 };
+
+    
 
     

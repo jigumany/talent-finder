@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -16,24 +16,56 @@ import { cn } from '@/lib/utils';
 import { KanbanBoard } from '@/components/kanban-board';
 import { Separator } from '@/components/ui/separator';
 import { EditJobForm } from '@/components/edit-job-form';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 
 interface JobCardProps {
     job: Job;
     onManageClick: (job: Job) => void;
+    onStatusChange: (jobId: string, status: Job['status']) => void;
+    onDelete: (jobId: string) => void;
 }
 
-function JobCard({ job, onManageClick }: JobCardProps) {
+function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps) {
     const applicantCount = job.applicants ?? 0;
     const shortlistedCount = job.shortlisted ?? 0;
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     return (
         <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <CardTitle className="text-xl font-bold font-headline">{job.title}</CardTitle>
-                    <Badge variant={job.status === 'Active' ? 'default' : 'secondary'} className={cn(job.status === 'Active' && 'bg-green-600')}>
-                        {job.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge variant={job.status === 'Active' ? 'default' : 'secondary'} className={cn(
+                            job.status === 'Active' && 'bg-green-600',
+                            job.status === 'Paused' && 'bg-amber-500',
+                        )}>
+                            {job.status}
+                        </Badge>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => onStatusChange(job.id, job.status === 'Paused' ? 'Active' : 'Paused')}>
+                                    <PauseCircle className="mr-2 h-4 w-4" />
+                                    <span>{job.status === 'Paused' ? 'Resume' : 'Pause'}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onStatusChange(job.id, 'Closed')}>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    <span>Close</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    <span>Delete</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
                 <CardDescription>
                     Posted {formatDistanceToNow(new Date(job.datePosted), { addSuffix: true })}
@@ -55,6 +87,23 @@ function JobCard({ job, onManageClick }: JobCardProps) {
                     <Button size="sm" onClick={() => onManageClick(job)}>Manage Job</Button>
                 </div>
             </CardFooter>
+            
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the job posting for "{job.title}".
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onDelete(job.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 }
@@ -104,6 +153,23 @@ export default function PostAJobPage() {
     const totalActiveJobs = jobs.filter(j => j.status === 'Active').length;
     const totalApplicants = jobs.reduce((acc, job) => acc + (job.applicants || 0), 0);
     const totalShortlisted = jobs.reduce((acc, job) => acc + (job.shortlisted || 0), 0);
+
+    const handleJobStatusChange = (jobId: string, status: Job['status']) => {
+        setJobs(prev => prev.map(job => job.id === jobId ? { ...job, status } : job));
+        toast({
+            title: "Job Status Updated",
+            description: `The job has been set to "${status}".`
+        });
+    };
+
+    const handleJobDelete = (jobId: string) => {
+        setJobs(prev => prev.filter(job => job.id !== jobId));
+        toast({
+            title: "Job Deleted",
+            description: "The job posting has been successfully deleted.",
+            variant: 'destructive',
+        });
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">
@@ -166,7 +232,13 @@ export default function PostAJobPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {jobs.map(job => (
-                    <JobCard key={job.id} job={job} onManageClick={handleManageClick} />
+                    <JobCard 
+                        key={job.id} 
+                        job={job} 
+                        onManageClick={handleManageClick} 
+                        onStatusChange={handleJobStatusChange}
+                        onDelete={handleJobDelete}
+                    />
                 ))}
             </div>
 
@@ -220,3 +292,5 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
