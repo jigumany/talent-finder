@@ -200,7 +200,6 @@ export default function BookingsPage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold font-headline mb-6">Booking List</h1>
             
             {isClient ? (
                 <Card>
