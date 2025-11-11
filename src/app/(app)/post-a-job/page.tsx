@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -100,10 +100,14 @@ export default function PostAJobPage() {
         setIsEditingJob(false);
         // Here you would typically refetch job data
     };
+    
+    const totalActiveJobs = jobs.filter(j => j.status === 'Active').length;
+    const totalApplicants = jobs.reduce((acc, job) => acc + (job.applicants || 0), 0);
+    const totalShortlisted = jobs.reduce((acc, job) => acc + (job.shortlisted || 0), 0);
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+            <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
                     <Briefcase className="h-6 w-6 text-primary" />
                     <span>My Job Postings</span>
@@ -126,6 +130,40 @@ export default function PostAJobPage() {
                 </Dialog>
             </div>
             
+             <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
+                        <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{totalActiveJobs}</div>
+                        <p className="text-xs text-muted-foreground">Currently open positions</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Applicants</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{totalApplicants}</div>
+                        <p className="text-xs text-muted-foreground">Across all jobs</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Shortlisted</CardTitle>
+                        <ListChecks className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{totalShortlisted}</div>
+                        <p className="text-xs text-muted-foreground">Candidates in consideration</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {jobs.map(job => (
                     <JobCard key={job.id} job={job} onManageClick={handleManageClick} />
