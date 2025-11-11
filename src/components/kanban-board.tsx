@@ -85,17 +85,19 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
                                 </span>
                             </div>
                         </div>
-                    <div className="p-2 flex-1">
-                        {columnApps.length > 0 ? (
-                        columnApps.map(item => (
-                            <KanbanCard key={item.application.id} application={item.application} candidate={item.candidate} />
-                        ))
-                        ) : (
-                        <div className="flex items-center justify-center h-full text-center text-sm text-muted-foreground p-4">
-                            <p>No candidates in this stage.</p>
-                        </div>
-                        )}
-                    </div>
+                        <ScrollArea className="flex-1">
+                            <div className="p-2">
+                                {columnApps.length > 0 ? (
+                                columnApps.map(item => (
+                                    <KanbanCard key={item.application.id} application={item.application} candidate={item.candidate} />
+                                ))
+                                ) : (
+                                <div className="flex items-center justify-center h-full text-center text-sm text-muted-foreground p-4">
+                                    <p>No candidates in this stage.</p>
+                                </div>
+                                )}
+                            </div>
+                        </ScrollArea>
                     </div>
                 </div>
                 );
