@@ -29,7 +29,7 @@ function KanbanCard({ application, candidate }: KanbanCardProps) {
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 border">
-            <AvatarImage src={candidate.imageUrl} alt={candidate.name} />
+            <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
             <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
