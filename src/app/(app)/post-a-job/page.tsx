@@ -8,8 +8,8 @@ import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, Mor
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { mockJobs, mockApplications } from '@/lib/mock-data';
-import type { Job } from '@/lib/types';
+import { mockJobs, mockApplications, mockAuditLogs } from '@/lib/mock-data';
+import type { Job, AuditLog } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -120,6 +120,7 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
 export default function PostAJobPage() {
     const { role } = useRole();
     const [jobs, setJobs] = useState<Job[]>(mockJobs);
+    const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
     const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -140,8 +141,21 @@ export default function PostAJobPage() {
         )
     }
 
+    const addAuditLog = (jobId: string, action: string, details?: string) => {
+        const newLog: AuditLog = {
+            id: `log-${Date.now()}`,
+            jobId,
+            date: new Date().toISOString(),
+            action,
+            user: 'Jane Doe (Admin)',
+            details,
+        };
+        setAuditLogs(prev => [newLog, ...prev]);
+    };
+
     const handleJobPosted = (newJob: Job) => {
         setJobs(prevJobs => [newJob, ...prevJobs]);
+        addAuditLog(newJob.id, 'Job Created', 'Initial posting.');
         setPostJobDialogOpen(false);
     }
 
@@ -153,9 +167,10 @@ export default function PostAJobPage() {
     
     const jobApplications = selectedJob ? mockApplications.filter(app => app.jobId === selectedJob.id) : [];
     
-    const handleJobUpdated = () => {
+    const handleJobUpdated = (updatedJob: Job) => {
+        setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+        addAuditLog(updatedJob.id, 'Job Edited', 'Job details were updated.');
         setIsEditingJob(false);
-        // Here you would typically refetch job data
     };
     
     const totalActiveJobs = jobs.filter(j => j.status === 'Active').length;
@@ -164,6 +179,7 @@ export default function PostAJobPage() {
 
     const handleJobStatusChange = (jobId: string, status: Job['status']) => {
         setJobs(prev => prev.map(job => job.id === jobId ? { ...job, status } : job));
+        addAuditLog(jobId, 'Status Changed', `Job status changed to ${status}.`);
         toast({
             title: "Job Status Updated",
             description: `The job has been set to "${status}".`
@@ -178,6 +194,8 @@ export default function PostAJobPage() {
             variant: 'destructive',
         });
     };
+    
+    const selectedJobLogs = selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [];
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">
@@ -252,7 +270,7 @@ export default function PostAJobPage() {
 
             {selectedJob && (
                  <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
-                    <DialogContent className="sm:max-w-6xl h-[90vh] flex flex-col">
+                    <DialogContent className="max-w-full w-full h-full sm:max-w-6xl sm:h-[90vh] flex flex-col">
                          {isEditingJob ? (
                             <>
                                 <DialogHeader>
@@ -262,13 +280,13 @@ export default function PostAJobPage() {
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="p-1 overflow-auto">
-                                    <EditJobForm job={selectedJob} onJobUpdated={handleJobUpdated} />
+                                    <EditJobForm job={selectedJob} onJobUpdated={(updatedJob) => handleJobUpdated(updatedJob)} />
                                 </div>
                             </>
                         ) : (
-                            <Tabs defaultValue="applicants" className="flex-1 flex flex-col">
+                            <Tabs defaultValue="applicants" className="flex-1 flex flex-col overflow-hidden">
                                 <DialogHeader>
-                                    <div className="flex items-start justify-between">
+                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                         <div>
                                             <DialogTitle className="text-2xl flex items-center gap-3">
                                                 <span>{selectedJob.title}</span>
@@ -280,7 +298,7 @@ export default function PostAJobPage() {
                                                 Manage applicants and view job activity.
                                             </DialogDescription>
                                         </div>
-                                         <TabsList>
+                                         <TabsList className="grid w-full sm:w-auto sm:inline-flex">
                                             <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
                                             <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Job Details</TabsTrigger>
                                             <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity Log</TabsTrigger>
@@ -294,7 +312,7 @@ export default function PostAJobPage() {
                                     <JobDetails job={selectedJob} />
                                 </TabsContent>
                                 <TabsContent value="activity" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
-                                    <ActivityLog jobId={selectedJob.id} />
+                                    <ActivityLog logs={selectedJobLogs} />
                                 </TabsContent>
                             </Tabs>
                         )}
