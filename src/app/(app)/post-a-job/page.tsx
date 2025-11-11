@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { mockJobs } from '@/lib/mock-data';
-import type { Job } from '@/lib/types';
+import { mockJobs, mockApplications } from '@/lib/mock-data';
+import type { Job, Application } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { EditJobForm } from '@/components/edit-job-form';
-
+import { KanbanBoard } from '@/components/kanban-board';
+import { Separator } from '@/components/ui/separator';
 
 interface JobCardProps {
     job: Job;
@@ -63,7 +63,7 @@ export default function PostAJobPage() {
     const { role } = useRole();
     const [jobs] = useState<Job[]>(mockJobs);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
-    const [isEditJobDialogOpen, setEditJobDialogOpen] = useState(false);
+    const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
     if (role !== 'client') {
@@ -85,15 +85,12 @@ export default function PostAJobPage() {
         // In a real app, you would refetch the jobs list here
     }
 
-    const handleJobUpdated = () => {
-        setEditJobDialogOpen(false);
-        // In a real app, you would refetch the jobs list here
-    }
-
     const handleManageClick = (job: Job) => {
         setSelectedJob(job);
-        setEditJobDialogOpen(true);
+        setManageJobDialogOpen(true);
     }
+    
+    const jobApplications = selectedJob ? mockApplications.filter(app => app.jobId === selectedJob.id) : [];
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -127,16 +124,22 @@ export default function PostAJobPage() {
             </div>
 
             {selectedJob && (
-                <Dialog open={isEditJobDialogOpen} onOpenChange={setEditJobDialogOpen}>
-                    <DialogContent className="sm:max-w-2xl">
+                <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
+                    <DialogContent className="sm:max-w-6xl h-[90vh] flex flex-col">
                          <DialogHeader>
-                            <DialogTitle className="text-2xl">Manage Job Posting</DialogTitle>
+                            <DialogTitle className="text-2xl flex items-center gap-3">
+                                <span>{selectedJob.title}</span>
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                            </DialogTitle>
                             <DialogDescription>
-                                Edit the details for your job posting: "{selectedJob.title}"
+                                {selectedJob.description}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="p-1">
-                          <EditJobForm job={selectedJob} onJobUpdated={handleJobUpdated} />
+                        <Separator />
+                        <div className="flex-1 overflow-auto -mx-6 px-6">
+                            <KanbanBoard applications={jobApplications} />
                         </div>
                     </DialogContent>
                 </Dialog>
