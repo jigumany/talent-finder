@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import type { Application, Candidate, ApplicationStatus } from '@/lib/types';
@@ -11,9 +12,9 @@ import { cn } from '@/lib/utils';
 
 const kanbanColumns: { title: string; status: ApplicationStatus, headerColor: string, bodyColor: string }[] = [
   { title: 'Applied', status: 'Applied', headerColor: 'bg-sky-600', bodyColor: 'bg-sky-50' },
-  { title: 'Shortlisted', status: 'Shortlisted', headerColor: 'bg-amber-600', bodyColor: 'bg-amber-50' },
+  { title: 'Shortlisted', status: 'Shortlisted', headerColor: 'bg-yellow-500', bodyColor: 'bg-yellow-50' },
   { title: 'Interview', status: 'Interview', headerColor: 'bg-purple-600', bodyColor: 'bg-purple-50' },
-  { title: 'Offer', status: 'Offer', headerColor: 'bg-green-600', bodyColor: 'bg-green-50' },
+  { title: 'Offer', status: 'Offer', headerColor: 'bg-lime-600', bodyColor: 'bg-lime-50' },
 ];
 
 interface KanbanCardProps {
