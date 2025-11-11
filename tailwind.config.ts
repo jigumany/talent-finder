@@ -19,7 +19,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['var(--font-sans)', 'sans-serif'],
-        headline: ['var(--font-sans-display)', 'sans-serif'],
+        headline: ['var(--font-sans)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
