@@ -51,18 +51,24 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => onStatusChange(job.id, job.status === 'Paused' ? 'Active' : 'Paused')}>
-                                    <PauseCircle className="mr-2 h-4 w-4" />
-                                    <span>{job.status === 'Paused' ? 'Resume' : 'Pause'}</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onStatusChange(job.id, 'Closed')}>
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    <span>Close</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    <span>Delete</span>
-                                </DropdownMenuItem>
+                                {job.status !== 'Closed' && (
+                                    <>
+                                        <DropdownMenuItem onClick={() => onStatusChange(job.id, job.status === 'Paused' ? 'Active' : 'Paused')}>
+                                            <PauseCircle className="mr-2 h-4 w-4" />
+                                            <span>{job.status === 'Paused' ? 'Resume' : 'Pause'}</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onStatusChange(job.id, 'Closed')}>
+                                            <XCircle className="mr-2 h-4 w-4" />
+                                            <span>Close</span>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                                {job.status === 'Closed' && (
+                                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Delete</span>
+                                    </DropdownMenuItem>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -292,5 +298,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    
