@@ -52,6 +52,8 @@ export type Job = {
   payRate?: number;
   chargeRate?: number;
   location?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 export type ApplicationStatus = 'Applied' | 'Shortlisted' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';
@@ -75,3 +77,4 @@ export type ClientReview = {
     
 
     
+

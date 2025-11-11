@@ -11,6 +11,8 @@ const PostJobSchema = z.object({
   location: z.string().min(1, { message: 'Location is required.' }),
   skills: z.string().min(1, { message: 'Please list at least one skill.' }),
   notes: z.string().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
 });
 
 export async function postJobAction(values: z.infer<typeof PostJobSchema>): Promise<{ success?: Job, error?: string, fieldErrors?: any }> {
@@ -24,7 +26,7 @@ export async function postJobAction(values: z.infer<typeof PostJobSchema>): Prom
   }
 
   try {
-    const { payRate } = validatedFields.data;
+    const { payRate, startDate, endDate } = validatedFields.data;
     const chargeRate = payRate * 1.40;
 
     // In a real app, this would save to a database and return the new job.
@@ -40,6 +42,8 @@ export async function postJobAction(values: z.infer<typeof PostJobSchema>): Prom
         payRate: payRate,
         chargeRate: chargeRate,
         location: validatedFields.data.location,
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString(),
     };
     
     // We're not calling an AI flow here, just creating the job.

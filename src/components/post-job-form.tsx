@@ -2,20 +2,22 @@
 'use client';
 
 import { useTransition } from 'react';
-import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { postJobAction } from '@/app/(app)/post-a-job/actions';
-import { Sparkles, Briefcase, Book, ListChecks, Pencil, Loader2, PoundSterling, MapPin } from 'lucide-react';
+import { Sparkles, Briefcase, Book, ListChecks, Pencil, Loader2, PoundSterling, MapPin, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Job } from '@/lib/types';
-import images from '@/lib/placeholder-images.json';
+import { cn } from '@/lib/utils';
+import { Calendar } from './ui/calendar';
 
 const postJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -24,6 +26,8 @@ const postJobFormSchema = z.object({
   location: z.string().min(1, { message: 'Location is required.' }),
   skills: z.string().min(1, 'Please list at least one required skill or qualification.'),
   notes: z.string().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
 });
 
 type PostJobFormValues = z.infer<typeof postJobFormSchema>;
@@ -109,6 +113,87 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Start Date (Optional)</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) => date < new Date("1900-01-01")}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>End Date (Optional)</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) => date < new Date("1900-01-01")}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 items-start">
