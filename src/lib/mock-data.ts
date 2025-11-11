@@ -1,4 +1,5 @@
 
+
 import type { Candidate, Booking, Timesheet } from './types';
 import images from './placeholder-images.json';
 
@@ -17,6 +18,10 @@ export const mockCandidates: Candidate[] = [
     imageUrl: images['candidate-1'].src,
     cvUrl: '#',
     bio: 'Passionate historian with a knack for making the past come alive for students of all ages.',
+    reviewsData: [
+      { reviewerName: 'Greenwood Academy', rating: 5, comment: 'Eleanor is an exceptional educator. Her passion for history is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
+      { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have her back.', date: '2024-05-22' },
+    ]
   },
   {
     id: '2',
@@ -32,6 +37,9 @@ export const mockCandidates: Candidate[] = [
     imageUrl: images['candidate-2'].src,
     cvUrl: '#',
     bio: 'An experienced math educator who excels at breaking down complex concepts into understandable lessons.',
+    reviewsData: [
+      { reviewerName: 'Oakfield High', rating: 5, comment: 'Marcus has a fantastic ability to connect with students and make math accessible. Highly recommended.', date: '2024-07-01' },
+    ]
   },
   {
     id: '3',
@@ -47,6 +55,10 @@ export const mockCandidates: Candidate[] = [
     imageUrl: images['candidate-3'].src,
     cvUrl: '#',
     bio: 'A nurturing and patient teaching assistant dedicated to creating a supportive and positive learning environment.',
+     reviewsData: [
+      { reviewerName: 'St. Jude Primary', rating: 5, comment: 'Isabella was an absolute star. The children adored her, and she was incredibly supportive to our staff.', date: '2024-06-15' },
+      { reviewerName: 'Bright Futures Nursery', rating: 5, comment: 'Her calm and patient demeanor was perfect for our early years students.', date: '2024-05-30' },
+    ]
   },
     {
     id: '4',

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, PoundSterling, Star, MapPin, FileText, CheckCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, PoundSterling, Star, MapPin, FileText, CheckCircle, MessageSquare } from 'lucide-react';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -25,6 +25,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import images from '@/lib/placeholder-images.json';
+import { cn } from '@/lib/utils';
 
 
 export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) {
@@ -45,7 +46,7 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
     <div className="max-w-4xl mx-auto space-y-8">
        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
             <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-primary/10">
-                <AvatarImage src={candidate.imageUrl} alt={candidate.name} />
+                <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
                 <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
@@ -155,6 +156,39 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                                 {q}
                             </Badge>
                         ))}
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Reviews</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {candidate.reviewsData && candidate.reviewsData.length > 0 ? (
+                            candidate.reviewsData.map((review, index) => (
+                                <div key={index}>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-semibold">{review.reviewerName}</p>
+                                            <p className="text-sm text-muted-foreground">{format(new Date(review.date), 'MMMM yyyy')}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-amber-500">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} className={cn("h-5 w-5", i < review.rating ? 'fill-current' : 'fill-muted stroke-muted-foreground')} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p className="text-muted-foreground mt-2 italic">"{review.comment}"</p>
+                                    {index < candidate.reviewsData!.length - 1 && <Separator className="mt-6" />}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-8">
+                                <MessageSquare className="h-10 w-10 mb-4" />
+                                <p className="font-semibold">No reviews yet</p>
+                                <p className="text-sm">This candidate has not received any reviews.</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

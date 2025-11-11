@@ -1,4 +1,12 @@
 
+
+export type Review = {
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  date: string; // ISO date string
+};
+
 export type Candidate = {
   id: string;
   name: string;
@@ -7,6 +15,7 @@ export type Candidate = {
   rateType: 'hourly' | 'daily';
   rating: number;
   reviews: number;
+  reviewsData?: Review[];
   location: string;
   qualifications: string[];
   availability: string[]; // as ISO date strings
