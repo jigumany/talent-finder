@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { mockJobs, mockApplications, mockAuditLogs } from '@/lib/mock-data';
 import type { Job, AuditLog } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { KanbanBoard } from '@/components/kanban-board';
 import { EditJobForm } from '@/components/edit-job-form';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -169,6 +169,9 @@ export default function PostAJobPage() {
     
     const handleJobUpdated = (updatedJob: Job) => {
         setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+        if (selectedJob) {
+            setSelectedJob(updatedJob);
+        }
         addAuditLog(updatedJob.id, 'Job Edited', 'Job details were updated.');
         setIsEditingJob(false);
     };
@@ -270,7 +273,7 @@ export default function PostAJobPage() {
 
             {selectedJob && (
                  <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
-                    <DialogContent className="max-w-full w-full h-full sm:max-w-6xl sm:h-[90vh] flex flex-col">
+                    <DialogContent className="max-w-full w-full h-full sm:max-w-6xl sm:h-auto flex flex-col">
                          {isEditingJob ? (
                             <>
                                 <DialogHeader>
@@ -280,29 +283,48 @@ export default function PostAJobPage() {
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="p-1 overflow-auto">
-                                    <EditJobForm job={selectedJob} onJobUpdated={(updatedJob) => handleJobUpdated(updatedJob)} />
+                                    <EditJobForm job={selectedJob} onJobUpdated={(updatedJob) => handleJobUpdated(updatedJob)} onCancel={() => setIsEditingJob(false)} />
                                 </div>
                             </>
                         ) : (
                             <Tabs defaultValue="applicants" className="flex-1 flex flex-col overflow-hidden">
                                 <DialogHeader>
-                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                                        <div>
-                                            <DialogTitle className="text-2xl flex items-center gap-3">
-                                                <span>{selectedJob.title}</span>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingJob(true)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <div className="flex-1">
+                                            <DialogTitle className="text-2xl">
+                                                {selectedJob.title}
                                             </DialogTitle>
                                             <DialogDescription>
                                                 Manage applicants and view job activity.
                                             </DialogDescription>
                                         </div>
-                                         <TabsList className="grid w-full sm:w-auto sm:inline-flex">
-                                            <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
-                                            <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Job Details</TabsTrigger>
-                                            <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity Log</TabsTrigger>
-                                        </TabsList>
+                                        <div className="flex items-center gap-2">
+                                            <TabsList className="grid w-full sm:w-auto sm:inline-flex">
+                                                <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
+                                                <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
+                                                <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
+                                            </TabsList>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => setIsEditingJob(true)}>
+                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        <span>Edit Job</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DialogClose asChild>
+                                                        <DropdownMenuItem>
+                                                            <XCircle className="mr-2 h-4 w-4" />
+                                                            <span>Close</span>
+                                                        </DropdownMenuItem>
+                                                    </DialogClose>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </div>
                                 </DialogHeader>
                                 <TabsContent value="applicants" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
@@ -332,5 +354,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    

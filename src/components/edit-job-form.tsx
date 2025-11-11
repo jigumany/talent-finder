@@ -33,10 +33,11 @@ type EditJobFormValues = z.infer<typeof editJobFormSchema>;
 
 interface EditJobFormProps {
   job: Job;
-  onJobUpdated: () => void;
+  onJobUpdated: (updatedJob: Job) => void;
+  onCancel: () => void;
 }
 
-export function EditJobForm({ job, onJobUpdated }: EditJobFormProps) {
+export function EditJobForm({ job, onJobUpdated, onCancel }: EditJobFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -44,11 +45,11 @@ export function EditJobForm({ job, onJobUpdated }: EditJobFormProps) {
     resolver: zodResolver(editJobFormSchema),
     defaultValues: {
       role: job.title,
-      subject: '', // Assuming not present in mock Job type
+      subject: job.subject || '',
       payRate: job.payRate || 0,
       location: job.location || '',
       skills: job.description, // Mapping description to skills
-      notes: '', // Assuming not present
+      notes: job.notes || '',
       startDate: job.startDate ? new Date(job.startDate) : undefined,
       endDate: job.endDate ? new Date(job.endDate) : undefined,
     },
@@ -62,12 +63,24 @@ export function EditJobForm({ job, onJobUpdated }: EditJobFormProps) {
        // Simulate an API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Updated Job Values:', values);
+      const updatedJob: Job = {
+        ...job,
+        title: values.role,
+        subject: values.subject,
+        payRate: values.payRate,
+        chargeRate: parseFloat(chargeRate),
+        location: values.location,
+        description: values.skills,
+        notes: values.notes,
+        startDate: values.startDate?.toISOString(),
+        endDate: values.endDate?.toISOString(),
+      };
+      
       toast({
         title: "Job Updated!",
         description: "Your job posting has been successfully updated.",
       });
-      onJobUpdated();
+      onJobUpdated(updatedJob);
     });
   };
   
@@ -279,7 +292,7 @@ export function EditJobForm({ job, onJobUpdated }: EditJobFormProps) {
               )}
             />
              <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onJobUpdated}>Cancel</Button>
+                <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
                 <Button type="submit" disabled={isPending} size="lg">
                   {isPending ? (
                     <>
