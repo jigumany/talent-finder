@@ -200,14 +200,14 @@ export default function BookingsPage() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold font-headline mb-6">Manage Your Pipeline</h1>
+            <h1 className="text-2xl font-bold font-headline mb-6">Booking List</h1>
             
             {isClient ? (
                 <Card>
                     <Tabs defaultValue="applicants">
                         <CardHeader>
-                            <CardTitle>Hiring Pipeline</CardTitle>
-                            <CardDescription>Manage job applicants, upcoming work, and completed bookings.</CardDescription>
+                            <CardTitle>Booking List</CardTitle>
+                            <CardDescription>Manage your job applicants, upcoming work, and completed bookings.</CardDescription>
                             <TabsList className="grid w-full grid-cols-3 mt-4">
                                 <TabsTrigger value="applicants">
                                     <Users className="mr-2 h-4 w-4" />
