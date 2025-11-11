@@ -136,6 +136,10 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 12,
         shortlisted: 3,
+        payRate: 200,
+        location: 'London, UK',
+        startDate: '2024-09-01T00:00:00Z',
+        subject: 'History',
     },
     {
         id: 'job-2',
@@ -145,6 +149,8 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 25,
         shortlisted: 5,
+        payRate: 90,
+        location: 'Manchester, UK',
     },
     {
         id: 'job-3',
@@ -154,6 +160,9 @@ export const mockJobs: Job[] = [
         status: 'Closed',
         applicants: 8,
         shortlisted: 1,
+        payRate: 180,
+        location: 'Birmingham, UK',
+        subject: 'Mathematics'
     },
     {
         id: 'job-4',
@@ -163,6 +172,9 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 15,
         shortlisted: 4,
+        payRate: 250,
+        location: 'London, UK',
+        subject: 'Science'
     },
     {
         id: 'job-5',
@@ -172,6 +184,9 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 18,
         shortlisted: 2,
+        payRate: 120,
+        location: 'Bristol, UK',
+        subject: 'Art'
     },
     {
         id: 'job-6',
@@ -181,6 +196,9 @@ export const mockJobs: Job[] = [
         status: 'Closed',
         applicants: 30,
         shortlisted: 3,
+        payRate: 300,
+        location: 'Leeds, UK',
+        subject: 'English'
     }
 ];
 
@@ -248,6 +266,8 @@ export const mockAuditLogs: AuditLog[] = [
     { id: 'log-4', jobId: 'job-3', date: '2024-08-01T09:00:00Z', action: 'Job Created', user: 'Admin User' },
     { id: 'log-5', jobId: 'job-3', date: '2024-08-05T17:00:00Z', action: 'Status Changed', user: 'Admin User', details: 'Job status changed from Active to Closed.' },
 ];
+    
+
     
 
     

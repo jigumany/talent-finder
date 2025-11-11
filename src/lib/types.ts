@@ -54,6 +54,8 @@ export type Job = {
   location?: string;
   startDate?: string;
   endDate?: string;
+  subject?: string;
+  notes?: string;
 };
 
 export type ApplicationStatus = 'Applied' | 'Shortlisted' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';
@@ -87,3 +89,6 @@ export type AuditLog = {
     
 
 
+
+
+    
