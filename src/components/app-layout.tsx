@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,7 +23,6 @@ import {
     Home,
     LogOut,
     PenSquare,
-    School,
     Search,
     User,
     Users,
@@ -33,6 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useRole } from '@/context/role-context';
 import { cn } from '@/lib/utils';
+import { Logo } from './logo';
 
 
 const clientNav = [
@@ -57,28 +56,16 @@ function BottomNavBar() {
     const pathname = usePathname();
     const navItems = role === 'client' ? clientNav : candidateNav;
 
-    // A subset of items for the bottom nav bar, as it can get crowded.
-    const mobileNavItems = role === 'client' 
-        ? [
-            { name: 'Dashboard', href: '/dashboard', icon: Home },
-            { name: 'Browse', href: '/browse-candidates', icon: Users },
-            { name: 'Bookings', href: '/bookings', icon: Briefcase },
-            { name: 'Diary', href: '/diary', icon: Calendar },
-            { name: 'Profile', href: '/profile', icon: User },
-        ]
-        : candidateNav;
-
-
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
             <div className="flex h-16 items-center justify-around">
-                {mobileNavItems.map((item) => (
+                {navItems.map((item) => (
                     <Link
                         key={item.name}
                         href={item.href}
                         className={cn(
                             "flex flex-col items-center justify-center gap-1 text-muted-foreground w-full h-full",
-                            (pathname === item.href || pathname.startsWith(item.href + '/')) && "text-primary"
+                            (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'))) && "text-primary"
                         )}
                     >
                         <item.icon className="h-6 w-6" />
@@ -104,8 +91,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <aside className="hidden md:flex md:flex-col md:border-r bg-card fixed w-[240px] h-full">
                 <div className="flex h-[60px] items-center border-b px-6">
                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
-                        <School className="h-6 w-6" />
-                        <span>Talent Marketplace</span>
+                        <Logo className="h-8 w-auto" />
                     </Link>
                 </div>
                 <nav className="flex-1 overflow-y-auto p-4">
@@ -133,8 +119,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                      {/* Mobile Header: Maybe just a logo or title */}
                     <div className="md:hidden flex-1">
                          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
-                            <School className="h-6 w-6" />
-                            <span>Talent Marketplace</span>
+                            <Logo className="h-7 w-auto" />
                         </Link>
                     </div>
 
