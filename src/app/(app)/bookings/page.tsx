@@ -288,10 +288,10 @@ export default function BookingsPage() {
                     Record the result of the interview with {selectedBooking?.candidateName}.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)} className="flex justify-around">
+                <div className="space-y-4 py-4 px-4">
+                    <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)} className="flex justify-around gap-4">
                         <Label htmlFor="hired" className={cn(
-                          "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out",
+                          "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out w-full",
                           "hover:bg-green-50 hover:border-green-400",
                            outcome === 'hired' ? "bg-green-100 border-green-500 text-green-800" : "bg-popover border-muted"
                         )}>
@@ -301,7 +301,7 @@ export default function BookingsPage() {
                         </Label>
 
                          <Label htmlFor="rejected" className={cn(
-                            "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out",
+                            "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out w-full",
                             "hover:bg-red-50 hover:border-red-400",
                             outcome === 'rejected' ? "bg-red-100 border-red-500 text-red-800" : "bg-popover border-muted"
                           )}>
@@ -334,5 +334,7 @@ export default function BookingsPage() {
             </Dialog>
         </div>
     );
+
+    
 
     
