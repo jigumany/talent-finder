@@ -37,9 +37,11 @@ import { cn } from '@/lib/utils';
 
 const clientNav = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Browse', href: '/browse-candidates', icon: Users },
     { name: 'Find', href: '/find-me-someone', icon: Search },
-    { name: 'Bookings', href: '/bookings', icon: Briefcase },
     { name: 'Diary', href: '/diary', icon: Calendar },
+    { name: 'Bookings', href: '/bookings', icon: Briefcase },
+    { name: 'Reviews', href: '/review-generator', icon: PenSquare },
     { name: 'Profile', href: '/profile', icon: User },
 ];
 
@@ -55,10 +57,22 @@ function BottomNavBar() {
     const pathname = usePathname();
     const navItems = role === 'client' ? clientNav : candidateNav;
 
+    // A subset of items for the bottom nav bar, as it can get crowded.
+    const mobileNavItems = role === 'client' 
+        ? [
+            { name: 'Dashboard', href: '/dashboard', icon: Home },
+            { name: 'Browse', href: '/browse-candidates', icon: Users },
+            { name: 'Bookings', href: '/bookings', icon: Briefcase },
+            { name: 'Diary', href: '/diary', icon: Calendar },
+            { name: 'Profile', href: '/profile', icon: User },
+        ]
+        : candidateNav;
+
+
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
             <div className="flex h-16 items-center justify-around">
-                {navItems.map((item) => (
+                {mobileNavItems.map((item) => (
                     <Link
                         key={item.name}
                         href={item.href}
@@ -82,23 +96,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
 
-    // Combine nav items for desktop sidebar
-    const desktopClientNav = [
-        ...clientNav.slice(0, 1), // Dashboard
-        { name: 'Browse Candidates', href: '/browse-candidates', icon: Users },
-        ...clientNav.slice(1,2), // Find Me Someone
-        ...clientNav.slice(3,4), // Diary
-        ...clientNav.slice(2,3), // Bookings
-        { name: 'Review Generator', href: '/review-generator', icon: PenSquare },
-        ...clientNav.slice(4), // Profile
-    ];
-
-    const desktopCandidateNav = [
-        { name: 'Dashboard', href: '/dashboard', icon: Home },
-        ...candidateNav.slice(1),
-    ];
-
-    const desktopNav = role === 'client' ? desktopClientNav : desktopCandidateNav;
+    const navItems = role === 'client' ? clientNav : candidateNav;
 
     return (
         <div className="md:grid md:grid-cols-[240px_1fr]">
@@ -112,7 +110,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
                 <nav className="flex-1 overflow-y-auto p-4">
                     <ul className="space-y-1">
-                        {desktopNav.map((item) => (
+                        {navItems.map((item) => (
                              <li key={item.name}>
                                 <Link
                                     href={item.href}
