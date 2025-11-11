@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle } from "lucide-react";
+import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Booking } from "@/lib/types";
 
 
-function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean }) {
+function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient, onLeaveReviewClick, reviewedBookingIds }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean, onLeaveReviewClick: (booking: Booking) => void, reviewedBookingIds: Set<string> }) {
     if (bookings.length === 0) {
         return (
             <div className="text-center text-muted-foreground py-12">
@@ -61,6 +61,12 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                             </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
+                             {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
+                                <Button size="sm" variant="outline" onClick={() => onLeaveReviewClick(booking)}>
+                                    <PenSquare className="mr-2 h-4 w-4" />
+                                    Leave Review
+                                </Button>
+                            )}
                             {isClient && booking.status === 'Completed' && (
                                 <Button size="sm" onClick={() => onRebookClick(booking)}>Rebook</Button>
                             )}
@@ -129,6 +135,14 @@ export default function BookingsPage() {
     const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
     const [outcome, setOutcome] = useState<'hired' | 'rejected' | ''>('');
     const [outcomeNotes, setOutcomeNotes] = useState('');
+    
+    // State for review dialog
+    const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewHoverRating, setReviewHoverRating] = useState(0);
+    const [reviewText, setReviewText] = useState('');
+    const [reviewedBookingIds, setReviewedBookingIds] = useState(new Set<string>());
+
 
 
     const handleCancelBooking = (bookingId: string) => {
@@ -165,6 +179,34 @@ export default function BookingsPage() {
         setOutcomeNotes('');
         setOutcomeDialogOpen(true);
     };
+    
+    const handleLeaveReviewClick = (booking: Booking) => {
+        setSelectedBooking(booking);
+        setReviewRating(0);
+        setReviewHoverRating(0);
+        setReviewText('');
+        setReviewDialogOpen(true);
+    };
+    
+    const handleConfirmReview = () => {
+        if (!selectedBooking || reviewRating === 0 || !reviewText) {
+             toast({
+                title: "Incomplete Review",
+                description: "Please provide a rating and some feedback.",
+                variant: "destructive",
+            });
+            return;
+        }
+        console.log(`Review for ${selectedBooking.candidateName}: ${reviewRating} stars, "${reviewText}"`);
+        
+        setReviewedBookingIds(prev => new Set(prev).add(selectedBooking.id));
+
+        setReviewDialogOpen(false);
+        toast({
+            title: "Review Submitted!",
+            description: `Thank you for your feedback on ${selectedBooking.candidateName}.`,
+        });
+    };
 
     const handleConfirmOutcome = () => {
         if (!selectedBooking || !outcome) return;
@@ -194,6 +236,8 @@ export default function BookingsPage() {
         onCancelBooking: handleCancelBooking,
         onRebookClick: handleRebookClick,
         onLogOutcomeClick: handleLogOutcomeClick,
+        onLeaveReviewClick: handleLeaveReviewClick,
+        reviewedBookingIds,
         isClient
     };
 
@@ -332,8 +376,65 @@ export default function BookingsPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+
+            {/* Leave Review Dialog */}
+             <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Leave a Review</DialogTitle>
+                  <DialogDescription>
+                    Provide feedback for {selectedBooking?.candidateName}'s performance.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Rating</Label>
+                        <div 
+                            className="flex items-center gap-1"
+                            onMouseLeave={() => setReviewHoverRating(0)}
+                        >
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={cn(
+                                  'h-8 w-8 cursor-pointer transition-colors',
+                                  (reviewHoverRating >= star || reviewRating >= star)
+                                    ? 'text-amber-400 fill-amber-400'
+                                    : 'text-muted-foreground/50'
+                                )}
+                                onClick={() => setReviewRating(star)}
+                                onMouseEnter={() => setReviewHoverRating(star)}
+                              />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="grid w-full gap-1.5">
+                        <Label htmlFor="review-text">Feedback</Label>
+                        <Textarea 
+                            id="review-text"
+                            placeholder="Share your thoughts on their performance..." 
+                            value={reviewText}
+                            onChange={(e) => setReviewText(e.target.value)}
+                            rows={5}
+                        />
+                    </div>
+                </div>
+                 <DialogFooter className="sm:justify-end gap-2">
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                   <Button type="button" onClick={handleConfirmReview} disabled={reviewRating === 0 || !reviewText}>
+                        Submit Review
+                    </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
         </div>
     );
+
+    
 
     
 
