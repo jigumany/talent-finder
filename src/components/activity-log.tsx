@@ -43,8 +43,17 @@ export function ActivityLog({ jobId }: ActivityLogProps) {
         return (
           <div key={log.id} className="flex gap-4 relative">
             <div className="flex flex-col items-center">
-              <div className={cn("rounded-full bg-muted border p-2", log.action.includes('Changed') ? 'bg-blue-50 border-blue-200' : 'bg-background')}>
-                <Icon className={cn("h-5 w-5", log.action.includes('Changed') ? 'text-blue-600' : 'text-muted-foreground')} />
+              <div className={cn("rounded-full bg-muted border p-2", 
+                log.action.includes('Changed') && 'bg-blue-50 border-blue-200',
+                log.action.includes('Created') && 'bg-green-50 border-green-200',
+                log.action.includes('Edited') && 'bg-amber-50 border-amber-200',
+              )}>
+                <Icon className={cn("h-5 w-5", 
+                   log.action.includes('Changed') && 'text-blue-600',
+                   log.action.includes('Created') && 'text-green-600',
+                   log.action.includes('Edited') && 'text-amber-600',
+                   !log.action.includes('Changed') && !log.action.includes('Created') && !log.action.includes('Edited') && 'text-muted-foreground'
+                )} />
               </div>
               {!isLast && <div className="w-px h-full bg-border grow" />}
             </div>

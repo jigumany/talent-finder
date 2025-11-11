@@ -260,11 +260,18 @@ export const mockClientReviews: ClientReview[] = [
 ];
 
 export const mockAuditLogs: AuditLog[] = [
-    { id: 'log-1', jobId: 'job-1', date: '2024-08-15T10:00:00Z', action: 'Job Created', user: 'Admin User', details: 'Initial posting for Senior History Teacher.' },
-    { id: 'log-2', jobId: 'job-1', date: '2024-08-18T12:00:00Z', action: 'Job Edited', user: 'Admin User', details: 'Updated job description to include A-Level requirement.' },
-    { id: 'log-3', jobId: 'job-2', date: '2024-08-10T14:30:00Z', action: 'Job Created', user: 'Admin User', details: 'Initial posting for Primary School Teaching Assistant.' },
-    { id: 'log-4', jobId: 'job-3', date: '2024-08-01T09:00:00Z', action: 'Job Created', user: 'Admin User' },
-    { id: 'log-5', jobId: 'job-3', date: '2024-08-05T17:00:00Z', action: 'Status Changed', user: 'Admin User', details: 'Job status changed from Active to Closed.' },
+    // Job 1
+    { id: 'log-1', jobId: 'job-1', date: '2024-08-15T10:00:00Z', action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Senior History Teacher.' },
+    { id: 'log-2', jobId: 'job-1', date: '2024-08-18T12:00:00Z', action: 'Job Edited', user: 'Jane Doe (Admin)', details: 'Updated job description to include A-Level requirement.' },
+    { id: 'log-6', jobId: 'job-1', date: '2024-08-20T16:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Active to Paused.' },
+    { id: 'log-7', jobId: 'job-1', date: '2024-08-22T09:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Paused to Active.' },
+
+    // Job 2
+    { id: 'log-3', jobId: 'job-2', date: '2024-08-10T14:30:00Z', action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Primary School Teaching Assistant.' },
+    
+    // Job 3
+    { id: 'log-4', jobId: 'job-3', date: '2024-08-01T09:00:00Z', action: 'Job Created', user: 'Jane Doe (Admin)' },
+    { id: 'log-5', jobId: 'job-3', date: '2024-08-05T17:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Active to Closed.' },
 ];
     
 
