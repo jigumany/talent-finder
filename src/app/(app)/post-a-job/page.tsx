@@ -15,12 +15,13 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { KanbanBoard } from '@/components/kanban-board';
 import { EditJobForm } from '@/components/edit-job-form';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ActivityLog } from '@/components/activity-log';
 import { JobDetails } from '@/components/job-details';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface JobCardProps {
     job: Job;
@@ -125,6 +126,8 @@ export default function PostAJobPage() {
     const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [isEditingJob, setIsEditingJob] = useState(false);
+    const [activeTab, setActiveTab] = useState('applicants');
+    const isMobile = useIsMobile();
 
 
     if (role !== 'client') {
@@ -162,6 +165,7 @@ export default function PostAJobPage() {
     const handleManageClick = (job: Job) => {
         setSelectedJob(job);
         setIsEditingJob(false);
+        setActiveTab('applicants');
         setManageJobDialogOpen(true);
     }
     
@@ -273,7 +277,7 @@ export default function PostAJobPage() {
 
             {selectedJob && (
                  <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
-                    <DialogContent className="max-w-full w-full h-full sm:max-w-6xl sm:h-auto flex flex-col">
+                    <DialogContent className="max-w-full w-full sm:max-w-6xl sm:h-auto flex flex-col data-[state=open]:sm:h-[90vh]">
                          {isEditingJob ? (
                             <>
                                 <DialogHeader>
@@ -287,9 +291,9 @@ export default function PostAJobPage() {
                                 </div>
                             </>
                         ) : (
-                            <Tabs defaultValue="applicants" className="flex-1 flex flex-col overflow-hidden">
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
                                 <DialogHeader>
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                         <div className="flex-1">
                                             <DialogTitle className="text-2xl">
                                                 {selectedJob.title}
@@ -299,11 +303,13 @@ export default function PostAJobPage() {
                                             </DialogDescription>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <TabsList className="grid w-full sm:w-auto sm:inline-flex">
-                                                <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
-                                                <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
-                                                <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
-                                            </TabsList>
+                                            {!isMobile && (
+                                                <TabsList>
+                                                    <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
+                                                    <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
+                                                    <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
+                                                </TabsList>
+                                            )}
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -315,6 +321,23 @@ export default function PostAJobPage() {
                                                         <Pencil className="mr-2 h-4 w-4" />
                                                         <span>Edit Job</span>
                                                     </DropdownMenuItem>
+                                                     {isMobile && (
+                                                        <>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuLabel>Views</DropdownMenuLabel>
+                                                            <DropdownMenuRadioGroup value={activeTab} onValueChange={setActiveTab}>
+                                                                <DropdownMenuRadioItem value="applicants">
+                                                                    <Users className="mr-2 h-4 w-4" /> Applicants
+                                                                </DropdownMenuRadioItem>
+                                                                <DropdownMenuRadioItem value="details">
+                                                                    <Info className="mr-2 h-4 w-4" /> Details
+                                                                </DropdownMenuRadioItem>
+                                                                <DropdownMenuRadioItem value="activity">
+                                                                    <Activity className="mr-2 h-4 w-4" /> Activity
+                                                                </DropdownMenuRadioItem>
+                                                            </DropdownMenuRadioGroup>
+                                                        </>
+                                                    )}
                                                     <DropdownMenuSeparator />
                                                     <DialogClose asChild>
                                                         <DropdownMenuItem>
