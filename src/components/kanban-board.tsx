@@ -1,6 +1,4 @@
-
 'use client';
-import { useMemo } from 'react';
 import Link from 'next/link';
 import type { Application, Candidate, ApplicationStatus } from '@/lib/types';
 import { mockCandidates } from '@/lib/mock-data';
@@ -11,11 +9,11 @@ import { User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-const kanbanColumns: { title: string; status: ApplicationStatus, color: string }[] = [
-  { title: 'Applied', status: 'Applied', color: 'bg-sky-100/70 border-sky-200' },
-  { title: 'Shortlisted', status: 'Shortlisted', color: 'bg-amber-100/60 border-amber-200' },
-  { title: 'Interview', status: 'Interview', color: 'bg-purple-100/60 border-purple-200' },
-  { title: 'Offer', status: 'Offer', color: 'bg-green-100/60 border-green-200' },
+const kanbanColumns: { title: string; status: ApplicationStatus, headerColor: string, bodyColor: string }[] = [
+  { title: 'Applied', status: 'Applied', headerColor: 'bg-sky-600', bodyColor: 'bg-sky-50' },
+  { title: 'Shortlisted', status: 'Shortlisted', headerColor: 'bg-amber-600', bodyColor: 'bg-amber-50' },
+  { title: 'Interview', status: 'Interview', headerColor: 'bg-purple-600', bodyColor: 'bg-purple-50' },
+  { title: 'Offer', status: 'Offer', headerColor: 'bg-green-600', bodyColor: 'bg-green-50' },
 ];
 
 interface KanbanCardProps {
@@ -75,16 +73,16 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
         const columnApps = getApplicationsByStatus(column.status);
         return (
           <div key={column.status} className="flex flex-col h-full">
-            <div className={cn("flex-1 flex flex-col rounded-lg border", column.color)}>
-              <CardHeader className="p-3 border-b-2 border-inherit">
-                <CardTitle className="text-base font-semibold flex justify-between items-center">
-                  <span className="text-foreground/80">{column.title}</span>
-                  <span className="text-sm font-normal text-muted-foreground bg-background/50 rounded-full px-2 py-0.5">
-                    {columnApps.length}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2 flex-1">
+            <div className={cn("flex flex-col rounded-lg border overflow-hidden", column.bodyColor)}>
+                <div className={cn("p-3", column.headerColor)}>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-base font-semibold text-white">{column.title}</h3>
+                        <span className="text-sm font-normal text-white bg-black/20 rounded-full px-2 py-0.5">
+                            {columnApps.length}
+                        </span>
+                    </div>
+                </div>
+              <div className="p-2 flex-1">
                 {columnApps.length > 0 ? (
                   columnApps.map(item => (
                     <KanbanCard key={item.application.id} application={item.application} candidate={item.candidate} />
@@ -94,7 +92,7 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
                     <p>No candidates in this stage.</p>
                   </div>
                 )}
-              </CardContent>
+              </div>
             </div>
           </div>
         );
