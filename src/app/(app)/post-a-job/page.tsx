@@ -16,15 +16,14 @@ import { cn } from '@/lib/utils';
 
 function JobCard({ job }: { job: Job }) {
     return (
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="flex flex-col hover:shadow-md transition-shadow">
             <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-2">
                     <CardTitle className="text-xl">{job.title}</CardTitle>
                      <Badge 
                         variant={job.status === 'Active' ? 'default' : 'secondary'}
-                        className={cn(job.status === 'Active' ? 'bg-green-600' : '')}
+                        className={cn('shrink-0', job.status === 'Active' ? 'bg-green-600' : '')}
                     >
-                        <Dot className={cn("mr-1 h-4 w-4", job.status === 'Active' ? 'text-white' : 'text-muted-foreground')} />
                         {job.status}
                     </Badge>
                 </div>
@@ -32,16 +31,16 @@ function JobCard({ job }: { job: Job }) {
                     Posted {formatDistanceToNow(new Date(job.datePosted), { addSuffix: true })}
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
                 <p className="text-muted-foreground line-clamp-2">{job.description}</p>
             </CardContent>
-            <CardFooter className="bg-muted/50 p-4 flex justify-between">
-                <div className="flex gap-4">
-                    <div className="text-center">
+            <CardFooter className="bg-muted/50 p-4 flex justify-between items-center mt-auto">
+                <div className="flex gap-4 text-center">
+                    <div>
                         <p className="font-bold text-lg">{job.applicants}</p>
                         <p className="text-xs text-muted-foreground">Applicants</p>
                     </div>
-                    <div className="text-center">
+                    <div>
                         <p className="font-bold text-lg">{job.shortlisted}</p>
                         <p className="text-xs text-muted-foreground">Shortlisted</p>
                     </div>
