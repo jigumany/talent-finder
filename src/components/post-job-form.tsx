@@ -35,7 +35,7 @@ interface PostJobFormProps {
 export function PostJobForm({ onJobPosted }: PostJobFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const mapImage = images['document-resume']; // Using a placeholder for map
+  const mapImage = images['map-preview'];
 
   const form = useForm<PostJobFormValues>({
     resolver: zodResolver(postJobFormSchema),
@@ -166,7 +166,7 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
                         alt="Map Preview"
                         layout="fill"
                         objectFit="cover"
-                        data-ai-hint="map location"
+                        data-ai-hint={mapImage.hint}
                     />
                 </div>
             )}

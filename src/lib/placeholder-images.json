@@ -58,5 +58,11 @@
     "width": 32,
     "height": 32,
     "hint": "abstract pattern"
+  },
+  "map-preview": {
+    "src": "https://picsum.photos/seed/5/600/400",
+    "width": 600,
+    "height": 400,
+    "hint": "map location"
   }
 }
