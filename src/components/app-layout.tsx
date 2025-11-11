@@ -35,6 +35,7 @@ import { useRole } from '@/context/role-context';
 import { cn } from '@/lib/utils';
 import { Logo } from './logo';
 import images from '@/lib/placeholder-images.json';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const clientNav = [
@@ -69,7 +70,7 @@ function BottomNavBar() {
                         href={item.href}
                         className={cn(
                             "flex flex-col items-center justify-center gap-1 text-muted-foreground w-full h-full",
-                            (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'))) && "text-primary"
+                            (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))) && "text-primary"
                         )}
                     >
                         <item.icon className="h-6 w-6" />
@@ -87,50 +88,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
     const avatarImage = images['user-avatar-fallback'];
+    const isMobile = useIsMobile();
 
     const navItems = role === 'client' ? clientNav : candidateNav;
 
-    return (
-        <div className="md:grid md:grid-cols-[240px_1fr]">
-            {/* Desktop Sidebar */}
-            <aside className="hidden md:flex md:flex-col md:border-r bg-card fixed w-[240px] h-full">
-                <div className="flex h-[60px] items-center border-b px-4">
-                    <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
-                        <Logo className="h-8 w-auto" />
-                    </Link>
-                </div>
-                <nav className="flex-1 overflow-y-auto p-4">
-                    <ul className="space-y-1">
-                        {navItems.map((item) => (
-                             <li key={item.name}>
-                                <Link
-                                    href={item.href}
-                                    className={cn(
-                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                                        (pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')) && "bg-muted text-primary"
-                                    )}>
-                                    <item.icon className="h-4 w-4" />
-                                    {item.name}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-            </aside>
-
-            {/* Main Content */}
-            <div className="md:col-start-2 flex flex-col min-h-screen">
-                <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40 md:z-30">
-                     {/* Mobile Header: Maybe just a logo or title */}
-                    <div className="md:hidden flex-1">
+    if (isMobile) {
+        return (
+            <div className="flex flex-col min-h-screen">
+                 <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
+                    <div className="flex-1">
                          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
                             <Logo className="h-7 w-auto" />
                         </Link>
-                    </div>
-
-                     {/* Desktop Header: Can have search or other controls */}
-                    <div className="w-full flex-1 hidden md:block">
-                       
                     </div>
 
                     <DropdownMenu>
@@ -168,11 +137,86 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
-                <main className="flex-1 p-4 sm:p-6 bg-background pb-20 md:pb-6">
+                <main className="flex-1 p-4 sm:p-6 bg-background pb-20">
+                    {children}
+                </main>
+                <BottomNavBar />
+            </div>
+        )
+    }
+
+    return (
+        <div className="grid grid-cols-[240px_1fr]">
+            <aside className="flex flex-col border-r bg-card fixed w-[240px] h-full">
+                <div className="flex h-[60px] items-center border-b px-4">
+                    <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
+                        <Logo className="h-8 w-auto" />
+                    </Link>
+                </div>
+                <nav className="flex-1 overflow-y-auto p-4">
+                    <ul className="space-y-1">
+                        {navItems.map((item) => (
+                             <li key={item.name}>
+                                <Link
+                                    href={item.href}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                                        (pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')) && "bg-muted text-primary"
+                                    )}>
+                                    <item.icon className="h-4 w-4" />
+                                    {item.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            </aside>
+
+            <div className="col-start-2 flex flex-col min-h-screen">
+                <header className="flex h-[60px] items-center gap-4 border-b bg-card px-6 sticky top-0 z-30">
+                    <div className="w-full flex-1">
+                       {/* Desktop search or other header controls can go here */}
+                    </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="secondary" size="icon" className="rounded-full">
+                                <Avatar>
+                                    <AvatarImage src={avatarImage.src} alt={user.name} data-ai-hint={avatarImage.hint} />
+                                    <AvatarFallback>{user.fallback}</AvatarFallback>
+                                </Avatar>
+                                <span className="sr-only">Toggle user menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>
+                                <div className="font-medium">{user.name}</div>
+                                <div className="text-xs text-muted-foreground">{user.email}</div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                             <DropdownMenuGroup>
+                                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors">
+                                    <Label htmlFor="role-switcher-desktop" className="flex-1 pr-2">
+                                        Client Role
+                                    </Label>
+                                    <Switch
+                                        id="role-switcher-desktop"
+                                        checked={role === 'client'}
+                                        onCheckedChange={(checked) => setRole(checked ? 'client' : 'candidate')}
+                                    />
+                                </div>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/"><LogOut className="mr-2 h-4 w-4" />Logout</Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </header>
+                <main className="flex-1 p-6 bg-background">
                     {children}
                 </main>
             </div>
-             <BottomNavBar />
         </div>
     );
 }
