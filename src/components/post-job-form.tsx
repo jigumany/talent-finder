@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { findCandidateAction } from '@/app/(app)/find-me-someone/actions';
+import { postJobAction } from '@/app/(app)/post-a-job/actions';
 import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
@@ -19,22 +19,22 @@ import { CandidateCard } from './candidate-card';
 import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { Separator } from './ui/separator';
 
-const findSomeoneFormSchema = z.object({
+const postJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
   subject: z.string().optional(),
   skills: z.string().min(1, 'Please list at least one required skill or qualification.'),
   notes: z.string().optional(),
 });
 
-type FindSomeoneFormValues = z.infer<typeof findSomeoneFormSchema>;
+type PostJobFormValues = z.infer<typeof postJobFormSchema>;
 
-export function FindSomeoneForm() {
+export function PostJobForm() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<FindCandidateOutput | null>(null);
   const { toast } = useToast();
 
-  const form = useForm<FindSomeoneFormValues>({
-    resolver: zodResolver(findSomeoneFormSchema),
+  const form = useForm<PostJobFormValues>({
+    resolver: zodResolver(postJobFormSchema),
     defaultValues: {
       role: '',
       subject: '',
@@ -43,10 +43,10 @@ export function FindSomeoneForm() {
     },
   });
 
-  const onSubmit = (values: FindSomeoneFormValues) => {
+  const onSubmit = (values: PostJobFormValues) => {
     setResult(null);
     startTransition(async () => {
-      const response = await findCandidateAction(values);
+      const response = await postJobAction(values);
       if (response.success) {
         setResult(response.success);
       } else if (response.error) {
@@ -144,7 +144,7 @@ export function FindSomeoneForm() {
             />
             <Button type="submit" disabled={isPending}>
               <Sparkles className="mr-2 h-4 w-4" />
-              {isPending ? 'Finding Match...' : 'Find Match'}
+              {isPending ? 'Finding Candidates...' : 'Get Recommendations'}
             </Button>
           </form>
         </Form>
@@ -204,7 +204,7 @@ export function FindSomeoneForm() {
                     form.reset();
                 }}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Start a New Search
+                    Post Another Job
                 </Button>
             </div>
         </div>

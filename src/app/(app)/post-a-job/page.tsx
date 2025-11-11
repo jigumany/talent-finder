@@ -4,10 +4,10 @@
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, Wand2, Sparkles } from "lucide-react";
-import { FindSomeoneForm } from "@/components/find-someone-form";
+import { Lock, FilePlus2, Sparkles } from "lucide-react";
+import { PostJobForm } from "@/components/post-job-form";
 
-export default function FindMeSomeonePage() {
+export default function PostAJobPage() {
     const { role } = useRole();
 
     if (role !== 'client') {
@@ -27,8 +27,8 @@ export default function FindMeSomeonePage() {
     return (
         <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold font-headline mb-6 flex items-center gap-2">
-                <Wand2 className="h-6 w-6 text-primary" />
-                <span>Find Me Someone</span>
+                <FilePlus2 className="h-6 w-6 text-primary" />
+                <span>Post a Job</span>
             </h1>
             <Card>
                 <CardHeader>
@@ -41,7 +41,7 @@ export default function FindMeSomeonePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <FindSomeoneForm />
+                    <PostJobForm />
                 </CardContent>
             </Card>
         </div>

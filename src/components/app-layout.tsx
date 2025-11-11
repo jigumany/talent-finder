@@ -26,6 +26,7 @@ import {
     Search,
     User,
     Users,
+    FilePlus2,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -38,7 +39,7 @@ import images from '@/lib/placeholder-images.json';
 const clientNav = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Browse', href: '/browse-candidates', icon: Users },
-    { name: 'Find', href: '/find-me-someone', icon: Search },
+    { name: 'Post a Job', href: '/post-a-job', icon: FilePlus2 },
     { name: 'Diary', href: '/diary', icon: Calendar },
     { name: 'Bookings', href: '/bookings', icon: Briefcase },
     { name: 'Reviews', href: '/review-generator', icon: PenSquare },
@@ -91,7 +92,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="md:grid md:grid-cols-[240px_1fr]">
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex md:flex-col md:border-r bg-card fixed w-[240px] h-full">
-                <div className="flex h-[60px] items-center border-b px-6">
+                <div className="flex h-[60px] items-center border-b px-4">
                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
                         <Logo className="h-8 w-auto" />
                     </Link>

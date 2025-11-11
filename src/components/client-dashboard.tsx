@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { mockClientBookings } from '@/lib/mock-data';
-import { CalendarCheck2, Calendar, Briefcase, Search, Users } from 'lucide-react';
+import { CalendarCheck2, Calendar, Briefcase, FilePlus2, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { format, parseISO } from 'date-fns';
@@ -89,9 +89,9 @@ export default function ClientDashboard() {
                     </Link>
                 </Button>
                 <Button asChild size="sm">
-                    <Link href="/find-me-someone">
-                        <Search className="md:mr-2 h-4 w-4"/>
-                        <span className="hidden md:inline">Find Me Someone</span>
+                    <Link href="/post-a-job">
+                        <FilePlus2 className="md:mr-2 h-4 w-4"/>
+                        <span className="hidden md:inline">Post a Job</span>
                     </Link>
                 </Button>
             </div>
