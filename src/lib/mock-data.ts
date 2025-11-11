@@ -1,6 +1,6 @@
 
 
-import type { Candidate, Booking, Timesheet, Job, Application } from './types';
+import type { Candidate, Booking, Timesheet, Job, Application, ClientReview } from './types';
 import images from './placeholder-images.json';
 
 export const mockCandidates: Candidate[] = [
@@ -217,5 +217,30 @@ export const mockApplications: Application[] = [
     { id: 'app-17', jobId: 'job-6', candidateId: '1', status: 'Interview', dateApplied: '2024-07-26T15:00:00Z' },
 ];
 
+export const mockClientReviews: ClientReview[] = [
+    {
+        id: 'cr1',
+        candidateName: 'Eleanor Vance',
+        date: '2024-07-18T10:00:00Z',
+        rating: 5,
+        reviewText: "Eleanor was an outstanding history teacher. Her lessons were engaging, well-prepared, and she had a fantastic rapport with the students. She brought a level of enthusiasm that was truly infectious. We received excellent feedback from both students and parents. Highly recommended."
+    },
+    {
+        id: 'cr2',
+        candidateName: 'Marcus Thorne',
+        date: '2024-07-20T14:30:00Z',
+        rating: 4,
+        reviewText: "Marcus provided solid cover for our Year 10 Maths class. He has a strong command of the subject matter and managed the classroom effectively. While his approach is more traditional, he ensured the curriculum was covered thoroughly. A reliable and knowledgeable teacher."
+    },
+    {
+        id: 'cr3',
+        candidateName: 'Priya Sharma',
+        date: '2024-07-25T09:15:00Z',
+        rating: 5,
+        reviewText: "Priya was a wonderful addition to our English department for a short-term project. Her creativity and passion for literature shone through in her teaching. She was excellent at encouraging students to think critically about texts and express their own ideas. We would be delighted to have her back."
+    }
+];
+
+    
 
     

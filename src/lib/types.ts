@@ -60,3 +60,13 @@ export type Application = {
     status: ApplicationStatus;
     dateApplied: string; // ISO date string
 };
+
+export type ClientReview = {
+    id: string;
+    candidateName: string;
+    date: string; // ISO date string
+    rating: number;
+    reviewText: string;
+};
+
+    
