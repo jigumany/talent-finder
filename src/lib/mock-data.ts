@@ -162,10 +162,16 @@ export const mockApplications: Application[] = [
     { id: 'app-1', jobId: 'job-1', candidateId: '1', status: 'Interview', dateApplied: '2024-08-16T10:00:00Z' },
     { id: 'app-2', jobId: 'job-1', candidateId: '5', status: 'Applied', dateApplied: '2024-08-17T11:00:00Z' },
     { id: 'app-3', jobId: 'job-1', candidateId: '4', status: 'Shortlisted', dateApplied: '2024-08-16T14:00:00Z' },
+    { id: 'app-7', jobId: 'job-1', candidateId: '2', status: 'Applied', dateApplied: '2024-08-18T09:00:00Z' },
+
 
     // Job 2: Primary School Teaching Assistant
     { id: 'app-4', jobId: 'job-2', candidateId: '3', status: 'Offer', dateApplied: '2024-08-11T09:00:00Z' },
     { id: 'app-5', jobId: 'job-2', candidateId: '2', status: 'Applied', dateApplied: '2024-08-12T15:00:00Z' },
+    { id: 'app-8', jobId: 'job-2', candidateId: '1', status: 'Applied', dateApplied: '2024-08-13T16:00:00Z' },
+    { id: 'app-9', jobId: 'job-2', candidateId: '5', status: 'Shortlisted', dateApplied: '2024-08-12T18:00:00Z' },
+    { id: 'app-10', jobId: 'job-2', candidateId: '4', status: 'Interview', dateApplied: '2024-08-14T11:00:00Z' },
+
 
     // Job 3: Substitute Maths Teacher
     { id: 'app-6', jobId: 'job-3', candidateId: '2', status: 'Hired', dateApplied: '2024-08-02T09:30:00Z' },
