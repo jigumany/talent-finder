@@ -49,6 +49,9 @@ export type Job = {
   status: 'Active' | 'Closed' | 'Draft' | 'Paused';
   applicants?: number;
   shortlisted?: number;
+  payRate?: number;
+  chargeRate?: number;
+  location?: string;
 };
 
 export type ApplicationStatus = 'Applied' | 'Shortlisted' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';

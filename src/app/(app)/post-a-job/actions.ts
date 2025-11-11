@@ -7,6 +7,8 @@ import type { Job } from '@/lib/types';
 const PostJobSchema = z.object({
   role: z.string().min(1, { message: 'Role is required.' }),
   subject: z.string().optional(),
+  payRate: z.coerce.number().min(1, { message: 'Pay rate is required.' }),
+  location: z.string().min(1, { message: 'Location is required.' }),
   skills: z.string().min(1, { message: 'Please list at least one skill.' }),
   notes: z.string().optional(),
 });
@@ -22,6 +24,9 @@ export async function postJobAction(values: z.infer<typeof PostJobSchema>): Prom
   }
 
   try {
+    const { payRate } = validatedFields.data;
+    const chargeRate = payRate * 1.40;
+
     // In a real app, this would save to a database and return the new job.
     // Here, we simulate creating a new job object.
     const newJob: Job = {
@@ -31,7 +36,10 @@ export async function postJobAction(values: z.infer<typeof PostJobSchema>): Prom
         datePosted: new Date().toISOString(),
         status: 'Active',
         applicants: 0,
-        shortlisted: 0
+        shortlisted: 0,
+        payRate: payRate,
+        chargeRate: chargeRate,
+        location: validatedFields.data.location,
     };
     
     // We're not calling an AI flow here, just creating the job.
