@@ -17,6 +17,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
     Briefcase,
@@ -110,6 +111,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
         );
     }
+    
+    const navItems = role === 'client' ? clientNav : candidateNav;
 
     if (isMobile) {
         return (
