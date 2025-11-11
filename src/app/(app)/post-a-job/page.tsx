@@ -67,7 +67,7 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                                     </>
                                 )}
                                 {job.status === 'Closed' && (
-                                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         <span>Delete</span>
                                     </DropdownMenuItem>
@@ -303,13 +303,11 @@ export default function PostAJobPage() {
                                             </DialogDescription>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {!isMobile && (
-                                                <TabsList>
-                                                    <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
-                                                    <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
-                                                    <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
-                                                </TabsList>
-                                            )}
+                                            <TabsList className={cn('grid w-full sm:w-auto sm:inline-flex', { 'hidden': isMobile })}>
+                                                <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
+                                                <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
+                                                <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
+                                            </TabsList>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -377,6 +375,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-
-    
