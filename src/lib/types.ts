@@ -47,6 +47,8 @@ export type Job = {
   description: string;
   datePosted: string; // ISO date string
   status: 'Active' | 'Closed' | 'Draft';
+  applicants?: number;
+  shortlisted?: number;
 };
 
 export type ApplicationStatus = 'Applied' | 'Shortlisted' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';

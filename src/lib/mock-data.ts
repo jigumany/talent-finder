@@ -134,6 +134,8 @@ export const mockJobs: Job[] = [
         description: 'Seeking an experienced history teacher for A-Level students. Must have a passion for modern history.',
         datePosted: '2024-08-15T10:00:00Z',
         status: 'Active',
+        applicants: 12,
+        shortlisted: 3,
     },
     {
         id: 'job-2',
@@ -141,6 +143,8 @@ export const mockJobs: Job[] = [
         description: 'A supportive and nurturing teaching assistant for our Year 3 class. Experience with special needs is a plus.',
         datePosted: '2024-08-10T14:30:00Z',
         status: 'Active',
+        applicants: 25,
+        shortlisted: 5,
     },
     {
         id: 'job-3',
@@ -148,6 +152,8 @@ export const mockJobs: Job[] = [
         description: 'Required for immediate start for a two-week cover. Must be qualified to teach GCSE level.',
         datePosted: '2024-08-01T09:00:00Z',
         status: 'Closed',
+        applicants: 8,
+        shortlisted: 1,
     }
 ];
 
