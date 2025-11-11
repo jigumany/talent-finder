@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { Application, Candidate, ApplicationStatus } from '@/lib/types';
 import { mockCandidates } from '@/lib/mock-data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';

@@ -94,7 +94,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     if (isMobile) {
         return (
-            <div className="flex flex-col min-h-screen">
+            <div className="min-h-screen">
                  <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
                     <div className="flex-1">
                          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
@@ -137,7 +137,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
-                <main className="flex-1 p-4 sm:p-6 bg-background pb-20">
+                <main className="p-4 sm:p-6 bg-background pb-20">
                     {children}
                 </main>
                 <BottomNavBar />
