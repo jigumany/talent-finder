@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -35,6 +35,11 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
     const applicantCount = job.applicants ?? 0;
     const shortlistedCount = job.shortlisted ?? 0;
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [postedAt, setPostedAt] = useState('');
+
+    useEffect(() => {
+        setPostedAt(formatDistanceToNow(new Date(job.datePosted), { addSuffix: true }));
+    }, [job.datePosted]);
 
     return (
         <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
@@ -78,7 +83,7 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                     </div>
                 </div>
                 <CardDescription>
-                    Posted {formatDistanceToNow(new Date(job.datePosted), { addSuffix: true })}
+                    Posted {postedAt}
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">

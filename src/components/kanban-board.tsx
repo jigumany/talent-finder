@@ -1,5 +1,6 @@
 
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Application, Candidate, ApplicationStatus } from '@/lib/types';
 import { mockCandidates } from '@/lib/mock-data';
@@ -24,6 +25,12 @@ interface KanbanCardProps {
 }
 
 function KanbanCard({ application, candidate }: KanbanCardProps) {
+  const [appliedAt, setAppliedAt] = useState('');
+
+  useEffect(() => {
+    setAppliedAt(formatDistanceToNow(new Date(application.dateApplied), { addSuffix: true }));
+  }, [application.dateApplied]);
+
   return (
     <Card className="mb-3 bg-card hover:shadow-md transition-shadow">
       <CardContent className="p-3">
@@ -44,7 +51,7 @@ function KanbanCard({ application, candidate }: KanbanCardProps) {
         </div>
         <div className="mt-3 flex justify-between items-center">
              <p className="text-xs text-muted-foreground">
-                Applied {formatDistanceToNow(new Date(application.dateApplied), { addSuffix: true })}
+                Applied {appliedAt}
             </p>
             <Button variant="outline" size="sm" asChild>
                 <Link href={`/profile/candidate/${candidate.id}`}>
