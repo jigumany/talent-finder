@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { format, parseISO } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from './ui/chart';
+import { cn } from '@/lib/utils';
 
 export default function ClientDashboard() {
     
@@ -81,14 +82,16 @@ export default function ClientDashboard() {
          <div className="flex justify-between items-start">
             <h1 className="text-2xl font-bold font-headline">Client Dashboard</h1>
             <div className="flex gap-2">
-                 <Button asChild>
+                 <Button asChild size="sm">
                     <Link href="/browse-candidates">
-                        <Users className="mr-2 h-4 w-4"/> Go to Marketplace
+                        <Users className="md:mr-2 h-4 w-4"/>
+                        <span className="hidden md:inline">Go to Marketplace</span>
                     </Link>
                 </Button>
-                <Button asChild>
+                <Button asChild size="sm">
                     <Link href="/find-me-someone">
-                        <Search className="mr-2 h-4 w-4"/> Find Me Someone
+                        <Search className="md:mr-2 h-4 w-4"/>
+                        <span className="hidden md:inline">Find Me Someone</span>
                     </Link>
                 </Button>
             </div>
