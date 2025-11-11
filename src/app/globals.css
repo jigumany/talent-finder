@@ -144,6 +144,6 @@
 
 @layer components {
     .badge-yellow {
-        @apply bg-amber-400 text-amber-900 border-transparent hover:bg-amber-400/80;
+        @apply bg-amber-500 text-amber-950 border-transparent hover:bg-amber-500/80;
     }
 }
