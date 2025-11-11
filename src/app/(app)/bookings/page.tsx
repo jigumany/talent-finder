@@ -13,19 +13,110 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ClipboardEdit } from "lucide-react";
+import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Booking } from "@/lib/types";
 
+
+function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean }) {
+    if (bookings.length === 0) {
+        return (
+            <div className="text-center text-muted-foreground py-12">
+                <p className="font-semibold">No entries found in this category.</p>
+            </div>
+        )
+    }
+
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>{isClient ? "Candidate" : "Role"}</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {bookings.map((booking) => (
+                    <TableRow key={booking.id}>
+                        <TableCell className="font-medium">
+                            <div>{isClient ? booking.candidateName : booking.candidateRole}</div>
+                            {isClient && <div className="text-sm text-muted-foreground">{booking.candidateRole}</div>}
+                        </TableCell>
+                        <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
+                        <TableCell>
+                            <Badge
+                                className={cn({
+                                    'bg-primary text-primary-foreground': booking.status === 'Confirmed',
+                                    'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
+                                    'bg-destructive text-destructive-foreground': booking.status === 'Rejected',
+                                }, booking.status === 'Interview' ? 'badge-yellow' : '')}
+                            >
+                                {booking.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                            {isClient && booking.status === 'Completed' && (
+                                <Button size="sm" onClick={() => onRebookClick(booking)}>Rebook</Button>
+                            )}
+                             {isClient && booking.status === 'Hired' && (
+                                <Button size="sm" onClick={() => onRebookClick(booking)}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    Schedule
+                                </Button>
+                            )}
+                            {isClient && booking.status === 'Interview' && (
+                                <Button size="sm" className="badge-yellow" onClick={() => onLogOutcomeClick(booking)}>
+                                    <ClipboardEdit className="mr-2 h-4 w-4" />
+                                    Log Outcome
+                                </Button>
+                            )}
+                            {isClient && booking.status === 'Confirmed' && (
+                                 <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button size="sm" variant="destructive">Cancel</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently cancel the booking with {booking.candidateName}.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Back</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => onCancelBooking(booking.id)}
+                                              className={buttonVariants({ variant: "destructive" })}
+                                            >
+                                              Confirm Cancellation
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+}
 
 export default function BookingsPage() {
     const { role } = useRole();
     const isClient = role === 'client';
-    const bookings = isClient ? mockClientBookings : mockCandidateBookings;
-    const title = isClient ? "Manage Bookings" : "My Bookings";
-    const description = isClient ? "Review your past and upcoming candidate bookings." : "Review your past and upcoming job assignments.";
+    
+    const [bookings, setBookings] = useState<Booking[]>(isClient ? mockClientBookings : mockCandidateBookings);
+
+    const applicantBookings = bookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status));
+    const upcomingBookings = bookings.filter(b => b.status === 'Confirmed');
+    const completedBookings = bookings.filter(b => b.status === 'Completed');
     
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const { toast } = useToast();
@@ -41,14 +132,12 @@ export default function BookingsPage() {
 
 
     const handleCancelBooking = (bookingId: string) => {
-        // In a real app, you'd make an API call here to actually cancel the booking.
-        // For now, we'll just show a confirmation toast.
+        setBookings(prev => prev.filter(b => b.id !== bookingId));
         toast({
             title: "Booking Cancelled",
-            description: `The booking (ID: ${bookingId}) has been successfully cancelled.`,
+            description: `The booking has been successfully cancelled.`,
             variant: "destructive"
         });
-        // Here you would also update the state to remove the cancelled booking from the list.
     };
 
     const handleRebookClick = (booking: any) => {
@@ -60,10 +149,12 @@ export default function BookingsPage() {
     const handleConfirmRebook = () => {
         if (!selectedBooking || !rebookDates || rebookDates.length === 0) return;
         
+        // In a real app, this would create new booking records.
+        // For now, we just show a toast.
         const bookedDates = rebookDates.map(date => format(date, "PPP")).join(', ');
         toast({
             title: "Booking Request Sent!",
-            description: `Your request to re-book ${selectedBooking.candidateName} for ${bookedDates} has been sent.`,
+            description: `Your request to book ${selectedBooking.candidateName} for ${bookedDates} has been sent.`,
         });
         setRebookDialogOpen(false);
     }
@@ -78,16 +169,19 @@ export default function BookingsPage() {
     const handleConfirmOutcome = () => {
         if (!selectedBooking || !outcome) return;
 
+        setBookings(prev => prev.map(b => 
+            b.id === selectedBooking.id 
+            ? { ...b, status: outcome === 'hired' ? 'Hired' : 'Rejected' } 
+            : b
+        ));
+
         setOutcomeDialogOpen(false);
 
         if (outcome === 'hired') {
             toast({
                 title: "Outcome Logged: Hired!",
-                description: `You've marked ${selectedBooking.candidateName} as hired. Please select their start date(s).`,
+                description: `You've marked ${selectedBooking.candidateName} as hired. You can now schedule them from the 'Applicants' tab.`,
             });
-            // Open the rebooking/scheduling modal
-            setRebookDates([]);
-            setRebookDialogOpen(true);
         } else {
             toast({
                 title: `Outcome Logged: Rejected`,
@@ -96,84 +190,64 @@ export default function BookingsPage() {
         }
     };
 
+    const tableProps = {
+        onCancelBooking: handleCancelBooking,
+        onRebookClick: handleRebookClick,
+        onLogOutcomeClick: handleLogOutcomeClick,
+        isClient
+    };
+
 
     return (
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold font-headline mb-6">{title}</h1>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Booking History</CardTitle>
-                    <CardDescription>{description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{isClient ? "Candidate" : "Role"}</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {bookings.map((booking) => (
-                                <TableRow key={booking.id}>
-                                    <TableCell className="font-medium">
-                                        <div>{isClient ? booking.candidateName : booking.candidateRole}</div>
-                                        {isClient && <div className="text-sm text-muted-foreground">{booking.candidateRole}</div>}
-                                    </TableCell>
-                                    <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            className={cn({
-                                                'bg-primary text-primary-foreground': booking.status === 'Confirmed',
-                                                'bg-green-600 text-white': booking.status === 'Completed',
-                                            }, booking.status === 'Interview' ? 'badge-yellow' : '')}
-                                        >
-                                            {booking.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right space-x-2">
-                                        {isClient && booking.status === 'Completed' && (
-                                            <Button size="sm" onClick={() => handleRebookClick(booking)}>Rebook</Button>
-                                        )}
-                                        {isClient && booking.status === 'Interview' && (
-                                            <Button size="sm" className="badge-yellow" onClick={() => handleLogOutcomeClick(booking)}>
-                                                <ClipboardEdit className="mr-2 h-4 w-4" />
-                                                Log Outcome
-                                            </Button>
-                                        )}
-                                        {isClient && booking.status === 'Confirmed' && (
-                                             <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button size="sm" variant="destructive">Cancel</Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            This action cannot be undone. This will permanently cancel the booking with {booking.candidateName}.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Back</AlertDialogCancel>
-                                                        <AlertDialogAction
-                                                          onClick={() => handleCancelBooking(booking.id)}
-                                                          className={buttonVariants({ variant: "destructive" })}
-                                                        >
-                                                          Confirm Cancellation
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            <h1 className="text-2xl font-bold font-headline mb-6">Manage Your Pipeline</h1>
+            
+            {isClient ? (
+                <Card>
+                    <Tabs defaultValue="applicants">
+                        <CardHeader>
+                            <CardTitle>Hiring Pipeline</CardTitle>
+                            <CardDescription>Manage job applicants, upcoming work, and completed bookings.</CardDescription>
+                            <TabsList className="grid w-full grid-cols-3 mt-4">
+                                <TabsTrigger value="applicants">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Applicants ({applicantBookings.length})
+                                </TabsTrigger>
+                                <TabsTrigger value="upcoming">
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    Upcoming ({upcomingBookings.length})
+                                </TabsTrigger>
+                                <TabsTrigger value="completed">
+                                    <ClipboardEdit className="mr-2 h-4 w-4" />
+                                    Completed ({completedBookings.length})
+                                </TabsTrigger>
+                            </TabsList>
+                        </CardHeader>
+                        <CardContent>
+                            <TabsContent value="applicants">
+                                <BookingsTable bookings={applicantBookings} {...tableProps} />
+                            </TabsContent>
+                            <TabsContent value="upcoming">
+                                <BookingsTable bookings={upcomingBookings} {...tableProps} />
+                            </TabsContent>
+                            <TabsContent value="completed">
+                                <BookingsTable bookings={completedBookings} {...tableProps} />
+                            </TabsContent>
+                        </CardContent>
+                    </Tabs>
+                </Card>
+            ) : (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>My Jobs</CardTitle>
+                        <CardDescription>Review your past and upcoming job assignments.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <BookingsTable bookings={bookings} {...tableProps} />
+                    </CardContent>
+                </Card>
+            )}
+
 
             {/* Rebook Dialog */}
             <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
@@ -216,16 +290,18 @@ export default function BookingsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                    <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)}>
-                        <Label>Outcome</Label>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="hired" id="hired" />
-                            <Label htmlFor="hired">Hire Candidate</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="rejected" id="rejected" />
-                            <Label htmlFor="rejected">Reject Candidate</Label>
-                        </div>
+                    <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)} className="flex justify-around">
+                        <Label htmlFor="hired" className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary", outcome === 'hired' ? 'border-primary' : '')}>
+                             <RadioGroupItem value="hired" id="hired" className="sr-only" />
+                             <CheckCircle className="mb-3 h-6 w-6" />
+                             Hire
+                        </Label>
+
+                         <Label htmlFor="rejected" className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-destructive [&:has([data-state=checked])]:border-destructive", outcome === 'rejected' ? 'border-destructive' : '')}>
+                             <RadioGroupItem value="rejected" id="rejected" className="sr-only" />
+                             <XCircle className="mb-3 h-6 w-6" />
+                             Reject
+                        </Label>
                     </RadioGroup>
                     <div className="grid w-full gap-1.5">
                         <Label htmlFor="notes">Notes (Optional)</Label>

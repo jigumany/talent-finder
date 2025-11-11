@@ -29,7 +29,7 @@ export type Booking = {
   candidateName: string;
   candidateRole: string;
   date: string; // as ISO date string
-  status: 'Confirmed' | 'Completed' | 'Pending' | 'Interview';
+  status: 'Confirmed' | 'Completed' | 'Pending' | 'Interview' | 'Hired' | 'Rejected';
 };
 
 export type Timesheet = {
