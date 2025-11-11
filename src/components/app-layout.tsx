@@ -94,7 +94,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
     const pathname = usePathname();
     const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
-    const navItems = role === 'client' ? clientNav : candidateNav;
     const avatarImage = images['user-avatar-fallback'];
     const isMobile = useIsMobile();
     const [isClient, setIsClient] = useState(false);
@@ -103,6 +102,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         setIsClient(true);
     }, []);
 
+    const navItems = role === 'client' ? clientNav : candidateNav;
 
     if (!isClient) {
         return (
@@ -112,8 +112,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         );
     }
     
-    const navItems = role === 'client' ? clientNav : candidateNav;
-
     if (isMobile) {
         return (
             <>
