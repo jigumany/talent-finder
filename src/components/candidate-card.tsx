@@ -45,7 +45,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-start gap-4 p-4 bg-card">
         <Avatar className="h-16 w-16 border-2 border-primary/20">
-          <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="teacher portrait" />
+          <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
           <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
