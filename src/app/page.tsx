@@ -23,12 +23,12 @@ export default function AuthPage() {
         <div className="relative z-10 flex flex-col justify-between h-full p-10 bg-gradient-to-b from-primary/80 to-primary/40 text-primary-foreground">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold">
             <School className="h-8 w-8" />
-            <span>Talent Marketplace</span>
+            <span>GSL Client Marketplace</span>
           </Link>
           <div className="mt-auto">
             <blockquote className="space-y-2">
               <p className="text-lg">
-                “The best way to predict the future is to create it. Talent Marketplace helps us build the future of education, one great teacher at a time.”
+                “The best way to predict the future is to create it. GSL Client Marketplace helps us build the future of education, one great teacher at a time.”
               </p>
               <footer className="text-sm">Sofia Davis, Headteacher</footer>
             </blockquote>
@@ -38,7 +38,7 @@ export default function AuthPage() {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold font-headline">Welcome to Talent Marketplace</h1>
+            <h1 className="text-3xl font-bold font-headline">Welcome to GSL Client Marketplace</h1>
             <p className="text-balance text-muted-foreground">
               Enter your credentials to access your account
             </p>

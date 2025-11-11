@@ -27,7 +27,7 @@ export function Logo({ className }: { className?: string }) {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="text-xl tracking-tight">Talent Marketplace</span>
+      <span className="text-xl tracking-tight">GSL Client Marketplace</span>
     </div>
   );
 }
