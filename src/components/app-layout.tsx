@@ -39,6 +39,7 @@ import images from '@/lib/placeholder-images.json';
 const clientNav = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Browse', href: '/browse-candidates', icon: Users },
+    { name: 'Find Me Someone', href: '/find-me-someone', icon: Search },
     { name: 'Post a Job', href: '/post-a-job', icon: FilePlus2 },
     { name: 'Diary', href: '/diary', icon: Calendar },
     { name: 'Bookings', href: '/bookings', icon: Briefcase },
