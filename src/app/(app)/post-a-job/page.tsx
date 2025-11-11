@@ -1,64 +1,39 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, FileCheck2, Dot } from "lucide-react";
+import { Lock, FilePlus2, Users, FileCheck2, Dot, ChevronDown } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { mockJobs } from '@/lib/mock-data';
-import type { Job } from '@/lib/types';
+import { mockJobs, mockApplications, mockCandidates } from '@/lib/mock-data';
+import type { Job, Application, ApplicationStatus } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { EditJobForm } from '@/components/edit-job-form';
-
-function JobCard({ job, onManageClick }: { job: Job, onManageClick: (job: Job) => void }) {
-    return (
-        <Card className="flex flex-col hover:shadow-md transition-shadow">
-            <CardHeader>
-                <div className="flex justify-between items-start gap-2">
-                    <CardTitle className="text-xl">{job.title}</CardTitle>
-                     <Badge 
-                        variant={job.status === 'Active' ? 'default' : 'secondary'}
-                        className={cn('shrink-0', job.status === 'Active' ? 'bg-green-600' : '')}
-                    >
-                        {job.status}
-                    </Badge>
-                </div>
-                <CardDescription>
-                    Posted {formatDistanceToNow(new Date(job.datePosted), { addSuffix: true })}
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-                <p className="text-muted-foreground line-clamp-2">{job.description}</p>
-            </CardContent>
-            <CardFooter className="bg-muted/50 p-4 flex justify-between items-center mt-auto">
-                <div className="flex gap-4 text-center">
-                    <div>
-                        <p className="font-bold text-lg">{job.applicants}</p>
-                        <p className="text-xs text-muted-foreground">Applicants</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">{job.shortlisted}</p>
-                        <p className="text-xs text-muted-foreground">Shortlisted</p>
-                    </div>
-                </div>
-                <Button size="sm" onClick={() => onManageClick(job)}>Manage Job</Button>
-            </CardFooter>
-        </Card>
-    );
-}
+import { KanbanBoard } from '@/components/kanban-board';
 
 
 export default function PostAJobPage() {
     const { role } = useRole();
-    const [jobs, setJobs] = useState<Job[]>(mockJobs);
+    const [jobs, setJobs] = useState<Job[]>(mockJobs.filter(j => j.status === 'Active'));
+    const [selectedJob, setSelectedJob] = useState<Job | null>(jobs[0] || null);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
-    const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
-    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+
+    const applications = useMemo(() => {
+        if (!selectedJob) return [];
+        return mockApplications.filter(app => app.jobId === selectedJob.id);
+    }, [selectedJob]);
 
 
     if (role !== 'client') {
@@ -76,36 +51,42 @@ export default function PostAJobPage() {
     }
 
     const handleJobPosted = () => {
-        // In a real app, you'd re-fetch jobs here.
-        // For now, we'll just close the dialog.
         setPostJobDialogOpen(false);
     }
     
-    const handleManageJobClick = (job: Job) => {
-        setSelectedJob(job);
-        setManageJobDialogOpen(true);
-    }
-    
-    const handleJobUpdated = () => {
-        setManageJobDialogOpen(false);
-    }
-
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                 <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
-                    <FileCheck2 className="h-6 w-6 text-primary" />
-                    <span>My Job Postings</span>
-                </h1>
+        <div className="max-w-7xl mx-auto flex flex-col h-full">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                 <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
+                        <FileCheck2 className="h-6 w-6 text-primary" />
+                        <span>Hiring Pipeline</span>
+                    </h1>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="text-lg font-semibold">
+                          {selectedJob?.title || 'Select a Job'}
+                          <ChevronDown className="ml-2 h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {jobs.map((job) => (
+                           <DropdownMenuItem key={job.id} onSelect={() => setSelectedJob(job)}>
+                            {job.title}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                 </div>
                 <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
                     <DialogTrigger asChild>
                         <Button><FilePlus2 className="mr-2" /> Post a New Job</Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-2xl">
                          <DialogHeader>
-                            <DialogTitle className="text-2xl">Describe Your Ideal Candidate</DialogTitle>
+                            <DialogTitle className="text-2xl">Post a New Job</DialogTitle>
                             <DialogDescription>
-                                Fill in your requirements below, and our AI will find the best match for you from our pool of talented candidates.
+                                Fill in the details below. Our AI will find the best candidates for you.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="p-1">
@@ -114,35 +95,19 @@ export default function PostAJobPage() {
                     </DialogContent>
                 </Dialog>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {jobs.map(job => (
-                    <JobCard key={job.id} job={job} onManageClick={handleManageJobClick} />
-                ))}
-            </div>
-
-             {jobs.length === 0 && (
-                <div className="text-center text-muted-foreground col-span-full py-16 border-2 border-dashed rounded-lg">
-                    <FileCheck2 className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <p className="mt-4 text-lg font-semibold">No jobs posted yet.</p>
-                    <p className="mt-1">Click "Post a New Job" to get started.</p>
-                </div>
-             )}
-
-            {/* Manage Job Dialog */}
-            <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
-                <DialogContent className="sm:max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl">Manage Job Posting</DialogTitle>
-                        <DialogDescription>
-                            Edit the details of your job posting below.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="p-1">
-                        {selectedJob && <EditJobForm job={selectedJob} onJobUpdated={handleJobUpdated} />}
+            
+            {selectedJob ? (
+                <KanbanBoard applications={applications} />
+            ) : (
+                 <div className="flex-1 flex items-center justify-center text-center text-muted-foreground col-span-full py-16 border-2 border-dashed rounded-lg">
+                    <div>
+                        <FileCheck2 className="mx-auto h-12 w-12 text-muted-foreground" />
+                        <p className="mt-4 text-lg font-semibold">No job selected</p>
+                        <p className="mt-1">Select a job from the dropdown or post a new one to see the applicant pipeline.</p>
                     </div>
-                </DialogContent>
-            </Dialog>
+                </div>
+            )}
+            
         </div>
     );
 }

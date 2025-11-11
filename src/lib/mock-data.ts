@@ -1,6 +1,6 @@
 
 
-import type { Candidate, Booking, Timesheet, Job } from './types';
+import type { Candidate, Booking, Timesheet, Job, Application } from './types';
 import images from './placeholder-images.json';
 
 export const mockCandidates: Candidate[] = [
@@ -134,8 +134,6 @@ export const mockJobs: Job[] = [
         description: 'Seeking an experienced history teacher for A-Level students. Must have a passion for modern history.',
         datePosted: '2024-08-15T10:00:00Z',
         status: 'Active',
-        applicants: 12,
-        shortlisted: 3,
     },
     {
         id: 'job-2',
@@ -143,8 +141,6 @@ export const mockJobs: Job[] = [
         description: 'A supportive and nurturing teaching assistant for our Year 3 class. Experience with special needs is a plus.',
         datePosted: '2024-08-10T14:30:00Z',
         status: 'Active',
-        applicants: 25,
-        shortlisted: 5,
     },
     {
         id: 'job-3',
@@ -152,7 +148,19 @@ export const mockJobs: Job[] = [
         description: 'Required for immediate start for a two-week cover. Must be qualified to teach GCSE level.',
         datePosted: '2024-08-01T09:00:00Z',
         status: 'Closed',
-        applicants: 8,
-        shortlisted: 1,
     }
-]
+];
+
+export const mockApplications: Application[] = [
+    // Job 1: Senior History Teacher
+    { id: 'app-1', jobId: 'job-1', candidateId: '1', status: 'Interview', dateApplied: '2024-08-16T10:00:00Z' },
+    { id: 'app-2', jobId: 'job-1', candidateId: '5', status: 'Applied', dateApplied: '2024-08-17T11:00:00Z' },
+    { id: 'app-3', jobId: 'job-1', candidateId: '4', status: 'Shortlisted', dateApplied: '2024-08-16T14:00:00Z' },
+
+    // Job 2: Primary School Teaching Assistant
+    { id: 'app-4', jobId: 'job-2', candidateId: '3', status: 'Offer', dateApplied: '2024-08-11T09:00:00Z' },
+    { id: 'app-5', jobId: 'job-2', candidateId: '2', status: 'Applied', dateApplied: '2024-08-12T15:00:00Z' },
+
+    // Job 3: Substitute Maths Teacher
+    { id: 'app-6', jobId: 'job-3', candidateId: '2', status: 'Hired', dateApplied: '2024-08-02T09:30:00Z' },
+];
