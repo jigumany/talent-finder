@@ -9,12 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
-const kanbanColumns: { title: string; status: ApplicationStatus }[] = [
-  { title: 'Applied', status: 'Applied' },
-  { title: 'Shortlisted', status: 'Shortlisted' },
-  { title: 'Interview', status: 'Interview' },
-  { title: 'Offer', status: 'Offer' },
+const kanbanColumns: { title: string; status: ApplicationStatus, color: string }[] = [
+  { title: 'Applied', status: 'Applied', color: 'bg-sky-100/70 border-sky-200' },
+  { title: 'Shortlisted', status: 'Shortlisted', color: 'bg-amber-100/60 border-amber-200' },
+  { title: 'Interview', status: 'Interview', color: 'bg-purple-100/60 border-purple-200' },
+  { title: 'Offer', status: 'Offer', color: 'bg-green-100/60 border-green-200' },
 ];
 
 interface KanbanCardProps {
@@ -24,7 +25,7 @@ interface KanbanCardProps {
 
 function KanbanCard({ application, candidate }: KanbanCardProps) {
   return (
-    <Card className="mb-4 bg-card hover:shadow-md transition-shadow">
+    <Card className="mb-3 bg-card hover:shadow-md transition-shadow">
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 border">
@@ -73,17 +74,17 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
       {kanbanColumns.map(column => {
         const columnApps = getApplicationsByStatus(column.status);
         return (
-          <div key={column.status} className="flex flex-col">
-            <Card className="bg-muted">
-              <CardHeader className="p-4">
+          <div key={column.status} className="flex flex-col h-full">
+            <div className={cn("flex-1 flex flex-col rounded-lg border", column.color)}>
+              <CardHeader className="p-3 border-b-2 border-inherit">
                 <CardTitle className="text-base font-semibold flex justify-between items-center">
-                  <span>{column.title}</span>
-                  <span className="text-sm font-normal text-muted-foreground bg-background rounded-full px-2 py-0.5">
+                  <span className="text-foreground/80">{column.title}</span>
+                  <span className="text-sm font-normal text-muted-foreground bg-background/50 rounded-full px-2 py-0.5">
                     {columnApps.length}
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-2 min-h-[150px]">
+              <CardContent className="p-2 flex-1">
                 {columnApps.length > 0 ? (
                   columnApps.map(item => (
                     <KanbanCard key={item.application.id} application={item.application} candidate={item.candidate} />
@@ -94,7 +95,7 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </div>
           </div>
         );
       })}
