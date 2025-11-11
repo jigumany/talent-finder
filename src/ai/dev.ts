@@ -1,7 +1,3 @@
-
-import { config } from 'dotenv';
-config();
-
-import '@/ai/flows/review-generator.ts';
-import '@/ai/flows/find-candidate-flow.ts';
-import '@/ai/flows/assistant-flow.ts';
+// This file is intentionally left empty to disable the Genkit dev server,
+// which was causing server instability. Your AI flows are still loaded
+// and available to the Next.js application.
