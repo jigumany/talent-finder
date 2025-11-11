@@ -24,11 +24,13 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import images from '@/lib/placeholder-images.json';
 
 
 export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const resumeImage = images['document-resume'];
 
   const handleBooking = () => {
     const bookedDates = dates?.map(date => format(date, "PPP")).join(', ') || 'your selected dates';
@@ -109,11 +111,12 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                     </DialogHeader>
                     <div className="relative flex-1 mt-4 rounded-md overflow-hidden bg-muted/50">
                         <Image 
-                            src="https://placehold.co/800x1100.png" 
+                            src={resumeImage.src}
                             alt="CV Preview"
-                            fill
-                            style={{objectFit: 'contain'}}
-                            data-ai-hint="document resume"
+                            width={resumeImage.width}
+                            height={resumeImage.height}
+                            style={{objectFit: 'contain', width: '100%', height: '100%'}}
+                            data-ai-hint={resumeImage.hint}
                         />
                     </div>
                      <DialogFooter className="sm:justify-end mt-4">

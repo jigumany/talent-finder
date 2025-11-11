@@ -7,18 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import images from '@/lib/placeholder-images.json';
 
 export default function AuthPage() {
+  const classroomImage = images['school-classroom'];
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="relative hidden bg-muted lg:block">
         <Image
-          src="https://placehold.co/1200x1200.png"
+          src={classroomImage.src}
           alt="A modern classroom with students and a teacher"
-          fill
+          width={classroomImage.width}
+          height={classroomImage.height}
           style={{objectFit: 'cover'}}
-          className="opacity-90"
-          data-ai-hint="school classroom"
+          className="opacity-90 w-full h-full"
+          data-ai-hint={classroomImage.hint}
         />
         <div className="relative z-10 flex flex-col justify-between h-full p-10 bg-gradient-to-b from-primary/80 to-primary/40 text-primary-foreground">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold">

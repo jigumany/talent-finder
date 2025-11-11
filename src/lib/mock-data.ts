@@ -1,5 +1,6 @@
 
 import type { Candidate, Booking, Timesheet } from './types';
+import images from './placeholder-images.json';
 
 export const mockCandidates: Candidate[] = [
   {
@@ -13,7 +14,7 @@ export const mockCandidates: Candidate[] = [
     location: 'London, UK',
     qualifications: ['PhD in History', 'QTS'],
     availability: ['2024-08-19', '2024-08-20', '2024-08-21', '2025-01-20', '2025-01-21'],
-    imageUrl: 'https://placehold.co/100x100.png',
+    imageUrl: images['candidate-1'].src,
     cvUrl: '#',
     bio: 'Passionate historian with a knack for making the past come alive for students of all ages.',
   },
@@ -28,7 +29,7 @@ export const mockCandidates: Candidate[] = [
     location: 'Manchester, UK',
     qualifications: ['M.Sc. in Mathematics', '5+ Years Experience', 'PGCE'],
     availability: ['2024-08-22', '2024-08-23'],
-    imageUrl: 'https://placehold.co/100x100.png',
+    imageUrl: images['candidate-2'].src,
     cvUrl: '#',
     bio: 'An experienced math educator who excels at breaking down complex concepts into understandable lessons.',
   },
@@ -43,7 +44,7 @@ export const mockCandidates: Candidate[] = [
     location: 'Birmingham, UK',
     qualifications: ['Child Development Cert.', 'First Aid'],
     availability: ['2024-08-19', '2024-08-26', '2024-08-27'],
-    imageUrl: 'https://placehold.co/100x100.png',
+    imageUrl: images['candidate-3'].src,
     cvUrl: '#',
     bio: 'A nurturing and patient teaching assistant dedicated to creating a supportive and positive learning environment.',
   },
@@ -58,7 +59,7 @@ export const mockCandidates: Candidate[] = [
     location: 'London, UK',
     qualifications: ['M.Ed', 'Chemistry Specialization', 'QTS'],
     availability: ['2024-08-20', '2024-08-21', '2024-08-28'],
-    imageUrl: 'https://placehold.co/100x100.png',
+    imageUrl: images['candidate-4'].src,
     cvUrl: '#',
     bio: 'Engaging science teacher who loves sparking curiosity through hands-on experiments and real-world examples.',
   },
@@ -73,7 +74,7 @@ export const mockCandidates: Candidate[] = [
     location: 'Bristol, UK',
     qualifications: ['MA in English Lit', 'TEFL Certified', 'PGCE'],
     availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
-    imageUrl: 'https://placehold.co/100x100.png',
+    imageUrl: images['candidate-5'].src,
     cvUrl: '#',
     bio: 'A literature enthusiast committed to developing strong reading and writing skills in her students.',
   },

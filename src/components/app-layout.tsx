@@ -32,6 +32,7 @@ import { Label } from '@/components/ui/label';
 import { useRole } from '@/context/role-context';
 import { cn } from '@/lib/utils';
 import { Logo } from './logo';
+import images from '@/lib/placeholder-images.json';
 
 
 const clientNav = [
@@ -82,6 +83,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
     const pathname = usePathname();
     const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
+    const avatarImage = images['user-avatar-fallback'];
 
     const navItems = role === 'client' ? clientNav : candidateNav;
 
@@ -132,7 +134,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <DropdownMenuTrigger asChild>
                             <Button variant="secondary" size="icon" className="rounded-full">
                                 <Avatar>
-                                    <AvatarImage src={`https://placehold.co/32x32.png?text=${user.fallback}`} alt={user.name} />
+                                    <AvatarImage src={avatarImage.src} alt={user.name} data-ai-hint={avatarImage.hint} />
                                     <AvatarFallback>{user.fallback}</AvatarFallback>
                                 </Avatar>
                                 <span className="sr-only">Toggle user menu</span>

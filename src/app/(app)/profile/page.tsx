@@ -10,17 +10,21 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload } from "lucide-react";
+import images from '@/lib/placeholder-images.json';
 
 export default function ProfilePage() {
     const { role } = useRole();
     const isClient = role === 'client';
+
+    const womanPortrait = images['woman-portrait'];
+    const schoolLogo = images['school-logo'];
 
     // Placeholder data for the candidate view
     const candidateData = {
         fullName: 'Amelia Collins',
         email: 'amelia.collins@example.co.uk',
         phoneNumber: '07700 900123',
-        profilePhotoUrl: 'https://placehold.co/100x100.png',
+        profilePhotoUrl: womanPortrait.src,
         cvUrl: 'my_cv_2024.pdf',
         roleType: 'Teaching Assistant',
         subjects: 'General Curriculum, Reading Support',
@@ -37,7 +41,7 @@ export default function ProfilePage() {
     const clientData = {
         schoolName: 'Oakwood Primary School',
         contactEmail: 'contact@oakwoodprimary.org.uk',
-        profilePhotoUrl: 'https://placehold.co/100x100.png',
+        profilePhotoUrl: schoolLogo.src,
     };
 
     return (
@@ -54,7 +58,13 @@ export default function ProfilePage() {
                     <CardContent className="space-y-6">
                         <div className="flex items-center gap-6">
                             <Avatar className="h-20 w-20">
-                                <AvatarImage src={clientData.profilePhotoUrl} alt={clientData.schoolName} />
+                                <AvatarImage 
+                                    src={clientData.profilePhotoUrl} 
+                                    alt={clientData.schoolName}
+                                    width={schoolLogo.width}
+                                    height={schoolLogo.height}
+                                    data-ai-hint={schoolLogo.hint} 
+                                />
                                 <AvatarFallback>{clientData.schoolName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div className="grid gap-2 flex-1">
@@ -90,7 +100,13 @@ export default function ProfilePage() {
                         <CardContent className="space-y-6">
                              <div className="flex items-center gap-6">
                                 <Avatar className="h-20 w-20">
-                                    <AvatarImage src={candidateData.profilePhotoUrl} alt={candidateData.fullName} data-ai-hint="woman portrait"/>
+                                    <AvatarImage 
+                                        src={candidateData.profilePhotoUrl} 
+                                        alt={candidateData.fullName} 
+                                        width={womanPortrait.width}
+                                        height={womanPortrait.height}
+                                        data-ai-hint={womanPortrait.hint}
+                                    />
                                     <AvatarFallback>{candidateData.fullName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-2 flex-1">
