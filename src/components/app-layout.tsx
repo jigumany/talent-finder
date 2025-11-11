@@ -64,10 +64,8 @@ const candidateNav = [
     { name: 'Profile', href: '/profile', icon: User },
 ];
 
-function BottomNavBar() {
-    const { role } = useRole();
+function BottomNavBar({ navItems }: { navItems: typeof clientNav | typeof candidateNav }) {
     const pathname = usePathname();
-    const navItems = role === 'client' ? clientNav : candidateNav;
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
@@ -95,6 +93,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
     const pathname = usePathname();
     const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
+    const navItems = role === 'client' ? clientNav : candidateNav;
     const avatarImage = images['user-avatar-fallback'];
     const isMobile = useIsMobile();
     const [isClient, setIsClient] = useState(false);
@@ -160,7 +159,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <main className="p-4 sm:p-6 pb-20">
                     {children}
                 </main>
-                <BottomNavBar />
+                <BottomNavBar navItems={navItems} />
             </>
         )
     }
