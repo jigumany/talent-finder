@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { postJobAction } from '@/app/(app)/post-a-job/actions';
-import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil } from 'lucide-react';
+import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -28,7 +29,11 @@ const postJobFormSchema = z.object({
 
 type PostJobFormValues = z.infer<typeof postJobFormSchema>;
 
-export function PostJobForm() {
+interface PostJobFormProps {
+  onJobPosted: () => void;
+}
+
+export function PostJobForm({ onJobPosted }: PostJobFormProps) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<FindCandidateOutput | null>(null);
   const { toast } = useToast();
@@ -46,9 +51,17 @@ export function PostJobForm() {
   const onSubmit = (values: PostJobFormValues) => {
     setResult(null);
     startTransition(async () => {
+      // In a real app, this would create a job and then find candidates.
+      // For now, we simulate success and show the candidates.
       const response = await postJobAction(values);
       if (response.success) {
-        setResult(response.success);
+        toast({
+            title: "Job Posted & Candidates Found!",
+            description: "We've posted your job and found some initial candidates for you.",
+        });
+        onJobPosted();
+        // Maybe we want to show candidates in the dialog? For now, we just close it.
+        // setResult(response.success);
       } else if (response.error) {
         toast({
           title: 'Error',
@@ -59,13 +72,9 @@ export function PostJobForm() {
     });
   };
   
-  const recommendedCandidate = result ? mockCandidates.find(c => c.id === result.bestMatch.id.toString()) : null;
-  const otherCandidates = result?.otherCandidates?.map(other => mockCandidates.find(c => c.id === other.id.toString())).filter(Boolean) || [];
-
 
   return (
     <>
-      {!result ? (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -74,7 +83,7 @@ export function PostJobForm() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>Job Title / Role</FormLabel>
                     <div className="relative">
                         <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <FormControl>
@@ -107,20 +116,20 @@ export function PostJobForm() {
               name="skills"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Required Skills / Certifications</FormLabel>
+                  <FormLabel>Job Description & Skills</FormLabel>
                    <div className="relative">
                       <ListChecks className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                       <FormControl>
                         <Textarea
-                          placeholder="e.g., 'PhD in History', '5+ Years Experience', 'First Aid certified'"
-                          rows={3}
+                          placeholder="Describe the role, responsibilities, and required skills. e.g., 'PhD in History', '5+ Years Experience', 'First Aid certified'"
+                          rows={5}
                           {...field}
                           className="pl-10 pt-2.5"
                         />
                       </FormControl>
                   </div>
                   <FormDescription>
-                    Provide a comma-separated list or a sentence describing the qualifications.
+                    The more detail you provide, the better the AI can match candidates.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -135,80 +144,28 @@ export function PostJobForm() {
                   <div className="relative">
                       <Pencil className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                       <FormControl>
-                        <Textarea placeholder="Any other preferences or details..." rows={3} {...field} className="pl-10 pt-2.5" />
+                        <Textarea placeholder="Any other preferences or details about the school, hours, etc." rows={3} {...field} className="pl-10 pt-2.5" />
                       </FormControl>
                   </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isPending}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              {isPending ? 'Finding Candidates...' : 'Get Recommendations'}
+            <Button type="submit" disabled={isPending} className="w-full sm:w-auto" size="lg">
+              {isPending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Posting Job...
+                </>
+              ) : (
+                <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Post Job and Find Candidates
+                </>
+              )}
             </Button>
           </form>
         </Form>
-      ) : (
-        <div className="space-y-8">
-            <div className="text-center">
-                <h2 className="text-2xl font-bold text-primary">We found some great candidates for you!</h2>
-            </div>
-            
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-center">Top Recommendation</h3>
-              <div className="grid md:grid-cols-2 gap-8 items-start">
-                  <div className="max-w-sm mx-auto">
-                      {recommendedCandidate ? (
-                          <CandidateCard candidate={recommendedCandidate} />
-                    ) : (
-                      <Alert variant="destructive">
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>
-                          Could not find the details for the recommended candidate (ID: {result.bestMatch.id}).
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                  <div className="space-y-4">
-                      <Card className="bg-primary/5 border-primary/20">
-                          <CardHeader>
-                              <CardTitle className="flex items-center gap-2">
-                                  <Sparkles className="h-5 w-5 text-primary" />
-                                  <span>AI Recommendation</span>
-                              </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                              <p className="text-muted-foreground italic">"{result.bestMatch.reasoning}"</p>
-                          </CardContent>
-                      </Card>
-                  </div>
-              </div>
-            </div>
-
-            {otherCandidates.length > 0 && (
-              <div>
-                <Separator className="my-8" />
-                <h3 className="text-xl font-semibold mb-4 text-center">Other Potential Candidates</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {otherCandidates.map(candidate => (
-                    candidate ? <CandidateCard key={candidate.id} candidate={candidate} /> : null
-                  ))}
-                </div>
-              </div>
-            )}
-
-
-            <div className="text-center mt-8">
-                <Button onClick={() => {
-                    setResult(null);
-                    form.reset();
-                }}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Post Another Job
-                </Button>
-            </div>
-        </div>
-      )}
     </>
   );
 }

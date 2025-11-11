@@ -40,3 +40,13 @@ export type Timesheet = {
   hours: number;
   status: 'Submitted' | 'Approved' | 'Rejected';
 };
+
+export type Job = {
+  id: string;
+  title: string;
+  description: string;
+  datePosted: string; // ISO date string
+  status: 'Active' | 'Closed' | 'Draft';
+  applicants: number;
+  shortlisted: number;
+};
