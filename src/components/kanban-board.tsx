@@ -6,7 +6,7 @@ import { mockCandidates } from '@/lib/mock-data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { User } from 'lucide-react';
+import { User, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
@@ -35,12 +35,17 @@ function KanbanCard({ application, candidate }: KanbanCardProps) {
           <div className="flex-1">
             <p className="font-semibold leading-tight">{candidate.name}</p>
             <p className="text-sm text-muted-foreground leading-tight">{candidate.role}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-                Applied {formatDistanceToNow(new Date(application.dateApplied), { addSuffix: true })}
-            </p>
+            <div className="flex items-center gap-1 mt-1 text-xs text-amber-500">
+                <Star className="w-3.5 h-3.5 fill-current" />
+                <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                <span className="text-muted-foreground/80">({candidate.reviews} reviews)</span>
+            </div>
           </div>
         </div>
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex justify-between items-center">
+             <p className="text-xs text-muted-foreground">
+                Applied {formatDistanceToNow(new Date(application.dateApplied), { addSuffix: true })}
+            </p>
             <Button variant="outline" size="sm" asChild>
                 <Link href={`/profile/candidate/${candidate.id}`}>
                     <User className="mr-2 h-3 w-3" />
@@ -70,12 +75,12 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
   };
 
   return (
-    <ScrollArea className="w-full">
+    <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex gap-6 pb-4">
             {kanbanColumns.map(column => {
                 const columnApps = getApplicationsByStatus(column.status);
                 return (
-                <div key={column.status} className="w-[280px] flex-shrink-0">
+                <div key={column.status} className="w-[280px] flex-shrink-0 inline-block align-top">
                     <div className={cn("flex flex-col rounded-lg border overflow-hidden h-full", column.bodyColor)}>
                         <div className={cn("p-3", column.headerColor)}>
                             <div className="flex justify-between items-center">
@@ -85,7 +90,7 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
                                 </span>
                             </div>
                         </div>
-                        <ScrollArea className="flex-1">
+                        <ScrollArea className="flex-1 h-full">
                             <div className="p-2">
                                 {columnApps.length > 0 ? (
                                 columnApps.map(item => (
