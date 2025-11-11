@@ -13,8 +13,9 @@ import type { Job } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { EditJobForm } from '@/components/edit-job-form';
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job, onManageClick }: { job: Job, onManageClick: (job: Job) => void }) {
     return (
         <Card className="flex flex-col hover:shadow-md transition-shadow">
             <CardHeader>
@@ -45,7 +46,7 @@ function JobCard({ job }: { job: Job }) {
                         <p className="text-xs text-muted-foreground">Shortlisted</p>
                     </div>
                 </div>
-                <Button size="sm">Manage Job</Button>
+                <Button size="sm" onClick={() => onManageClick(job)}>Manage Job</Button>
             </CardFooter>
         </Card>
     );
@@ -55,7 +56,9 @@ function JobCard({ job }: { job: Job }) {
 export default function PostAJobPage() {
     const { role } = useRole();
     const [jobs, setJobs] = useState<Job[]>(mockJobs);
-    const [isDialogOpen, setDialogOpen] = useState(false);
+    const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
+    const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
 
     if (role !== 'client') {
@@ -75,7 +78,16 @@ export default function PostAJobPage() {
     const handleJobPosted = () => {
         // In a real app, you'd re-fetch jobs here.
         // For now, we'll just close the dialog.
-        setDialogOpen(false);
+        setPostJobDialogOpen(false);
+    }
+    
+    const handleManageJobClick = (job: Job) => {
+        setSelectedJob(job);
+        setManageJobDialogOpen(true);
+    }
+    
+    const handleJobUpdated = () => {
+        setManageJobDialogOpen(false);
     }
 
     return (
@@ -85,7 +97,7 @@ export default function PostAJobPage() {
                     <FileCheck2 className="h-6 w-6 text-primary" />
                     <span>My Job Postings</span>
                 </h1>
-                <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
                     <DialogTrigger asChild>
                         <Button><FilePlus2 className="mr-2" /> Post a New Job</Button>
                     </DialogTrigger>
@@ -105,7 +117,7 @@ export default function PostAJobPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {jobs.map(job => (
-                    <JobCard key={job.id} job={job} />
+                    <JobCard key={job.id} job={job} onManageClick={handleManageJobClick} />
                 ))}
             </div>
 
@@ -116,6 +128,21 @@ export default function PostAJobPage() {
                     <p className="mt-1">Click "Post a New Job" to get started.</p>
                 </div>
              )}
+
+            {/* Manage Job Dialog */}
+            <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl">Manage Job Posting</DialogTitle>
+                        <DialogDescription>
+                            Edit the details of your job posting below.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="p-1">
+                        {selectedJob && <EditJobForm job={selectedJob} onJobUpdated={handleJobUpdated} />}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
