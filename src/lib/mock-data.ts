@@ -154,6 +154,33 @@ export const mockJobs: Job[] = [
         status: 'Closed',
         applicants: 8,
         shortlisted: 1,
+    },
+    {
+        id: 'job-4',
+        title: 'Lead Science Coordinator',
+        description: 'We are looking for a Lead Science Coordinator to oversee the science department and curriculum development.',
+        datePosted: '2024-08-20T11:00:00Z',
+        status: 'Active',
+        applicants: 15,
+        shortlisted: 4,
+    },
+    {
+        id: 'job-5',
+        title: 'Part-Time Art Teacher',
+        description: 'A creative and inspiring art teacher for our after-school program. 2 days a week.',
+        datePosted: '2024-08-18T16:00:00Z',
+        status: 'Active',
+        applicants: 18,
+        shortlisted: 2,
+    },
+    {
+        id: 'job-6',
+        title: 'Head of English Department',
+        description: 'A leadership role for an experienced English teacher to manage the department and mentor staff.',
+        datePosted: '2024-07-25T09:00:00Z',
+        status: 'Closed',
+        applicants: 30,
+        shortlisted: 3,
     }
 ];
 
@@ -175,4 +202,20 @@ export const mockApplications: Application[] = [
 
     // Job 3: Substitute Maths Teacher
     { id: 'app-6', jobId: 'job-3', candidateId: '2', status: 'Hired', dateApplied: '2024-08-02T09:30:00Z' },
+
+    // Job 4: Lead Science Coordinator
+    { id: 'app-11', jobId: 'job-4', candidateId: '4', status: 'Interview', dateApplied: '2024-08-21T10:00:00Z' },
+    { id: 'app-12', jobId: 'job-4', candidateId: '2', status: 'Shortlisted', dateApplied: '2024-08-21T11:00:00Z' },
+    { id: 'app-13', jobId: 'job-4', candidateId: '1', status: 'Applied', dateApplied: '2024-08-22T14:00:00Z' },
+
+    // Job 5: Part-Time Art Teacher
+    { id: 'app-14', jobId: 'job-5', candidateId: '5', status: 'Shortlisted', dateApplied: '2024-08-19T09:00:00Z' },
+    { id: 'app-15', jobId: 'job-5', candidateId: '3', status: 'Applied', dateApplied: '2024-08-19T13:00:00Z' },
+
+    // Job 6: Head of English Department
+    { id: 'app-16', jobId: 'job-6', candidateId: '5', status: 'Hired', dateApplied: '2024-07-28T10:00:00Z' },
+    { id: 'app-17', jobId: 'job-6', candidateId: '1', status: 'Interview', dateApplied: '2024-07-26T15:00:00Z' },
 ];
+
+
+    
