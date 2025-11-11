@@ -35,7 +35,6 @@ interface PostJobFormProps {
 export function PostJobForm({ onJobPosted }: PostJobFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const mapImage = images['map-preview'];
 
   const form = useForm<PostJobFormValues>({
     resolver: zodResolver(postJobFormSchema),
@@ -51,7 +50,6 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
 
   const payRate = form.watch('payRate');
   const chargeRate = (payRate * 1.40).toFixed(2);
-  const showMap = form.watch('location').length > 2;
 
   const onSubmit = (values: PostJobFormValues) => {
     startTransition(async () => {
@@ -159,19 +157,6 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
               )}
             />
             
-            {showMap && (
-                 <div className="relative w-full h-48 mt-4 rounded-md overflow-hidden bg-muted/50 border">
-                    <Image 
-                        src={mapImage.src}
-                        alt="Map Preview"
-                        layout="fill"
-                        objectFit="cover"
-                        data-ai-hint={mapImage.hint}
-                    />
-                </div>
-            )}
-
-
             <FormField
               control={form.control}
               name="skills"
