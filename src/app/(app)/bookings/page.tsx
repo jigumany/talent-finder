@@ -55,7 +55,7 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                                     'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected',
-                                }, booking.status === 'Interview' ? 'badge-yellow' : '')}
+                                }, 'badge-yellow')}
                             >
                                 {booking.status}
                             </Badge>
@@ -205,8 +205,8 @@ export default function BookingsPage() {
                 <Card>
                     <Tabs defaultValue="applicants">
                         <CardHeader>
-                            <CardTitle>Booking List</CardTitle>
-                            <CardDescription>Manage your job applicants, upcoming work, and completed bookings.</CardDescription>
+                            <CardTitle>Manage Your Pipeline</CardTitle>
+                            <CardDescription>Manage job applicants, upcoming work, and completed bookings.</CardDescription>
                             <TabsList className="grid w-full grid-cols-3 mt-4">
                                 <TabsTrigger value="applicants">
                                     <Users className="mr-2 h-4 w-4" />
@@ -290,13 +290,21 @@ export default function BookingsPage() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)} className="flex justify-around">
-                        <Label htmlFor="hired" className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary", outcome === 'hired' ? 'border-primary' : '')}>
+                        <Label htmlFor="hired" className={cn(
+                          "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out",
+                          "hover:bg-green-50 hover:border-green-400",
+                           outcome === 'hired' ? "bg-green-100 border-green-500 text-green-800" : "bg-popover border-muted"
+                        )}>
                              <RadioGroupItem value="hired" id="hired" className="sr-only" />
                              <CheckCircle className="mb-3 h-6 w-6" />
                              Hire
                         </Label>
 
-                         <Label htmlFor="rejected" className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-destructive [&:has([data-state=checked])]:border-destructive", outcome === 'rejected' ? 'border-destructive' : '')}>
+                         <Label htmlFor="rejected" className={cn(
+                            "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out",
+                            "hover:bg-red-50 hover:border-red-400",
+                            outcome === 'rejected' ? "bg-red-100 border-red-500 text-red-800" : "bg-popover border-muted"
+                          )}>
                              <RadioGroupItem value="rejected" id="rejected" className="sr-only" />
                              <XCircle className="mb-3 h-6 w-6" />
                              Reject
@@ -326,4 +334,5 @@ export default function BookingsPage() {
             </Dialog>
         </div>
     );
-}
+
+    
