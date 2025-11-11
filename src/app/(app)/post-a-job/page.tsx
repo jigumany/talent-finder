@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { KanbanBoard } from '@/components/kanban-board';
 import { Separator } from '@/components/ui/separator';
+import { EditJobForm } from '@/components/edit-job-form';
 
 interface JobCardProps {
     job: Job;
@@ -61,10 +62,12 @@ function JobCard({ job, onManageClick }: JobCardProps) {
 
 export default function PostAJobPage() {
     const { role } = useRole();
-    const [jobs] = useState<Job[]>(mockJobs);
+    const [jobs, setJobs] = useState<Job[]>(mockJobs);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
     const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+    const [isEditingJob, setIsEditingJob] = useState(false);
+
 
     if (role !== 'client') {
         return (
@@ -87,10 +90,16 @@ export default function PostAJobPage() {
 
     const handleManageClick = (job: Job) => {
         setSelectedJob(job);
+        setIsEditingJob(false);
         setManageJobDialogOpen(true);
     }
     
     const jobApplications = selectedJob ? mockApplications.filter(app => app.jobId === selectedJob.id) : [];
+    
+    const handleJobUpdated = () => {
+        setIsEditingJob(false);
+        // Here you would typically refetch job data
+    };
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -126,21 +135,37 @@ export default function PostAJobPage() {
             {selectedJob && (
                 <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
                     <DialogContent className="sm:max-w-6xl h-[90vh] flex flex-col">
-                         <DialogHeader>
-                            <DialogTitle className="text-2xl flex items-center gap-3">
-                                <span>{selectedJob.title}</span>
-                                <Button variant="ghost" size="icon" className="h-7 w-7">
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                            </DialogTitle>
-                            <DialogDescription>
-                                {selectedJob.description}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <Separator />
-                        <div className="flex-1 overflow-auto -mx-6 px-6">
-                            <KanbanBoard applications={jobApplications} />
-                        </div>
+                        {isEditingJob ? (
+                            <>
+                                <DialogHeader>
+                                    <DialogTitle>Edit Job Posting</DialogTitle>
+                                    <DialogDescription>
+                                        Update the details for your job posting: "{selectedJob.title}"
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="p-1 overflow-auto">
+                                    <EditJobForm job={selectedJob} onJobUpdated={handleJobUpdated} />
+                                </div>
+                            </>
+                        ) : (
+                             <>
+                                <DialogHeader>
+                                    <DialogTitle className="text-2xl flex items-center gap-3">
+                                        <span>{selectedJob.title}</span>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingJob(true)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {selectedJob.description}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <Separator />
+                                <div className="flex-1 overflow-auto -mx-6 px-6">
+                                    <KanbanBoard applications={jobApplications} />
+                                </div>
+                            </>
+                        )}
                     </DialogContent>
                 </Dialog>
             )}
