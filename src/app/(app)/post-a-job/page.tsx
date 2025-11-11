@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ActivityLog } from '@/components/activity-log';
 import { JobDetails } from '@/components/job-details';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface JobCardProps {
     job: Job;
@@ -348,14 +349,18 @@ export default function PostAJobPage() {
                                         </div>
                                     </div>
                                 </DialogHeader>
-                                <TabsContent value="applicants" className="flex-1 overflow-auto mt-4">
+                                <TabsContent value="applicants" className="flex-1 mt-4 -mx-6 sm:mx-0">
                                      <KanbanBoard applications={jobApplications} />
                                 </TabsContent>
-                                <TabsContent value="details" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+                                <TabsContent value="details" className="flex-1 overflow-auto mt-4">
+                                  <ScrollArea className="h-full">
                                     <JobDetails job={selectedJob} />
+                                  </ScrollArea>
                                 </TabsContent>
-                                <TabsContent value="activity" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+                                <TabsContent value="activity" className="flex-1 overflow-auto mt-4">
+                                  <ScrollArea className="h-full">
                                     <ActivityLog logs={selectedJobLogs} />
+                                  </ScrollArea>
                                 </TabsContent>
                             </Tabs>
                         )}

@@ -16,6 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 import {
     Briefcase,
@@ -28,6 +30,11 @@ import {
     User,
     Users,
     FilePlus2,
+    Activity,
+    Info,
+    MoreVertical,
+    XCircle,
+    Pencil as PencilIcon,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -94,7 +101,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     if (isMobile) {
         return (
-            <div className="min-h-screen w-full bg-background">
+            <>
                  <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
                     <div className="flex-1">
                          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
@@ -141,7 +148,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     {children}
                 </main>
                 <BottomNavBar />
-            </div>
+            </>
         )
     }
 

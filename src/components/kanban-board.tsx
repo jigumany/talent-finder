@@ -76,7 +76,7 @@ export function KanbanBoard({ applications }: KanbanBoardProps) {
 
   return (
     <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex gap-6 pb-4">
+        <div className="flex gap-6 pb-4 px-6 sm:px-0">
             {kanbanColumns.map(column => {
                 const columnApps = getApplicationsByStatus(column.status);
                 return (
