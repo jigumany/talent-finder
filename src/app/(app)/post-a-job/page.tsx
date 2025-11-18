@@ -66,12 +66,12 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                         </TableCell>
                         <TableCell>
                             <Badge className={cn({
-                                'bg-purple-600 hover:bg-purple-700': application.status === 'Interview',
-                                'badge-yellow': application.status === 'Shortlisted',
-                                'bg-destructive hover:bg-destructive/90': application.status === 'Rejected',
-                                'bg-green-600 hover:bg-green-700': application.status === 'Hired',
-                                'bg-sky-500 hover:bg-sky-600': application.status === 'Offer',
-                                'bg-muted-foreground/50 text-muted-foreground': application.status === 'Applied'
+                                'bg-purple-600 hover:bg-purple-700 text-white': application.status === 'Interview',
+                                'badge-yellow text-black': application.status === 'Shortlisted',
+                                'bg-red-600 hover:bg-red-700 text-white': application.status === 'Rejected',
+                                'bg-green-600 hover:bg-green-700 text-white': application.status === 'Hired',
+                                'bg-sky-500 hover:bg-sky-600 text-white': application.status === 'Offer',
+                                'bg-gray-200 text-gray-800': application.status === 'Applied'
                             })}>
                                 {application.status}
                             </Badge>
@@ -83,18 +83,18 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                             </div>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                             <Button variant="outline" size="sm" asChild>
+                             <Button variant="secondary" size="sm" asChild>
                                 <Link href={`/profile/candidate/${candidate.id}`}>
                                      View Profile
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="text-amber-600 border-amber-500 hover:bg-amber-500 hover:text-white">
+                                <Button variant="warning" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')}>
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
                              {(application.status === 'Applied' || application.status === 'Shortlisted') && (
-                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Interview')} className="text-purple-600 border-purple-500 hover:bg-purple-500 hover:text-white">
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Interview')} className="bg-purple-600 hover:bg-purple-700 text-white">
                                     <MessageSquare className="mr-2 h-4 w-4" /> Interview
                                 </Button>
                              )}
@@ -509,6 +509,8 @@ export default function PostAJobPage() {
             )}
         </div>
     );
+
+    
 
     
 
