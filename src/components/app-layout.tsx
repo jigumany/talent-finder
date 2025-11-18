@@ -51,7 +51,7 @@ const clientNav = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Browse', href: '/browse-candidates', icon: Users },
     { name: 'Find', href: '/find-me-someone', icon: Search },
-    { name: 'Post a Job', href: '/post-a-job', icon: FilePlus2 },
+    { name: 'Booking Manager', href: '/post-a-job', icon: FilePlus2 },
     { name: 'Diary', href: '/diary', icon: Calendar },
     { name: 'Bookings', href: '/bookings', icon: Briefcase },
     { name: 'Reviews', href: '/review-generator', icon: PenSquare },
