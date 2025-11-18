@@ -90,6 +90,81 @@ export const mockCandidates: Candidate[] = [
     cvUrl: '#',
     bio: 'A literature enthusiast committed to developing strong reading and writing skills in her students.',
   },
+  {
+    id: '6',
+    name: 'Liam O\'Connell',
+    role: 'PE Teacher',
+    rate: 40,
+    rateType: 'hourly',
+    rating: 4.8,
+    reviews: 15,
+    location: 'Glasgow, UK',
+    qualifications: ['BSc Sports Science', 'First Aid', 'QTS'],
+    availability: ['2024-08-20', '2024-08-21', '2024-08-27', '2024-08-28'],
+    imageUrl: 'https://picsum.photos/seed/106/100/100',
+    cvUrl: '#',
+    bio: 'Dynamic and motivational PE teacher with a focus on promoting teamwork and healthy lifestyles.',
+  },
+  {
+    id: '7',
+    name: 'Chloe Dubois',
+    role: 'Music Teacher',
+    rate: 48,
+    rateType: 'hourly',
+    rating: 4.9,
+    reviews: 22,
+    location: 'Edinburgh, UK',
+    qualifications: ['BMus (Hons)', 'Grade 8 Piano', 'Grade 8 Violin'],
+    availability: ['2024-08-22', '2024-08-23', '2024-08-29'],
+    imageUrl: 'https://picsum.photos/seed/107/100/100',
+    cvUrl: '#',
+    bio: 'Creative music teacher with experience in leading choirs, orchestras, and classroom music lessons.',
+  },
+  {
+    id: '8',
+    name: 'Ben Carter',
+    role: 'IT Technician',
+    rate: 35,
+    rateType: 'hourly',
+    rating: 4.7,
+    reviews: 19,
+    location: 'London, UK',
+    qualifications: ['CompTIA A+', 'Network+', 'DBS Cleared'],
+    availability: ['2024-08-19', '2024-08-20', '2024-08-21'],
+    imageUrl: 'https://picsum.photos/seed/108/100/100',
+    cvUrl: '#',
+    bio: 'Reliable and skilled IT Technician with experience in maintaining school networks and providing technical support.',
+  },
+  {
+    id: '9',
+    name: 'Sofia Reyes',
+    role: 'Spanish Teacher',
+    rate: 52,
+    rateType: 'hourly',
+    rating: 5.0,
+    reviews: 25,
+    location: 'Cardiff, UK',
+    qualifications: ['BA in Hispanic Studies', 'PGCE', 'DELE C2'],
+    availability: ['2024-08-26', '2024-08-27', '2024-08-28'],
+    imageUrl: 'https://picsum.photos/seed/109/100/100',
+    cvUrl: '#',
+    bio: 'Native Spanish speaker and passionate teacher focused on immersive and communicative language learning.',
+  },
+  {
+    id: '10',
+    name: 'David Chen',
+    role: 'Physics Teacher',
+    rate: 60,
+    rateType: 'hourly',
+    rating: 4.8,
+    reviews: 17,
+    location: 'Manchester, UK',
+    qualifications: ['PhD in Physics', 'QTS', 'IOP Member'],
+    availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
+    imageUrl: 'https://picsum.photos/seed/110/100/100',
+    cvUrl: '#',
+    bio: 'Theoretical physicist turned educator, adept at making complex physics principles accessible and exciting.',
+  },
 ];
 
 export const mockClientBookings: Booking[] = [
@@ -199,7 +274,30 @@ export const mockJobs: Job[] = [
         payRate: 300,
         location: 'Leeds, UK',
         subject: 'English'
-    }
+    },
+    {
+        id: 'job-7',
+        title: 'Full-Time PE Teacher',
+        description: 'Enthusiastic PE teacher wanted for a secondary school. Must be able to coach football and athletics.',
+        datePosted: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Active',
+        applicants: 22,
+        shortlisted: 6,
+        payRate: 160,
+        location: 'Glasgow, UK',
+        subject: 'Physical Education'
+    },
+    {
+        id: 'job-8',
+        title: 'School IT Support Technician',
+        description: 'Entry-level IT support role. Responsibilities include hardware, software, and network troubleshooting.',
+        datePosted: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Active',
+        applicants: 45,
+        shortlisted: 8,
+        payRate: 100,
+        location: 'London, UK',
+    },
 ];
 
 export const mockApplications: Application[] = [
@@ -225,6 +323,8 @@ export const mockApplications: Application[] = [
     { id: 'app-11', jobId: 'job-4', candidateId: '4', status: 'Interview', dateApplied: '2024-08-21T10:00:00Z' },
     { id: 'app-12', jobId: 'job-4', candidateId: '2', status: 'Shortlisted', dateApplied: '2024-08-21T11:00:00Z' },
     { id: 'app-13', jobId: 'job-4', candidateId: '1', status: 'Applied', dateApplied: '2024-08-22T14:00:00Z' },
+    { id: 'app-18', jobId: 'job-4', candidateId: '10', status: 'Interview', dateApplied: '2024-08-22T10:00:00Z' },
+
 
     // Job 5: Part-Time Art Teacher
     { id: 'app-14', jobId: 'job-5', candidateId: '5', status: 'Shortlisted', dateApplied: '2024-08-19T09:00:00Z' },
@@ -233,6 +333,14 @@ export const mockApplications: Application[] = [
     // Job 6: Head of English Department
     { id: 'app-16', jobId: 'job-6', candidateId: '5', status: 'Hired', dateApplied: '2024-07-28T10:00:00Z' },
     { id: 'app-17', jobId: 'job-6', candidateId: '1', status: 'Interview', dateApplied: '2024-07-26T15:00:00Z' },
+
+    // Job 7: Full-Time PE Teacher
+    { id: 'app-19', jobId: 'job-7', candidateId: '6', status: 'Interview', dateApplied: '2024-08-20T11:00:00Z' },
+    { id: 'app-20', jobId: 'job-7', candidateId: '2', status: 'Applied', dateApplied: '2024-08-21T12:00:00Z' },
+
+    // Job 8: School IT Support Technician
+    { id: 'app-21', jobId: 'job-8', candidateId: '8', status: 'Shortlisted', dateApplied: '2024-08-22T13:00:00Z' },
+    { id: 'app-22', jobId: 'job-8', candidateId: '3', status: 'Applied', dateApplied: '2024-08-23T14:00:00Z' },
 ];
 
 export const mockClientReviews: ClientReview[] = [
@@ -261,6 +369,7 @@ export const mockClientReviews: ClientReview[] = [
 
 const now = new Date();
 const today = now.toISOString();
+const yesterday = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString();
 const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
 const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
 const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString();
@@ -280,11 +389,13 @@ export const mockAuditLogs: AuditLog[] = [
     { id: 'log-3', jobId: 'job-2', date: tenDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Primary School Teaching Assistant.' },
     { id: 'log-8', jobId: 'job-2', date: aWeekAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Shortlisted' },
     { id: 'log-9', jobId: 'job-2', date: fiveDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Interview' },
-    { id: 'log-12', jobId: 'job-2', date: today, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Offer' },
+    { id: 'log-12', jobId: 'job-2', date: yesterday, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Offer' },
     
     // Job 4
     { id: 'log-13', jobId: 'job-4', date: twoDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Lead Science Coordinator.' },
     { id: 'log-14', jobId: 'job-4', date: today, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'James Peterson moved to Shortlisted.' },
+    { id: 'log-18', jobId: 'job-4', date: yesterday, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'David Chen moved to Interview' },
+
 
     // Job 5
     { id: 'log-15', jobId: 'job-5', date: fourDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Part-Time Art Teacher.'},
@@ -292,12 +403,17 @@ export const mockAuditLogs: AuditLog[] = [
     // Job 3
     { id: 'log-4', jobId: 'job-3', date: '2024-08-01T09:00:00Z', action: 'Job Created', user: 'Jane Doe (Admin)' },
     { id: 'log-5', jobId: 'job-3', date: '2024-08-05T17:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Active to Closed.' },
+
+    // Job 7
+    { id: 'log-16', jobId: 'job-7', date: fiveDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Full-Time PE Teacher.' },
+    { id: 'log-17', jobId: 'job-7', date: threeDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Liam O\'Connell moved to Interview.' },
 ];
     
 
     
 
     
+
 
 
 
