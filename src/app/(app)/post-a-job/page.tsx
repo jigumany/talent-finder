@@ -65,14 +65,13 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                             </div>
                         </TableCell>
                         <TableCell>
-                            <Badge variant={
-                                application.status === 'Interview' || application.status === 'Offer' ? 'default' :
-                                application.status === 'Shortlisted' ? 'secondary' : 'outline'
-                            } className={cn({
-                                'bg-purple-600': application.status === 'Interview',
+                            <Badge className={cn({
+                                'bg-purple-600 hover:bg-purple-700': application.status === 'Interview',
                                 'badge-yellow': application.status === 'Shortlisted',
-                                'bg-destructive': application.status === 'Rejected',
-                                'bg-green-600': application.status === 'Hired',
+                                'bg-destructive hover:bg-destructive/90': application.status === 'Rejected',
+                                'bg-green-600 hover:bg-green-700': application.status === 'Hired',
+                                'bg-sky-500 hover:bg-sky-600': application.status === 'Offer',
+                                'bg-muted-foreground/50 text-muted-foreground': application.status === 'Applied'
                             })}>
                                 {application.status}
                             </Badge>
@@ -510,6 +509,8 @@ export default function PostAJobPage() {
             )}
         </div>
     );
+
+    
 
     
 
