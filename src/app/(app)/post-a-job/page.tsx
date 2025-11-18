@@ -71,8 +71,8 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                         </TableCell>
                         <TableCell>
                              <Badge className={cn({
-                                'bg-purple-600 hover:bg-purple-700 text-purple-50': application.status === 'Interview',
-                                'bg-yellow-400 hover:bg-yellow-500 text-yellow-950': application.status === 'Shortlisted',
+                                'bg-purple-600 hover:bg-purple-700 text-white': application.status === 'Interview',
+                                'badge-yellow text-black': application.status === 'Shortlisted',
                                 'bg-red-600 hover:bg-red-700 text-red-50': application.status === 'Rejected',
                                 'bg-green-600 hover:bg-green-700 text-green-50': application.status === 'Hired',
                                 'bg-sky-500 hover:bg-sky-600 text-sky-50': application.status === 'Offer',
@@ -94,7 +94,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="badge-yellow text-black">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
@@ -427,7 +427,7 @@ export default function PostAJobPage() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl">
                              <DialogHeader>
-                                <DialogTitle className="text-2xl">Post a New Job</DialogTitle>
+                                <DialogTitle className="text-2xl">Add your Booking</DialogTitle>
                                 <DialogDescription>
                                     Fill in the details below. Our AI can then help find the best candidates for you.
                                 </DialogDescription>
@@ -684,5 +684,7 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
 
     
