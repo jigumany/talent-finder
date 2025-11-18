@@ -169,7 +169,7 @@ function JobCard({ job, onManageClick }: JobCardProps) {
                     <p className="text-xs text-muted-foreground">Shortlisted</p>
                 </div>
                 <div className="flex items-center justify-center">
-                    <Button size="sm" onClick={() => onManageClick(job)}>Manage Job</Button>
+                    <Button size="sm" onClick={() => onManageClick(job)}>Manage Booking</Button>
                 </div>
             </CardFooter>
         </Card>
