@@ -53,14 +53,15 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                 {applications.map(({ application, candidate }) => (
                     <TableRow key={application.id}>
                         <TableCell>
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10 border">
+                            <div className="flex items-start gap-4">
+                                <Avatar className="h-12 w-12 border">
                                     <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
                                     <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{candidate.name}</p>
                                     <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 italic">"{candidate.bio}"</p>
                                 </div>
                             </div>
                         </TableCell>
@@ -70,7 +71,7 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 application.status === 'Shortlisted' ? 'secondary' : 'outline'
                             } className={cn({
                                 'bg-purple-600': application.status === 'Interview',
-                                'bg-yellow-500': application.status === 'Shortlisted',
+                                'badge-yellow': application.status === 'Shortlisted',
                             })}>
                                 {application.status}
                             </Badge>
@@ -479,4 +480,5 @@ export default function PostAJobPage() {
             )}
         </div>
     );
-}
+
+    
