@@ -84,45 +84,32 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 <span className="font-bold">{candidate.rating.toFixed(1)}</span>
                             </div>
                         </TableCell>
-                        <TableCell className="text-right">
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/profile/candidate/${candidate.id}`}>
-                                            <Users className="mr-2 h-4 w-4" /> View Profile
-                                        </Link>
-                                    </DropdownMenuItem>
-                                     <DropdownMenuSeparator />
-                                     {application.status === 'Applied' && (
-                                        <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Shortlisted')}>
-                                            <Star className="mr-2 h-4 w-4" /> Shortlist
-                                        </DropdownMenuItem>
-                                     )}
-                                     {(application.status === 'Applied' || application.status === 'Shortlisted') && (
-                                        <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Interview')}>
-                                            <MessageSquare className="mr-2 h-4 w-4" /> Schedule Interview
-                                        </DropdownMenuItem>
-                                     )}
-                                     {(application.status === 'Interview' || application.status === 'Shortlisted') && (
-                                        <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Hired')}>
-                                           <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
-                                        </DropdownMenuItem>
-                                     )}
-                                     {application.status !== 'Rejected' && application.status !== 'Hired' && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Rejected')} className="text-destructive focus:text-destructive">
-                                                <Ban className="mr-2 h-4 w-4" /> Not a Match
-                                            </DropdownMenuItem>
-                                        </>
-                                     )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                        <TableCell className="text-right space-x-2">
+                             <Button variant="outline" size="sm" asChild>
+                                <Link href={`/profile/candidate/${candidate.id}`}>
+                                     View Profile
+                                </Link>
+                            </Button>
+                             {application.status === 'Applied' && (
+                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')}>
+                                    <Star className="mr-2 h-4 w-4" /> Shortlist
+                                </Button>
+                             )}
+                             {(application.status === 'Applied' || application.status === 'Shortlisted') && (
+                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Interview')}>
+                                    <MessageSquare className="mr-2 h-4 w-4" /> Interview
+                                </Button>
+                             )}
+                             {(application.status === 'Interview' || application.status === 'Shortlisted' || application.status === 'Offer') && (
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Hired')}>
+                                   <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
+                                </Button>
+                             )}
+                             {application.status !== 'Rejected' && application.status !== 'Hired' && (
+                                <Button variant="destructive" size="sm" onClick={() => onStatusChange(application.id, 'Rejected')}>
+                                    <Ban className="mr-2 h-4 w-4" /> Not a Match
+                                </Button>
+                             )}
                         </TableCell>
                     </TableRow>
                 ))}
@@ -524,6 +511,8 @@ export default function PostAJobPage() {
             )}
         </div>
     );
+
+    
 
     
 
