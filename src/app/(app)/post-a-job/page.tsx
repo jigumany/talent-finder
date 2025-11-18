@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, PoundSterling, MapPin } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
@@ -84,7 +85,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                             </div>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                             <Button variant="secondary" size="sm" asChild>
+                             <Button variant="outline" size="sm" asChild>
                                 <Link href={`/profile/candidate/${candidate.id}`}>
                                      View Profile
                                 </Link>
@@ -625,3 +626,5 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
