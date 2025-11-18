@@ -4,18 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar, MessageSquare, BriefcaseBusiness, Ban } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, PoundSterling, MapPin } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { mockJobs, mockApplications, mockAuditLogs, mockCandidates } from '@/lib/mock-data';
-import type { Job, AuditLog, Application, Candidate, ApplicationStatus } from '@/lib/types';
+import { mockJobs, mockApplications, mockAuditLogs, mockCandidates, mockClientBookings } from '@/lib/mock-data';
+import type { Job, AuditLog, Application, Candidate, ApplicationStatus, Booking } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { EditJobForm } from '@/components/edit-job-form';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ActivityLog } from '@/components/activity-log';
@@ -25,13 +23,16 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface ApplicantTableProps {
     applications: { application: Application; candidate: Candidate }[];
     onStatusChange: (applicationId: string, newStatus: ApplicationStatus) => void;
+    onBookNowClick: (candidate: Candidate) => void;
 }
 
-function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
+function ApplicantTable({ applications, onStatusChange, onBookNowClick }: ApplicantTableProps) {
     if (applications.length === 0) {
         return (
             <div className="text-center text-muted-foreground p-8">
@@ -99,7 +100,7 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 </Button>
                              )}
                              {(application.status === 'Interview' || application.status === 'Shortlisted' || application.status === 'Offer') && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Hired')} className="bg-green-600 hover:bg-green-700 text-white">
+                                <Button size="sm" onClick={() => onBookNowClick(candidate)} className="bg-green-600 hover:bg-green-700 text-white">
                                    <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
                                 </Button>
                              )}
@@ -147,33 +148,33 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                         )}>
                             {job.status}
                         </Badge>
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                         <Dialog>
+                            <DialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            </DialogTrigger>
+                            <DialogContent>
                                 {job.status !== 'Closed' && (
                                     <>
-                                        <DropdownMenuItem onClick={() => onStatusChange(job.id, job.status === 'Paused' ? 'Active' : 'Paused')}>
+                                        <Button onClick={() => onStatusChange(job.id, job.status === 'Paused' ? 'Active' : 'Paused')}>
                                             <PauseCircle className="mr-2 h-4 w-4" />
                                             <span>{job.status === 'Paused' ? 'Resume' : 'Pause'}</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => onStatusChange(job.id, 'Closed')}>
+                                        </Button>
+                                        <Button onClick={() => onStatusChange(job.id, 'Closed')}>
                                             <XCircle className="mr-2 h-4 w-4" />
                                             <span>Close</span>
-                                        </DropdownMenuItem>
+                                        </Button>
                                     </>
                                 )}
                                 {job.status === 'Closed' && (
-                                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                    <Button onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         <span>Delete</span>
-                                    </DropdownMenuItem>
+                                    </Button>
                                 )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
                 <CardDescription>
@@ -221,6 +222,7 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
 export default function PostAJobPage() {
     const { role } = useRole();
     const [jobs, setJobs] = useState<Job[]>(mockJobs);
+    const [bookings, setBookings] = useState<Booking[]>(mockClientBookings);
     const [applications, setApplications] = useState<Application[]>(mockApplications);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
@@ -229,6 +231,13 @@ export default function PostAJobPage() {
     const [isEditingJob, setIsEditingJob] = useState(false);
     const [activeTab, setActiveTab] = useState('applicants');
     const isMobile = useIsMobile();
+
+    // State for booking from job page
+    const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+    const [candidateToBook, setCandidateToBook] = useState<Candidate | null>(null);
+    const [bookingDates, setBookingDates] = useState<Date[] | undefined>([]);
+    const [bookingPay, setBookingPay] = useState('');
+    const [bookingLocation, setBookingLocation] = useState('');
 
 
     if (role !== 'client') {
@@ -316,6 +325,50 @@ export default function PostAJobPage() {
             description: "The job posting has been successfully deleted.",
             variant: 'destructive',
         });
+    };
+
+    const handleBookNowClick = (candidate: Candidate) => {
+        if (!selectedJob) return;
+        setCandidateToBook(candidate);
+        setBookingPay(selectedJob.payRate?.toString() ?? '');
+        setBookingLocation(selectedJob.location ?? '');
+        setBookingDates([]);
+        setIsBookingDialogOpen(true);
+    };
+
+    const handleConfirmBooking = () => {
+        if (!candidateToBook || !selectedJob || !bookingDates || bookingDates.length === 0) {
+            toast({
+                title: "Incomplete Information",
+                description: "Please select at least one date.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const newBookings: Booking[] = bookingDates.map(date => ({
+            id: `b-${Date.now()}-${Math.random()}`,
+            candidateName: candidateToBook.name,
+            candidateRole: selectedJob.title,
+            date: date.toISOString(),
+            status: 'Confirmed'
+        }));
+        
+        setBookings(prev => [...newBookings, ...prev]);
+
+        // Update application status to 'Hired'
+        const application = applications.find(app => app.candidateId === candidateToBook.id && app.jobId === selectedJob.id);
+        if (application) {
+            handleApplicationStatusChange(application.id, 'Hired');
+        }
+
+        toast({
+            title: "Booking Confirmed!",
+            description: `${candidateToBook.name} has been booked for ${bookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
+        });
+
+        setIsBookingDialogOpen(false);
+        setCandidateToBook(null);
     };
     
     const selectedJobLogs = selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [];
@@ -439,48 +492,50 @@ export default function PostAJobPage() {
                                                 <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
                                                 <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
                                             </TabsList>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
+                                             <Dialog>
+                                                <DialogTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-9 w-9">
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => setIsEditingJob(true)}>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>More Actions</DialogTitle>
+                                                    </DialogHeader>
+                                                    <Button onClick={() => setIsEditingJob(true)}>
                                                         <Pencil className="mr-2 h-4 w-4" />
                                                         <span>Edit Job</span>
-                                                    </DropdownMenuItem>
+                                                    </Button>
                                                      {isMobile && (
                                                         <>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuLabel>Views</DropdownMenuLabel>
-                                                            <DropdownMenuRadioGroup value={activeTab} onValueChange={setActiveTab}>
-                                                                <DropdownMenuRadioItem value="applicants">
-                                                                    <Users className="mr-2 h-4 w-4" /> Applicants
-                                                                </DropdownMenuRadioItem>
-                                                                <DropdownMenuRadioItem value="details">
-                                                                    <Info className="mr-2 h-4 w-4" /> Details
-                                                                </DropdownMenuRadioItem>
-                                                                <DropdownMenuRadioItem value="activity">
-                                                                    <Activity className="mr-2 h-4 w-4" /> Activity
-                                                                </DropdownMenuRadioItem>
-                                                            </DropdownMenuRadioGroup>
+                                                            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                                                <TabsList className="grid w-full grid-cols-3">
+                                                                    <TabsTrigger value="applicants">
+                                                                        <Users className="mr-2 h-4 w-4" /> Applicants
+                                                                    </TabsTrigger>
+                                                                    <TabsTrigger value="details">
+                                                                        <Info className="mr-2 h-4 w-4" /> Details
+                                                                    </TabsTrigger>
+                                                                    <TabsTrigger value="activity">
+                                                                        <Activity className="mr-2 h-4 w-4" /> Activity
+                                                                    </TabsTrigger>
+                                                                </TabsList>
+                                                            </Tabs>
                                                         </>
                                                     )}
-                                                    <DropdownMenuSeparator />
                                                     <DialogClose asChild>
-                                                        <DropdownMenuItem>
+                                                        <Button>
                                                             <XCircle className="mr-2 h-4 w-4" />
                                                             <span>Close</span>
-                                                        </DropdownMenuItem>
+                                                        </Button>
                                                     </DialogClose>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     </div>
                                 </DialogHeader>
                                 <TabsContent value="applicants" className="flex-1 mt-4 overflow-auto">
-                                     <ApplicantTable applications={jobApplications} onStatusChange={handleApplicationStatusChange} />
+                                     <ApplicantTable applications={jobApplications} onStatusChange={handleApplicationStatusChange} onBookNowClick={handleBookNowClick} />
                                 </TabsContent>
                                 <TabsContent value="details" className="flex-1 overflow-auto mt-4">
                                   <ScrollArea className="h-full">
@@ -498,6 +553,66 @@ export default function PostAJobPage() {
                 </Dialog>
             )}
 
+            {/* Booking Dialog from Job Page */}
+            {candidateToBook && selectedJob && (
+                <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+                    <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Book {candidateToBook.name}</DialogTitle>
+                            <DialogDescription>
+                                Schedule {candidateToBook.name} for the role of {selectedJob.title}.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="role">Role</Label>
+                                     <div className="relative">
+                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="role" value={selectedJob.title} readOnly className="pl-10 bg-muted" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="pay">Pay Rate (£)</Label>
+                                    <div className="relative">
+                                        <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="pay" type="number" placeholder="e.g. 150" value={bookingPay} onChange={(e) => setBookingPay(e.target.value)} className="pl-10" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="location">Location</Label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input id="location" placeholder="e.g. London, UK" value={bookingLocation} onChange={(e) => setBookingLocation(e.target.value)} className="pl-10" />
+                                </div>
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Booking Dates</Label>
+                                <div className="flex justify-center">
+                                    <Calendar
+                                        mode="multiple"
+                                        selected={bookingDates}
+                                        onSelect={setBookingDates}
+                                        className="rounded-md border"
+                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                    />
+                                </div>
+                             </div>
+                        </div>
+                        <DialogFooter className="sm:justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary" onClick={() => setCandidateToBook(null)}>Cancel</Button>
+                            </DialogClose>
+                            <Button type="button" onClick={handleConfirmBooking} disabled={!bookingDates || bookingDates.length === 0}>
+                                Confirm Booking
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+
+
              {jobs.length === 0 && (
                  <div className="flex-1 flex items-center justify-center text-center text-muted-foreground col-span-full py-16 border-2 border-dashed rounded-lg">
                     <div>
@@ -509,15 +624,4 @@ export default function PostAJobPage() {
             )}
         </div>
     );
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+}
