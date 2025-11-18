@@ -72,7 +72,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                         <TableCell>
                              <Badge className={cn({
                                 'bg-purple-600 hover:bg-purple-700 text-purple-50': application.status === 'Interview',
-                                'badge-yellow text-black': application.status === 'Shortlisted',
+                                'bg-yellow-400 hover:bg-yellow-500 text-yellow-950': application.status === 'Shortlisted',
                                 'bg-red-600 hover:bg-red-700 text-red-50': application.status === 'Rejected',
                                 'bg-green-600 hover:bg-green-700 text-green-50': application.status === 'Hired',
                                 'bg-sky-500 hover:bg-sky-600 text-sky-50': application.status === 'Offer',
@@ -684,3 +684,5 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
