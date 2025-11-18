@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useRole } from "@/context/role-context";
@@ -124,14 +125,11 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
 interface JobCardProps {
     job: Job;
     onManageClick: (job: Job) => void;
-    onStatusChange: (jobId: string, status: Job['status']) => void;
-    onDelete: (jobId: string) => void;
 }
 
-function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps) {
+function JobCard({ job, onManageClick }: JobCardProps) {
     const applicantCount = job.applicants ?? 0;
     const shortlistedCount = job.shortlisted ?? 0;
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [postedAt, setPostedAt] = useState('');
     const [isClient, setIsClient] = useState(false);
 
@@ -152,51 +150,6 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                         )}>
                             {job.status}
                         </Badge>
-                         <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                {job.status !== 'Closed' && (
-                                    <>
-                                        <Button onClick={() => onStatusChange(job.id, job.status === 'Paused' ? 'Active' : 'Paused')}>
-                                            <PauseCircle className="mr-2 h-4 w-4" />
-                                            <span>{job.status === 'Paused' ? 'Resume' : 'Pause'}</span>
-                                        </Button>
-                                        <Button onClick={() => onStatusChange(job.id, 'Closed')}>
-                                            <XCircle className="mr-2 h-4 w-4" />
-                                            <span>Close</span>
-                                        </Button>
-                                    </>
-                                )}
-                                {job.status === 'Closed' && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button  className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Delete</span>
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action cannot be undone. This will permanently delete the job posting for "{job.title}".
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => onDelete(job.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                                                Delete
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                    </AlertDialog>
-                                )}
-                            </DialogContent>
-                        </Dialog>
                     </div>
                 </div>
                 <CardDescription>
@@ -319,6 +272,9 @@ export default function PostAJobPage() {
 
     const handleJobStatusChange = (jobId: string, status: Job['status']) => {
         setJobs(prev => prev.map(job => job.id === jobId ? { ...job, status } : job));
+        if (selectedJob?.id === jobId) {
+            setSelectedJob(prev => prev ? { ...prev, status } : null);
+        }
         addAuditLog(jobId, 'Status Changed', `Job status changed to ${status}.`);
         toast({
             title: "Job Status Updated",
@@ -345,6 +301,8 @@ export default function PostAJobPage() {
 
     const handleJobDelete = (jobId: string) => {
         setJobs(prev => prev.filter(job => job.id !== jobId));
+        setManageJobDialogOpen(false);
+        setSelectedJob(null);
         toast({
             title: "Job Deleted",
             description: "The job posting has been successfully deleted.",
@@ -423,7 +381,7 @@ export default function PostAJobPage() {
                 <div className="flex gap-2">
                     <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
                         <DialogTrigger asChild>
-                             <Button variant="outline"><FilePlus2 className="mr-2" /> Add a Booking</Button>
+                             <Button><FilePlus2 className="mr-2" /> Add a Booking</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl">
                              <DialogHeader>
@@ -480,8 +438,6 @@ export default function PostAJobPage() {
                         key={job.id} 
                         job={job} 
                         onManageClick={handleManageClick} 
-                        onStatusChange={handleJobStatusChange}
-                        onDelete={handleJobDelete}
                     />
                 ))}
             </div>
@@ -546,50 +502,16 @@ export default function PostAJobPage() {
                                             </DialogDescription>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <TabsList className={cn('grid w-full sm:w-auto sm:inline-flex', { 'hidden': isMobile })}>
+                                            <TabsList>
                                                 <TabsTrigger value="applicants"><Users className="mr-2 h-4 w-4" />Applicants</TabsTrigger>
                                                 <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
                                                 <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
                                             </TabsList>
-                                             <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-9 w-9">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>More Actions</DialogTitle>
-                                                    </DialogHeader>
-                                                    <Button onClick={() => setIsEditingJob(true)}>
-                                                        <Pencil className="mr-2 h-4 w-4" />
-                                                        <span>Edit Job</span>
-                                                    </Button>
-                                                     {isMobile && (
-                                                        <>
-                                                            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                                                                <TabsList className="grid w-full grid-cols-3">
-                                                                    <TabsTrigger value="applicants">
-                                                                        <Users className="mr-2 h-4 w-4" /> Applicants
-                                                                    </TabsTrigger>
-                                                                    <TabsTrigger value="details">
-                                                                        <Info className="mr-2 h-4 w-4" /> Details
-                                                                    </TabsTrigger>
-                                                                    <TabsTrigger value="activity">
-                                                                        <Activity className="mr-2 h-4 w-4" /> Activity
-                                                                    </TabsTrigger>
-                                                                </TabsList>
-                                                            </Tabs>
-                                                        </>
-                                                    )}
-                                                    <DialogClose asChild>
-                                                        <Button>
-                                                            <XCircle className="mr-2 h-4 w-4" />
-                                                            <span>Close</span>
-                                                        </Button>
-                                                    </DialogClose>
-                                                </DialogContent>
-                                            </Dialog>
+                                             <DialogClose asChild>
+                                                <Button variant="ghost" size="icon" className="h-9 w-9">
+                                                    <XCircle className="h-5 w-5" />
+                                                </Button>
+                                            </DialogClose>
                                         </div>
                                     </div>
                                 </DialogHeader>
@@ -598,7 +520,12 @@ export default function PostAJobPage() {
                                 </TabsContent>
                                 <TabsContent value="details" className="flex-1 overflow-auto mt-4">
                                   <ScrollArea className="h-full">
-                                    <JobDetails job={selectedJob} />
+                                    <JobDetails 
+                                        job={selectedJob} 
+                                        onEditClick={() => setIsEditingJob(true)}
+                                        onStatusChange={handleJobStatusChange}
+                                        onDelete={handleJobDelete}
+                                    />
                                   </ScrollArea>
                                 </TabsContent>
                                 <TabsContent value="activity" className="flex-1 overflow-auto mt-4">
