@@ -13,13 +13,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare } from "lucide-react";
+import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare, PlusCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Booking } from "@/lib/types";
+import Link from "next/link";
 
 
 function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient, onLeaveReviewClick, reviewedBookingIds }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean, onLeaveReviewClick: (booking: Booking) => void, reviewedBookingIds: Set<string> }) {
@@ -62,7 +63,7 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
-                                <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
+                                <Button size="sm" variant="outline" onClick={() => onLeaveReviewClick(booking)}>
                                     <PenSquare className="mr-2 h-4 w-4" />
                                     Leave Review
                                 </Button>
@@ -249,8 +250,18 @@ export default function BookingsPage() {
                 <Card>
                     <Tabs defaultValue="applicants">
                         <CardHeader>
-                            <CardTitle>Booking List</CardTitle>
-                            <CardDescription>Manage applicants, upcoming work, and completed bookings.</CardDescription>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle>Booking List</CardTitle>
+                                    <CardDescription>Manage applicants and view booking history.</CardDescription>
+                                </div>
+                                <Button asChild>
+                                    <Link href="/browse-candidates">
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Add Booking
+                                    </Link>
+                                </Button>
+                            </div>
                             <TabsList className="grid w-full grid-cols-3 mt-4">
                                 <TabsTrigger value="applicants">
                                     <Users className="mr-2 h-4 w-4" />
@@ -443,3 +454,5 @@ export default function BookingsPage() {
     
 
     
+
+      
