@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar, MessageSquare, BriefcaseBusiness, Ban } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { mockJobs, mockApplications, mockAuditLogs, mockCandidates } from '@/lib/mock-data';
-import type { Job, AuditLog, Application, Candidate } from '@/lib/types';
+import type { Job, AuditLog, Application, Candidate, ApplicationStatus } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -28,7 +28,7 @@ import Link from 'next/link';
 
 interface ApplicantTableProps {
     applications: { application: Application; candidate: Candidate }[];
-    onStatusChange: (applicationId: string, newStatus: 'Shortlisted' | 'Interview') => void;
+    onStatusChange: (applicationId: string, newStatus: ApplicationStatus) => void;
 }
 
 function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
@@ -72,6 +72,8 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                             } className={cn({
                                 'bg-purple-600': application.status === 'Interview',
                                 'badge-yellow': application.status === 'Shortlisted',
+                                'bg-destructive': application.status === 'Rejected',
+                                'bg-green-600': application.status === 'Hired',
                             })}>
                                 {application.status}
                             </Badge>
@@ -82,16 +84,45 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 <span className="font-bold">{candidate.rating.toFixed(1)}</span>
                             </div>
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
-                             <Button variant="outline" size="sm" asChild>
-                                <Link href={`/profile/candidate/${candidate.id}`}>View Profile</Link>
-                            </Button>
-                            {application.status === 'Applied' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')}>Shortlist</Button>
-                            )}
-                            {application.status === 'Shortlisted' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Interview')}>Interview</Button>
-                            )}
+                        <TableCell className="text-right">
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/profile/candidate/${candidate.id}`}>
+                                            <Users className="mr-2 h-4 w-4" /> View Profile
+                                        </Link>
+                                    </DropdownMenuItem>
+                                     <DropdownMenuSeparator />
+                                     {application.status === 'Applied' && (
+                                        <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Shortlisted')}>
+                                            <Star className="mr-2 h-4 w-4" /> Shortlist
+                                        </DropdownMenuItem>
+                                     )}
+                                     {(application.status === 'Applied' || application.status === 'Shortlisted') && (
+                                        <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Interview')}>
+                                            <MessageSquare className="mr-2 h-4 w-4" /> Schedule Interview
+                                        </DropdownMenuItem>
+                                     )}
+                                     {(application.status === 'Interview' || application.status === 'Shortlisted') && (
+                                        <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Hired')}>
+                                           <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
+                                        </DropdownMenuItem>
+                                     )}
+                                     {application.status !== 'Rejected' && application.status !== 'Hired' && (
+                                        <>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => onStatusChange(application.id, 'Rejected')} className="text-destructive focus:text-destructive">
+                                                <Ban className="mr-2 h-4 w-4" /> Not a Match
+                                            </DropdownMenuItem>
+                                        </>
+                                     )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </TableCell>
                     </TableRow>
                 ))}
@@ -276,12 +307,21 @@ export default function PostAJobPage() {
         });
     };
     
-    const handleApplicationStatusChange = (applicationId: string, newStatus: 'Shortlisted' | 'Interview') => {
+    const handleApplicationStatusChange = (applicationId: string, newStatus: ApplicationStatus) => {
+        const application = applications.find(app => app.id === applicationId);
+        if(!application) return;
+
         setApplications(prev => prev.map(app => app.id === applicationId ? { ...app, status: newStatus } : app));
+        
+        const candidate = mockCandidates.find(c => c.id === application.candidateId);
+
         toast({
             title: 'Applicant Status Updated',
-            description: `The candidate has been moved to ${newStatus}.`,
+            description: `${candidate?.name} has been moved to ${newStatus}.`,
+            variant: newStatus === 'Rejected' ? 'destructive' : 'default',
         });
+        
+        addAuditLog(application.jobId, 'Applicant Status Changed', `${candidate?.name} moved to ${newStatus}`);
     }
 
     const handleJobDelete = (jobId: string) => {
@@ -303,6 +343,10 @@ export default function PostAJobPage() {
                 return { application, candidate: candidate! };
             })
             .filter(item => item.candidate)
+            .sort((a,b) => {
+                const statusOrder: ApplicationStatus[] = ['Offer', 'Hired', 'Interview', 'Shortlisted', 'Applied', 'Rejected'];
+                return statusOrder.indexOf(a.application.status) - statusOrder.indexOf(b.application.status);
+            })
         : [];
 
 
@@ -480,5 +524,7 @@ export default function PostAJobPage() {
             )}
         </div>
     );
+
+    
 
     
