@@ -15,12 +15,11 @@ export default function AuthPage() {
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="relative hidden bg-muted lg:block">
         <Image
-          src={classroomImage.src}
+          src="https://images.unsplash.com/photo-1618367588421-400296bac364?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNnx8TGlnaHQlMjBwdXJwcGxlJTIwZ3JhZGllbnR8ZW58MHx8fHwxNzYzNDQ3ODU4fDA&ixlib=rb-4.1.0&q=80&w=1080"
           alt="A modern classroom with students and a teacher"
-          width={classroomImage.width}
-          height={classroomImage.height}
+          fill
           style={{objectFit: 'cover'}}
-          className="opacity-90 w-full h-full"
+          className="opacity-90"
           data-ai-hint={classroomImage.hint}
         />
         <div className="relative z-10 flex flex-col justify-between h-full p-10 bg-gradient-to-b from-primary/80 to-primary/40 text-primary-foreground">
@@ -31,7 +30,7 @@ export default function AuthPage() {
           <div className="mt-auto">
             <blockquote className="space-y-2">
               <p className="text-lg">
-                “The best way to predict the future is to create it. GSL Client Marketplace helps us build the future of education, one great teacher at a time.”
+                “The best way to predict the future is to create it. This platform helps us build the future of education, one great teacher at a time.”
               </p>
               <footer className="text-sm">Sofia Davis, Headteacher</footer>
             </blockquote>
