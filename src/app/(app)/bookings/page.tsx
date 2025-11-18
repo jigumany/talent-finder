@@ -55,10 +55,11 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         <TableCell>
                             <Badge
                                 className={cn({
-                                    'bg-primary text-primary-foreground': booking.status === 'Confirmed',
+                                    'bg-sky-500 text-sky-50': booking.status === 'Confirmed',
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected',
-                                }, 'badge-yellow')}
+                                    'bg-purple-600 text-purple-50': booking.status === 'Interview'
+                                })}
                             >
                                 {booking.status}
                             </Badge>
@@ -80,7 +81,7 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                                 </Button>
                             )}
                             {isClient && booking.status === 'Interview' && (
-                                <Button size="sm" className="badge-yellow" onClick={() => onLogOutcomeClick(booking)}>
+                                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
                                     <ClipboardEdit className="mr-2 h-4 w-4" />
                                     Log Outcome
                                 </Button>
@@ -559,6 +560,8 @@ export default function BookingsPage() {
         </div>
     );
 }
+
+    
 
     
 

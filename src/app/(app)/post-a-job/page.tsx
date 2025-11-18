@@ -71,11 +71,11 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                         </TableCell>
                         <TableCell>
                              <Badge className={cn({
-                                'bg-purple-600 hover:bg-purple-700 text-white': application.status === 'Interview',
-                                'badge-yellow text-black': application.status === 'Shortlisted',
-                                'bg-red-600 hover:bg-red-700 text-red-50': application.status === 'Rejected',
-                                'bg-green-600 hover:bg-green-700 text-green-50': application.status === 'Hired',
-                                'bg-sky-500 hover:bg-sky-600 text-sky-50': application.status === 'Offer',
+                                'bg-purple-600 text-purple-50': application.status === 'Interview',
+                                'bg-yellow-500 text-yellow-950': application.status === 'Shortlisted',
+                                'bg-red-600 text-red-50': application.status === 'Rejected',
+                                'bg-green-600 text-green-50': application.status === 'Hired',
+                                'bg-sky-500 text-sky-50': application.status === 'Offer',
                                 'bg-gray-200 text-gray-800': application.status === 'Applied'
                             })}>
                                 {application.status}
@@ -94,7 +94,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="badge-yellow text-black">
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 text-yellow-950 hover:bg-yellow-600">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
@@ -684,6 +684,8 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
 
     
 
