@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRole } from "@/context/role-context";
 import { mockClientBookings, mockCandidateBookings, mockCandidates } from "@/lib/mock-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Booking, Candidate } from "@/lib/types";
-import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
@@ -291,93 +291,92 @@ export default function BookingsPage() {
 
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold font-headline">Booking List</h1>
+                {isClient && (
+                    <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Booking
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-lg">
+                            <DialogHeader>
+                                <DialogTitle>Add a New Booking</DialogTitle>
+                                <DialogDescription>
+                                    Select a candidate and the dates you wish to book them for.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="candidate-select">Candidate</Label>
+                                    <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
+                                        <SelectTrigger id="candidate-select">
+                                            <SelectValue placeholder="Select a candidate..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {mockCandidates.map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Role</Label>
+                                         <div className="relative">
+                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="pay">Pay Rate (£)</Label>
+                                        <div className="relative">
+                                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="pay" type="number" placeholder="e.g. 150" value={newBookingPay} onChange={(e) => setNewBookingPay(e.target.value)} className="pl-10" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="location">Location</Label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
+                                    </div>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>Booking Dates</Label>
+                                    <div className="flex justify-center">
+                                        <Calendar
+                                            mode="multiple"
+                                            selected={newBookingDates}
+                                            onSelect={setNewBookingDates}
+                                            className="rounded-md border"
+                                            disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                        />
+                                    </div>
+                                 </div>
+                            </div>
+                            <DialogFooter className="sm:justify-end gap-2">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary">Cancel</Button>
+                                </DialogClose>
+                                <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
+                                    Confirm Booking
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </div>
             
             {isClient ? (
                 <Card>
                     <Tabs defaultValue="applicants">
                         <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle>Booking List</CardTitle>
-                                    <CardDescription>Manage applicants and view booking history.</CardDescription>
-                                </div>
-                                <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button>
-                                            <PlusCircle className="mr-2 h-4 w-4" />
-                                            Add Booking
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-lg">
-                                        <DialogHeader>
-                                            <DialogTitle>Add a New Booking</DialogTitle>
-                                            <DialogDescription>
-                                                Select a candidate and the dates you wish to book them for.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4 py-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="candidate-select">Candidate</Label>
-                                                <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
-                                                    <SelectTrigger id="candidate-select">
-                                                        <SelectValue placeholder="Select a candidate..." />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {mockCandidates.map(c => (
-                                                            <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="role">Role</Label>
-                                                     <div className="relative">
-                                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                        <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="pay">Pay Rate (£)</Label>
-                                                    <div className="relative">
-                                                        <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                        <Input id="pay" type="number" placeholder="e.g. 150" value={newBookingPay} onChange={(e) => setNewBookingPay(e.target.value)} className="pl-10" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="location">Location</Label>
-                                                <div className="relative">
-                                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
-                                                </div>
-                                            </div>
-                                             <div className="space-y-2">
-                                                <Label>Booking Dates</Label>
-                                                <div className="flex justify-center">
-                                                    <Calendar
-                                                        mode="multiple"
-                                                        selected={newBookingDates}
-                                                        onSelect={setNewBookingDates}
-                                                        className="rounded-md border"
-                                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                                                    />
-                                                </div>
-                                             </div>
-                                        </div>
-                                        <DialogFooter className="sm:justify-end gap-2">
-                                            <DialogClose asChild>
-                                                <Button type="button" variant="secondary">Cancel</Button>
-                                            </DialogClose>
-                                            <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
-                                                Confirm Booking
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                            <TabsList className="grid w-full grid-cols-3 mt-4">
+                            <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="applicants">
                                     <Users className="mr-2 h-4 w-4" />
                                     Applicants ({applicantBookings.length})
@@ -560,3 +559,5 @@ export default function BookingsPage() {
         </div>
     );
 }
+
+    
