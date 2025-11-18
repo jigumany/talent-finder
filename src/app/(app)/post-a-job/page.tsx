@@ -53,7 +53,7 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                 {applications.map(({ application, candidate }) => (
                     <TableRow key={application.id}>
                         <TableCell>
-                            <div className="flex items-start gap-4">
+                            <div className="flex items-center gap-4">
                                 <Avatar className="h-12 w-12 border">
                                     <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
                                     <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -61,7 +61,6 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 <div>
                                     <p className="font-semibold">{candidate.name}</p>
                                     <p className="text-sm text-muted-foreground">{candidate.role}</p>
-                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 italic">"{candidate.bio}"</p>
                                 </div>
                             </div>
                         </TableCell>
@@ -91,17 +90,17 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')}>
+                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="text-amber-600 border-amber-500 hover:bg-amber-500 hover:text-white">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
                              {(application.status === 'Applied' || application.status === 'Shortlisted') && (
-                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Interview')}>
+                                <Button variant="outline" size="sm" onClick={() => onStatusChange(application.id, 'Interview')} className="text-purple-600 border-purple-500 hover:bg-purple-500 hover:text-white">
                                     <MessageSquare className="mr-2 h-4 w-4" /> Interview
                                 </Button>
                              )}
                              {(application.status === 'Interview' || application.status === 'Shortlisted' || application.status === 'Offer') && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Hired')}>
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Hired')} className="bg-green-600 hover:bg-green-700 text-white">
                                    <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
                                 </Button>
                              )}
@@ -511,6 +510,8 @@ export default function PostAJobPage() {
             )}
         </div>
     );
+
+    
 
     
 
