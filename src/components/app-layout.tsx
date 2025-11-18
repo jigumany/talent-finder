@@ -36,6 +36,7 @@ import {
     XCircle,
     Pencil as PencilIcon,
     Loader2,
+    Ban,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -55,6 +56,7 @@ const clientNav = [
     { name: 'Diary', href: '/diary', icon: Calendar },
     { name: 'Bookings', href: '/bookings', icon: Briefcase },
     { name: 'Reviews', href: '/review-generator', icon: PenSquare },
+    { name: 'Blacklist', href: '/blacklist', icon: Ban },
     { name: 'Profile', href: '/profile', icon: User },
 ];
 
