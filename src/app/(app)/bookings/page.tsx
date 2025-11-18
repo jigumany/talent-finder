@@ -249,8 +249,8 @@ export default function BookingsPage() {
                 <Card>
                     <Tabs defaultValue="applicants">
                         <CardHeader>
-                            <CardTitle>Manage Your Pipeline</CardTitle>
-                            <CardDescription>Manage job applicants, upcoming work, and completed bookings.</CardDescription>
+                            <CardTitle>Booking List</CardTitle>
+                            <CardDescription>Manage applicants, upcoming work, and completed bookings.</CardDescription>
                             <TabsList className="grid w-full grid-cols-3 mt-4">
                                 <TabsTrigger value="applicants">
                                     <Users className="mr-2 h-4 w-4" />
@@ -433,6 +433,8 @@ export default function BookingsPage() {
             </Dialog>
         </div>
     );
+
+    
 
     
 
