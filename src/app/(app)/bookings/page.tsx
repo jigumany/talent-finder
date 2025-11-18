@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRole } from "@/context/role-context";
-import { mockClientBookings, mockCandidateBookings } from "@/lib/mock-data";
+import { mockClientBookings, mockCandidateBookings, mockCandidates } from "@/lib/mock-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +19,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Booking } from "@/lib/types";
+import type { Booking, Candidate } from "@/lib/types";
 import Link from "next/link";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient, onLeaveReviewClick, reviewedBookingIds }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean, onLeaveReviewClick: (booking: Booking) => void, reviewedBookingIds: Set<string> }) {
@@ -131,6 +132,11 @@ export default function BookingsPage() {
     // State for rebooking dialog
     const [rebookDialogOpen, setRebookDialogOpen] = useState(false);
     const [rebookDates, setRebookDates] = useState<Date[] | undefined>([]);
+    
+    // State for new booking dialog
+    const [addBookingDialogOpen, setAddBookingDialogOpen] = useState(false);
+    const [newBookingCandidateId, setNewBookingCandidateId] = useState<string>('');
+    const [newBookingDates, setNewBookingDates] = useState<Date[] | undefined>([]);
 
     // State for interview outcome dialog
     const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
@@ -153,6 +159,39 @@ export default function BookingsPage() {
             description: `The booking has been successfully cancelled.`,
             variant: "destructive"
         });
+    };
+    
+    const handleAddNewBooking = () => {
+        if (!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0) {
+            toast({
+                title: "Incomplete Information",
+                description: "Please select a candidate and at least one date.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const candidate = mockCandidates.find(c => c.id === newBookingCandidateId);
+        if (!candidate) return;
+
+        const newBookings: Booking[] = newBookingDates.map(date => ({
+            id: `b-${Date.now()}-${Math.random()}`,
+            candidateName: candidate.name,
+            candidateRole: candidate.role,
+            date: date.toISOString(),
+            status: 'Confirmed'
+        }));
+        
+        setBookings(prev => [...newBookings, ...prev]);
+
+        toast({
+            title: "Booking Confirmed!",
+            description: `${candidate.name} has been booked for ${newBookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
+        });
+
+        setAddBookingDialogOpen(false);
+        setNewBookingCandidateId('');
+        setNewBookingDates([]);
     };
 
     const handleRebookClick = (booking: any) => {
@@ -255,12 +294,57 @@ export default function BookingsPage() {
                                     <CardTitle>Booking List</CardTitle>
                                     <CardDescription>Manage applicants and view booking history.</CardDescription>
                                 </div>
-                                <Button asChild>
-                                    <Link href="/browse-candidates">
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        Add Booking
-                                    </Link>
-                                </Button>
+                                <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button>
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            Add Booking
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle>Add a New Booking</DialogTitle>
+                                            <DialogDescription>
+                                                Select a candidate and the dates you wish to book them for.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="candidate-select">Candidate</Label>
+                                                <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
+                                                    <SelectTrigger id="candidate-select">
+                                                        <SelectValue placeholder="Select a candidate" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {mockCandidates.map(c => (
+                                                            <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label>Booking Dates</Label>
+                                                <div className="flex justify-center">
+                                                    <Calendar
+                                                        mode="multiple"
+                                                        selected={newBookingDates}
+                                                        onSelect={setNewBookingDates}
+                                                        className="rounded-md border"
+                                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                                    />
+                                                </div>
+                                             </div>
+                                        </div>
+                                        <DialogFooter className="sm:justify-end gap-2">
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="secondary">Cancel</Button>
+                                            </DialogClose>
+                                            <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0}>
+                                                Confirm Booking
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                             <TabsList className="grid w-full grid-cols-3 mt-4">
                                 <TabsTrigger value="applicants">
@@ -456,3 +540,5 @@ export default function BookingsPage() {
     
 
       
+
+    
