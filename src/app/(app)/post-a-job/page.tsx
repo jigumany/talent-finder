@@ -67,7 +67,7 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                         <TableCell>
                             <Badge className={cn({
                                 'bg-purple-600 hover:bg-purple-700 text-white': application.status === 'Interview',
-                                'badge-yellow text-black': application.status === 'Shortlisted',
+                                'badge-yellow text-white': application.status === 'Shortlisted',
                                 'bg-red-600 hover:bg-red-700 text-white': application.status === 'Rejected',
                                 'bg-green-600 hover:bg-green-700 text-white': application.status === 'Hired',
                                 'bg-sky-500 hover:bg-sky-600 text-white': application.status === 'Offer',
@@ -89,7 +89,7 @@ function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button variant="warning" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')}>
+                                <Button variant="warning" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="text-white">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
