@@ -5,7 +5,7 @@ import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, PoundSterling, MapPin } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, PoundSterling, MapPin } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -26,8 +26,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Calendar } from '@/components/ui/calendar';
+
 
 interface ApplicantTableProps {
     applications: { application: Application; candidate: Candidate }[];
@@ -71,7 +72,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                         <TableCell>
                              <Badge className={cn({
                                 'bg-purple-600 hover:bg-purple-700 text-purple-50': application.status === 'Interview',
-                                'badge-yellow text-yellow-50': application.status === 'Shortlisted',
+                                'badge-yellow text-black': application.status === 'Shortlisted',
                                 'bg-red-600 hover:bg-red-700 text-red-50': application.status === 'Rejected',
                                 'bg-green-600 hover:bg-green-700 text-green-50': application.status === 'Hired',
                                 'bg-sky-500 hover:bg-sky-600 text-sky-50': application.status === 'Offer',
@@ -250,7 +251,7 @@ export default function PostAJobPage() {
         return jobs.map(job => {
             const jobApplications = applications.filter(app => app.jobId === job.id);
             const applicantCount = jobApplications.length;
-            const shortlistedCount = jobApplications.filter(app => app.status === 'Shortlisted' || app.status === 'Interview' || app.status === 'Offer' || app.status === 'Hired').length;
+            const shortlistedCount = jobApplications.filter(app => ['Shortlisted', 'Interview', 'Offer', 'Hired'].includes(app.status)).length;
             return { ...job, applicants: applicantCount, shortlisted: shortlistedCount };
         });
     }, [jobs, applications]);
@@ -263,14 +264,6 @@ export default function PostAJobPage() {
         return jobsWithCounts.slice(startIndex, endIndex);
     }, [jobsWithCounts, currentPage]);
     
-    // New state for Add Booking Dialog
-    const [addBookingDialogOpen, setAddBookingDialogOpen] = useState(false);
-    const [newBookingCandidateId, setNewBookingCandidateId] = useState<string>('');
-    const [newBookingDates, setNewBookingDates] = useState<Date[] | undefined>([]);
-    const [newBookingRole, setNewBookingRole] = useState('');
-    const [newBookingPay, setNewBookingPay] = useState('');
-    const [newBookingLocation, setNewBookingLocation] = useState('');
-
 
     if (role !== 'client') {
         return (
@@ -303,42 +296,6 @@ export default function PostAJobPage() {
         addAuditLog(newJob.id, 'Job Created', 'Initial posting.');
         setPostJobDialogOpen(false);
     }
-    
-    const handleAddNewBooking = () => {
-        if (!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole) {
-            toast({
-                title: "Incomplete Information",
-                description: "Please select a candidate, role, and at least one date.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        const candidate = mockCandidates.find(c => c.id === newBookingCandidateId);
-        if (!candidate) return;
-
-        const newBookings: Booking[] = newBookingDates.map(date => ({
-            id: `b-${Date.now()}-${Math.random()}`,
-            candidateName: candidate.name,
-            candidateRole: newBookingRole,
-            date: date.toISOString(),
-            status: 'Confirmed'
-        }));
-        
-        setBookings(prev => [...newBookings, ...prev]);
-
-        toast({
-            title: "Booking Confirmed!",
-            description: `${candidate.name} has been booked for ${newBookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
-        });
-
-        setAddBookingDialogOpen(false);
-        setNewBookingCandidateId('');
-        setNewBookingDates([]);
-        setNewBookingRole('');
-        setNewBookingPay('');
-        setNewBookingLocation('');
-    };
 
     const handleManageClick = (job: Job) => {
         setSelectedJob(job);
@@ -464,83 +421,9 @@ export default function PostAJobPage() {
                     <span>Booking Management</span>
                 </h1>
                 <div className="flex gap-2">
-                    <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add Booking
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-lg">
-                            <DialogHeader>
-                                <DialogTitle>Add a New Booking</DialogTitle>
-                                <DialogDescription>
-                                    Select a candidate and the dates you wish to book them for.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="candidate-select">Candidate</Label>
-                                    <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
-                                        <SelectTrigger id="candidate-select">
-                                            <SelectValue placeholder="Select a candidate..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {mockCandidates.map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="role">Role</Label>
-                                         <div className="relative">
-                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="pay">Pay Rate (£)</Label>
-                                        <div className="relative">
-                                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input id="pay" type="number" placeholder="e.g. 150" value={newBookingPay} onChange={(e) => setNewBookingPay(e.target.value)} className="pl-10" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="location">Location</Label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
-                                    </div>
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label>Booking Dates</Label>
-                                    <div className="flex justify-center">
-                                        <Calendar
-                                            mode="multiple"
-                                            selected={newBookingDates}
-                                            onSelect={setNewBookingDates}
-                                            className="rounded-md border"
-                                            disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                                        />
-                                    </div>
-                                 </div>
-                            </div>
-                            <DialogFooter className="sm:justify-end gap-2">
-                                <DialogClose asChild>
-                                    <Button type="button" variant="secondary">Cancel</Button>
-                                </DialogClose>
-                                <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
-                                    Confirm Booking
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
                     <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline"><FilePlus2 className="mr-2" /> Post a New Job</Button>
+                             <Button variant="outline"><FilePlus2 className="mr-2" /> Add a Booking</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl">
                              <DialogHeader>
@@ -801,5 +684,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    
