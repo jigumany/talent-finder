@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare, PlusCircle } from "lucide-react";
+import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare, PlusCircle, PoundSterling, Briefcase, MapPin } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Booking, Candidate } from "@/lib/types";
 import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 
 function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient, onLeaveReviewClick, reviewedBookingIds }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean, onLeaveReviewClick: (booking: Booking) => void, reviewedBookingIds: Set<string> }) {
@@ -137,6 +138,10 @@ export default function BookingsPage() {
     const [addBookingDialogOpen, setAddBookingDialogOpen] = useState(false);
     const [newBookingCandidateId, setNewBookingCandidateId] = useState<string>('');
     const [newBookingDates, setNewBookingDates] = useState<Date[] | undefined>([]);
+    const [newBookingRole, setNewBookingRole] = useState('');
+    const [newBookingPay, setNewBookingPay] = useState('');
+    const [newBookingLocation, setNewBookingLocation] = useState('');
+
 
     // State for interview outcome dialog
     const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
@@ -162,10 +167,10 @@ export default function BookingsPage() {
     };
     
     const handleAddNewBooking = () => {
-        if (!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0) {
+        if (!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole) {
             toast({
                 title: "Incomplete Information",
-                description: "Please select a candidate and at least one date.",
+                description: "Please select a candidate, role, and at least one date.",
                 variant: "destructive",
             });
             return;
@@ -177,7 +182,7 @@ export default function BookingsPage() {
         const newBookings: Booking[] = newBookingDates.map(date => ({
             id: `b-${Date.now()}-${Math.random()}`,
             candidateName: candidate.name,
-            candidateRole: candidate.role,
+            candidateRole: newBookingRole,
             date: date.toISOString(),
             status: 'Confirmed'
         }));
@@ -192,6 +197,9 @@ export default function BookingsPage() {
         setAddBookingDialogOpen(false);
         setNewBookingCandidateId('');
         setNewBookingDates([]);
+        setNewBookingRole('');
+        setNewBookingPay('');
+        setNewBookingLocation('');
     };
 
     const handleRebookClick = (booking: any) => {
@@ -301,7 +309,7 @@ export default function BookingsPage() {
                                             Add Booking
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-md">
+                                    <DialogContent className="sm:max-w-lg">
                                         <DialogHeader>
                                             <DialogTitle>Add a New Booking</DialogTitle>
                                             <DialogDescription>
@@ -313,7 +321,7 @@ export default function BookingsPage() {
                                                 <Label htmlFor="candidate-select">Candidate</Label>
                                                 <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
                                                     <SelectTrigger id="candidate-select">
-                                                        <SelectValue placeholder="Select a candidate" />
+                                                        <SelectValue placeholder="Select a candidate..." />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {mockCandidates.map(c => (
@@ -321,6 +329,29 @@ export default function BookingsPage() {
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="role">Role</Label>
+                                                     <div className="relative">
+                                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                        <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="pay">Pay Rate (£)</Label>
+                                                    <div className="relative">
+                                                        <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                        <Input id="pay" type="number" placeholder="e.g. 150" value={newBookingPay} onChange={(e) => setNewBookingPay(e.target.value)} className="pl-10" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="location">Location</Label>
+                                                <div className="relative">
+                                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                    <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
+                                                </div>
                                             </div>
                                              <div className="space-y-2">
                                                 <Label>Booking Dates</Label>
@@ -339,7 +370,7 @@ export default function BookingsPage() {
                                             <DialogClose asChild>
                                                 <Button type="button" variant="secondary">Cancel</Button>
                                             </DialogClose>
-                                            <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0}>
+                                            <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
                                                 Confirm Booking
                                             </Button>
                                         </DialogFooter>
@@ -528,17 +559,4 @@ export default function BookingsPage() {
             </Dialog>
         </div>
     );
-
-    
-
-    
-
-    
-
-    
-
-    
-
-      
-
-    
+}
