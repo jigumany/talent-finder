@@ -8,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, PoundSterling, MapPin } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { mockJobs, mockApplications, mockAuditLogs, mockCandidates, mockClientBookings } from '@/lib/mock-data';
 import type { Job, AuditLog, Application, Candidate, ApplicationStatus, Booking } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -69,12 +69,12 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                             </div>
                         </TableCell>
                         <TableCell>
-                            <Badge className={cn({
-                                'bg-purple-600 hover:bg-purple-700 text-white': application.status === 'Interview',
-                                'badge-yellow text-white': application.status === 'Shortlisted',
-                                'bg-red-600 hover:bg-red-700 text-white': application.status === 'Rejected',
-                                'bg-green-600 hover:bg-green-700 text-white': application.status === 'Hired',
-                                'bg-sky-500 hover:bg-sky-600 text-white': application.status === 'Offer',
+                             <Badge className={cn({
+                                'bg-purple-600 hover:bg-purple-700 text-purple-50': application.status === 'Interview',
+                                'badge-yellow text-yellow-50': application.status === 'Shortlisted',
+                                'bg-red-600 hover:bg-red-700 text-red-50': application.status === 'Rejected',
+                                'bg-green-600 hover:bg-green-700 text-green-50': application.status === 'Hired',
+                                'bg-sky-500 hover:bg-sky-600 text-sky-50': application.status === 'Offer',
                                 'bg-gray-200 text-gray-800': application.status === 'Applied'
                             })}>
                                 {application.status}
@@ -93,7 +93,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button variant="warning" size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="text-white">
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-white">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
@@ -801,7 +801,5 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    
 
     
