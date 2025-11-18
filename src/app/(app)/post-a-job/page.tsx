@@ -170,10 +170,28 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                                     </>
                                 )}
                                 {job.status === 'Closed' && (
-                                    <Button onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>Delete</span>
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button  className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Delete</span>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete the job posting for "{job.title}".
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => onDelete(job.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                                                Delete
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                    </AlertDialog>
                                 )}
                             </DialogContent>
                         </Dialog>
@@ -199,23 +217,6 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
                     <Button size="sm" onClick={() => onManageClick(job)}>Manage Job</Button>
                 </div>
             </CardFooter>
-            
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the job posting for "{job.title}".
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onDelete(job.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </Card>
     );
 }
@@ -243,13 +244,23 @@ export default function PostAJobPage() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const JOBS_PER_PAGE = 6;
-    const totalPages = Math.ceil(jobs.length / JOBS_PER_PAGE);
+
+     const jobsWithCounts = useMemo(() => {
+        return jobs.map(job => {
+            const jobApplications = applications.filter(app => app.jobId === job.id);
+            const applicantCount = jobApplications.length;
+            const shortlistedCount = jobApplications.filter(app => app.status === 'Shortlisted' || app.status === 'Interview' || app.status === 'Offer' || app.status === 'Hired').length;
+            return { ...job, applicants: applicantCount, shortlisted: shortlistedCount };
+        });
+    }, [jobs, applications]);
+
+    const totalPages = Math.ceil(jobsWithCounts.length / JOBS_PER_PAGE);
 
     const paginatedJobs = useMemo(() => {
         const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
         const endIndex = startIndex + JOBS_PER_PAGE;
-        return jobs.slice(startIndex, endIndex);
-    }, [jobs, currentPage]);
+        return jobsWithCounts.slice(startIndex, endIndex);
+    }, [jobsWithCounts, currentPage]);
 
     if (role !== 'client') {
         return (
@@ -300,8 +311,8 @@ export default function PostAJobPage() {
     };
     
     const totalActiveJobs = jobs.filter(j => j.status === 'Active').length;
-    const totalApplicants = jobs.reduce((acc, job) => acc + (job.applicants || 0), 0);
-    const totalShortlisted = jobs.reduce((acc, job) => acc + (job.shortlisted || 0), 0);
+    const totalApplicants = jobsWithCounts.reduce((acc, job) => acc + (job.applicants || 0), 0);
+    const totalShortlisted = jobsWithCounts.reduce((acc, job) => acc + (job.shortlisted || 0), 0);
 
     const handleJobStatusChange = (jobId: string, status: Job['status']) => {
         setJobs(prev => prev.map(job => job.id === jobId ? { ...job, status } : job));
@@ -668,7 +679,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    
-
-    
