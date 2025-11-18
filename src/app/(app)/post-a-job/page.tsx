@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface ApplicantTableProps {
     applications: { application: Application; candidate: Candidate }[];
@@ -69,7 +70,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                         <TableCell>
                             <Badge className={cn({
                                 'bg-purple-600 hover:bg-purple-700 text-white': application.status === 'Interview',
-                                'badge-yellow text-white': application.status === 'Shortlisted',
+                                'badge-yellow !text-white': application.status === 'Shortlisted',
                                 'bg-red-600 hover:bg-red-700 text-white': application.status === 'Rejected',
                                 'bg-green-600 hover:bg-green-700 text-white': application.status === 'Hired',
                                 'bg-sky-500 hover:bg-sky-600 text-white': application.status === 'Offer',
@@ -240,6 +241,15 @@ export default function PostAJobPage() {
     const [bookingPay, setBookingPay] = useState('');
     const [bookingLocation, setBookingLocation] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const JOBS_PER_PAGE = 6;
+    const totalPages = Math.ceil(jobs.length / JOBS_PER_PAGE);
+
+    const paginatedJobs = useMemo(() => {
+        const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
+        const endIndex = startIndex + JOBS_PER_PAGE;
+        return jobs.slice(startIndex, endIndex);
+    }, [jobs, currentPage]);
 
     if (role !== 'client') {
         return (
@@ -449,7 +459,7 @@ export default function PostAJobPage() {
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {jobs.map(job => (
+                {paginatedJobs.map(job => (
                     <JobCard 
                         key={job.id} 
                         job={job} 
@@ -459,6 +469,38 @@ export default function PostAJobPage() {
                     />
                 ))}
             </div>
+
+            {totalPages > 1 && (
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious 
+                                href="#" 
+                                onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined}
+                            />
+                        </PaginationItem>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink 
+                                    href="#" 
+                                    isActive={currentPage === i + 1}
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext 
+                                href="#"
+                                onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
 
             {selectedJob && (
                  <Dialog open={isManageJobDialogOpen} onOpenChange={setManageJobDialogOpen}>
@@ -626,5 +668,7 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
 
     
