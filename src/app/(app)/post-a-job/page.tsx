@@ -72,12 +72,12 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                         </TableCell>
                         <TableCell>
                              <Badge className={cn({
-                                'bg-purple-600 text-purple-50': application.status === 'Interview',
-                                'bg-yellow-500 text-yellow-950': application.status === 'Shortlisted',
-                                'bg-red-600 text-red-50': application.status === 'Rejected',
-                                'bg-green-600 text-green-50': application.status === 'Hired',
-                                'bg-sky-500 text-sky-50': application.status === 'Offer',
-                                'bg-gray-200 text-gray-800': application.status === 'Applied'
+                                'bg-purple-600 text-purple-50 hover:bg-purple-600/90': application.status === 'Interview',
+                                'bg-yellow-500 text-yellow-50 hover:bg-yellow-500/90': application.status === 'Shortlisted',
+                                'bg-red-600 text-red-50 hover:bg-red-600/90': application.status === 'Rejected',
+                                'bg-green-600 text-green-50 hover:bg-green-600/90': application.status === 'Hired',
+                                'bg-sky-500 text-sky-50 hover:bg-sky-500/90': application.status === 'Offer',
+                                'bg-gray-200 text-gray-800 hover:bg-gray-200/90': application.status === 'Applied'
                             })}>
                                 {application.status}
                             </Badge>
@@ -95,7 +95,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 text-yellow-950 hover:bg-yellow-600">
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-50">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
@@ -507,11 +507,6 @@ export default function PostAJobPage() {
                                                 <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
                                                 <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
                                             </TabsList>
-                                             <DialogClose asChild>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9">
-                                                    <XCircle className="h-5 w-5" />
-                                                </Button>
-                                            </DialogClose>
                                         </div>
                                     </div>
                                 </DialogHeader>
