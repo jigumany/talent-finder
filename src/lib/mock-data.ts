@@ -132,7 +132,7 @@ export const mockJobs: Job[] = [
         id: 'job-1',
         title: 'Senior History Teacher',
         description: 'Seeking an experienced history teacher for A-Level students. Must have a passion for modern history.',
-        datePosted: '2024-08-15T10:00:00Z',
+        datePosted: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
         applicants: 12,
         shortlisted: 3,
@@ -145,7 +145,7 @@ export const mockJobs: Job[] = [
         id: 'job-2',
         title: 'Primary School Teaching Assistant',
         description: 'A supportive and nurturing teaching assistant for our Year 3 class. Experience with special needs is a plus.',
-        datePosted: '2024-08-10T14:30:00Z',
+        datePosted: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
         applicants: 25,
         shortlisted: 5,
@@ -156,7 +156,7 @@ export const mockJobs: Job[] = [
         id: 'job-3',
         title: 'Urgent: Substitute Maths Teacher',
         description: 'Required for immediate start for a two-week cover. Must be qualified to teach GCSE level.',
-        datePosted: '2024-08-01T09:00:00Z',
+        datePosted: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Closed',
         applicants: 8,
         shortlisted: 1,
@@ -168,7 +168,7 @@ export const mockJobs: Job[] = [
         id: 'job-4',
         title: 'Lead Science Coordinator',
         description: 'We are looking for a Lead Science Coordinator to oversee the science department and curriculum development.',
-        datePosted: '2024-08-20T11:00:00Z',
+        datePosted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
         applicants: 15,
         shortlisted: 4,
@@ -180,7 +180,7 @@ export const mockJobs: Job[] = [
         id: 'job-5',
         title: 'Part-Time Art Teacher',
         description: 'A creative and inspiring art teacher for our after-school program. 2 days a week.',
-        datePosted: '2024-08-18T16:00:00Z',
+        datePosted: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
         applicants: 18,
         shortlisted: 2,
@@ -192,7 +192,7 @@ export const mockJobs: Job[] = [
         id: 'job-6',
         title: 'Head of English Department',
         description: 'A leadership role for an experienced English teacher to manage the department and mentor staff.',
-        datePosted: '2024-07-25T09:00:00Z',
+        datePosted: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Closed',
         applicants: 30,
         shortlisted: 3,
@@ -259,16 +259,35 @@ export const mockClientReviews: ClientReview[] = [
     }
 ];
 
+const now = new Date();
+const today = now.toISOString();
+const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
+const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
+const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString();
+const aWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString();
+
+
 export const mockAuditLogs: AuditLog[] = [
     // Job 1
-    { id: 'log-1', jobId: 'job-1', date: '2024-08-15T10:00:00Z', action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Senior History Teacher.' },
-    { id: 'log-2', jobId: 'job-1', date: '2024-08-18T12:00:00Z', action: 'Job Edited', user: 'Jane Doe (Admin)', details: 'Updated job description to include A-Level requirement.' },
-    { id: 'log-6', jobId: 'job-1', date: '2024-08-20T16:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Active to Paused.' },
-    { id: 'log-7', jobId: 'job-1', date: '2024-08-22T09:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Paused to Active.' },
+    { id: 'log-1', jobId: 'job-1', date: aWeekAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Senior History Teacher.' },
+    { id: 'log-2', jobId: 'job-1', date: fiveDaysAgo, action: 'Job Edited', user: 'Jane Doe (Admin)', details: 'Updated job description to include A-Level requirement.' },
+    { id: 'log-10', jobId: 'job-1', date: threeDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Priya Sharma moved to Shortlisted' },
+    { id: 'log-11', jobId: 'job-1', date: twoDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Eleanor Vance moved to Interview' },
 
     // Job 2
-    { id: 'log-3', jobId: 'job-2', date: '2024-08-10T14:30:00Z', action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Primary School Teaching Assistant.' },
+    { id: 'log-3', jobId: 'job-2', date: tenDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Primary School Teaching Assistant.' },
+    { id: 'log-8', jobId: 'job-2', date: aWeekAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Shortlisted' },
+    { id: 'log-9', jobId: 'job-2', date: fiveDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Interview' },
+    { id: 'log-12', jobId: 'job-2', date: today, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Offer' },
     
+    // Job 4
+    { id: 'log-13', jobId: 'job-4', date: twoDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Lead Science Coordinator.' },
+    { id: 'log-14', jobId: 'job-4', date: today, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'James Peterson moved to Shortlisted.' },
+
+    // Job 5
+    { id: 'log-15', jobId: 'job-5', date: fourDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Part-Time Art Teacher.'},
+
     // Job 3
     { id: 'log-4', jobId: 'job-3', date: '2024-08-01T09:00:00Z', action: 'Job Created', user: 'Jane Doe (Admin)' },
     { id: 'log-5', jobId: 'job-3', date: '2024-08-05T17:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Active to Closed.' },
@@ -278,4 +297,5 @@ export const mockAuditLogs: AuditLog[] = [
     
 
     
+
 
