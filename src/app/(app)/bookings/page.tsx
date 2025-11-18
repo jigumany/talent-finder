@@ -293,7 +293,7 @@ export default function BookingsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold font-headline">Booking List</h1>
+                <h1 className="text-2xl font-bold font-headline">My Bookings</h1>
                 {isClient && (
                     <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
                         <DialogTrigger asChild>
@@ -559,5 +559,7 @@ export default function BookingsPage() {
         </div>
     );
 }
+
+    
 
     

@@ -27,6 +27,7 @@ import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ApplicantTableProps {
     applications: { application: Application; candidate: Candidate }[];
@@ -261,6 +262,15 @@ export default function PostAJobPage() {
         const endIndex = startIndex + JOBS_PER_PAGE;
         return jobsWithCounts.slice(startIndex, endIndex);
     }, [jobsWithCounts, currentPage]);
+    
+    // New state for Add Booking Dialog
+    const [addBookingDialogOpen, setAddBookingDialogOpen] = useState(false);
+    const [newBookingCandidateId, setNewBookingCandidateId] = useState<string>('');
+    const [newBookingDates, setNewBookingDates] = useState<Date[] | undefined>([]);
+    const [newBookingRole, setNewBookingRole] = useState('');
+    const [newBookingPay, setNewBookingPay] = useState('');
+    const [newBookingLocation, setNewBookingLocation] = useState('');
+
 
     if (role !== 'client') {
         return (
@@ -293,6 +303,42 @@ export default function PostAJobPage() {
         addAuditLog(newJob.id, 'Job Created', 'Initial posting.');
         setPostJobDialogOpen(false);
     }
+    
+    const handleAddNewBooking = () => {
+        if (!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole) {
+            toast({
+                title: "Incomplete Information",
+                description: "Please select a candidate, role, and at least one date.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const candidate = mockCandidates.find(c => c.id === newBookingCandidateId);
+        if (!candidate) return;
+
+        const newBookings: Booking[] = newBookingDates.map(date => ({
+            id: `b-${Date.now()}-${Math.random()}`,
+            candidateName: candidate.name,
+            candidateRole: newBookingRole,
+            date: date.toISOString(),
+            status: 'Confirmed'
+        }));
+        
+        setBookings(prev => [...newBookings, ...prev]);
+
+        toast({
+            title: "Booking Confirmed!",
+            description: `${candidate.name} has been booked for ${newBookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
+        });
+
+        setAddBookingDialogOpen(false);
+        setNewBookingCandidateId('');
+        setNewBookingDates([]);
+        setNewBookingRole('');
+        setNewBookingPay('');
+        setNewBookingLocation('');
+    };
 
     const handleManageClick = (job: Job) => {
         setSelectedJob(job);
@@ -417,22 +463,98 @@ export default function PostAJobPage() {
                     <Briefcase className="h-6 w-6 text-primary" />
                     <span>Booking Management</span>
                 </h1>
-                <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button><FilePlus2 className="mr-2" /> Post a New Job</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl">
-                         <DialogHeader>
-                            <DialogTitle className="text-2xl">Post a New Job</DialogTitle>
-                            <DialogDescription>
-                                Fill in the details below. Our AI can then help find the best candidates for you.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="p-1">
-                          <PostJobForm onJobPosted={handleJobPosted} />
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex gap-2">
+                    <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Booking
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-lg">
+                            <DialogHeader>
+                                <DialogTitle>Add a New Booking</DialogTitle>
+                                <DialogDescription>
+                                    Select a candidate and the dates you wish to book them for.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="candidate-select">Candidate</Label>
+                                    <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
+                                        <SelectTrigger id="candidate-select">
+                                            <SelectValue placeholder="Select a candidate..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {mockCandidates.map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Role</Label>
+                                         <div className="relative">
+                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="pay">Pay Rate (£)</Label>
+                                        <div className="relative">
+                                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="pay" type="number" placeholder="e.g. 150" value={newBookingPay} onChange={(e) => setNewBookingPay(e.target.value)} className="pl-10" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="location">Location</Label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
+                                    </div>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>Booking Dates</Label>
+                                    <div className="flex justify-center">
+                                        <Calendar
+                                            mode="multiple"
+                                            selected={newBookingDates}
+                                            onSelect={setNewBookingDates}
+                                            className="rounded-md border"
+                                            disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                        />
+                                    </div>
+                                 </div>
+                            </div>
+                            <DialogFooter className="sm:justify-end gap-2">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary">Cancel</Button>
+                                </DialogClose>
+                                <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
+                                    Confirm Booking
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline"><FilePlus2 className="mr-2" /> Post a New Job</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl">
+                             <DialogHeader>
+                                <DialogTitle className="text-2xl">Post a New Job</DialogTitle>
+                                <DialogDescription>
+                                    Fill in the details below. Our AI can then help find the best candidates for you.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="p-1">
+                              <PostJobForm onJobPosted={handleJobPosted} />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
             
              <div className="grid gap-4 md:grid-cols-3">
@@ -679,5 +801,7 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
 
     
