@@ -217,7 +217,7 @@ export default function PostAJobPage() {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
                     <Briefcase className="h-6 w-6 text-primary" />
-                    <span>My Job Postings</span>
+                    <span>Booking Management</span>
                 </h1>
                 <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
                     <DialogTrigger asChild>
