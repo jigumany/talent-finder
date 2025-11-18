@@ -4,16 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { mockJobs, mockApplications, mockAuditLogs } from '@/lib/mock-data';
-import type { Job, AuditLog } from '@/lib/types';
+import { mockJobs, mockApplications, mockAuditLogs, mockCandidates } from '@/lib/mock-data';
+import type { Job, AuditLog, Application, Candidate } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { KanbanBoard } from '@/components/kanban-board';
 import { EditJobForm } from '@/components/edit-job-form';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -23,6 +22,82 @@ import { ActivityLog } from '@/components/activity-log';
 import { JobDetails } from '@/components/job-details';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from 'next/link';
+
+interface ApplicantTableProps {
+    applications: { application: Application; candidate: Candidate }[];
+    onStatusChange: (applicationId: string, newStatus: 'Shortlisted' | 'Interview') => void;
+}
+
+function ApplicantTable({ applications, onStatusChange }: ApplicantTableProps) {
+    if (applications.length === 0) {
+        return (
+            <div className="text-center text-muted-foreground p-8">
+                <p>No applicants for this job yet.</p>
+            </div>
+        );
+    }
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Candidate</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {applications.map(({ application, candidate }) => (
+                    <TableRow key={application.id}>
+                        <TableCell>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10 border">
+                                    <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
+                                    <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold">{candidate.name}</p>
+                                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                                </div>
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant={
+                                application.status === 'Interview' || application.status === 'Offer' ? 'default' :
+                                application.status === 'Shortlisted' ? 'secondary' : 'outline'
+                            } className={cn({
+                                'bg-purple-600': application.status === 'Interview',
+                                'bg-yellow-500': application.status === 'Shortlisted',
+                            })}>
+                                {application.status}
+                            </Badge>
+                        </TableCell>
+                         <TableCell>
+                            <div className="flex items-center gap-1 text-sm text-amber-500">
+                                <Star className="w-4 h-4 fill-current" />
+                                <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                            </div>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                             <Button variant="outline" size="sm" asChild>
+                                <Link href={`/profile/candidate/${candidate.id}`}>View Profile</Link>
+                            </Button>
+                            {application.status === 'Applied' && (
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')}>Shortlist</Button>
+                            )}
+                            {application.status === 'Shortlisted' && (
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Interview')}>Interview</Button>
+                            )}
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    )
+}
 
 interface JobCardProps {
     job: Job;
@@ -129,6 +204,7 @@ function JobCard({ job, onManageClick, onStatusChange, onDelete }: JobCardProps)
 export default function PostAJobPage() {
     const { role } = useRole();
     const [jobs, setJobs] = useState<Job[]>(mockJobs);
+    const [applications, setApplications] = useState<Application[]>(mockApplications);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
     const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
@@ -177,8 +253,6 @@ export default function PostAJobPage() {
         setManageJobDialogOpen(true);
     }
     
-    const jobApplications = selectedJob ? mockApplications.filter(app => app.jobId === selectedJob.id) : [];
-    
     const handleJobUpdated = (updatedJob: Job) => {
         setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
         if (selectedJob) {
@@ -200,6 +274,14 @@ export default function PostAJobPage() {
             description: `The job has been set to "${status}".`
         });
     };
+    
+    const handleApplicationStatusChange = (applicationId: string, newStatus: 'Shortlisted' | 'Interview') => {
+        setApplications(prev => prev.map(app => app.id === applicationId ? { ...app, status: newStatus } : app));
+        toast({
+            title: 'Applicant Status Updated',
+            description: `The candidate has been moved to ${newStatus}.`,
+        });
+    }
 
     const handleJobDelete = (jobId: string) => {
         setJobs(prev => prev.filter(job => job.id !== jobId));
@@ -211,6 +293,17 @@ export default function PostAJobPage() {
     };
     
     const selectedJobLogs = selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [];
+    
+    const jobApplications = selectedJob 
+        ? applications
+            .filter(app => app.jobId === selectedJob.id)
+            .map(application => {
+                const candidate = mockCandidates.find(c => c.id === application.candidateId);
+                return { application, candidate: candidate! };
+            })
+            .filter(item => item.candidate)
+        : [];
+
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">
@@ -356,8 +449,8 @@ export default function PostAJobPage() {
                                         </div>
                                     </div>
                                 </DialogHeader>
-                                <TabsContent value="applicants" className="flex-1 mt-4 -mx-6 sm:mx-0">
-                                     <KanbanBoard applications={jobApplications} />
+                                <TabsContent value="applicants" className="flex-1 mt-4 overflow-auto">
+                                     <ApplicantTable applications={jobApplications} onStatusChange={handleApplicationStatusChange} />
                                 </TabsContent>
                                 <TabsContent value="details" className="flex-1 overflow-auto mt-4">
                                   <ScrollArea className="h-full">
