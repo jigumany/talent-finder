@@ -19,7 +19,7 @@ interface Message {
 export function AIAssistant() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', text: "Hello! I'm Ash, your AI assistant. How can I help you with Talent Marketplace today?" }
+        { role: 'assistant', text: "Hello! I'm Ash, your AI assistant. How can I help you with Staffable today?" }
     ]);
     const [input, setInput] = useState('');
     const [isPending, startTransition] = useTransition();

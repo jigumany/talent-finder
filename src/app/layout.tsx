@@ -11,7 +11,7 @@ const ptSans = PT_Sans({
 
 
 export const metadata: Metadata = {
-  title: 'GSL Client Marketplace',
+  title: 'Staffable',
   description: 'Connecting schools with qualified staff, seamlessly.',
 };
 
