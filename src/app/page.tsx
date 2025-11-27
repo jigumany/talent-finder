@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { useTour } from '@/context/tour-context';
+import images from '@/lib/placeholder-images.json';
 
 export default function AuthPage() {
   const { toast } = useToast();
@@ -26,6 +27,8 @@ export default function AuthPage() {
   const [signUpSchoolName, setSignUpSchoolName] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
+
+  const landingImage = images['landing-page'];
 
 
   const handlePasswordReset = () => {
@@ -75,12 +78,12 @@ export default function AuthPage() {
       <div className="relative flex-col justify-between h-full p-10 bg-primary/90 text-primary-foreground hidden lg:flex">
         <div className="absolute inset-0 z-0 transition-transform duration-500 ease-in-out">
             <Image
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2670&auto=format&fit=crop"
+                src={landingImage.src}
                 alt="Diverse group of professionals in a meeting"
                 fill
                 style={{objectFit: 'cover'}}
                 className="opacity-20"
-                data-ai-hint="diverse professionals"
+                data-ai-hint={landingImage.hint}
             />
         </div>
         <div className="relative z-10">

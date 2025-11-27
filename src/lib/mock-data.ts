@@ -15,7 +15,7 @@ export const mockCandidates: Candidate[] = [
     location: 'London, UK',
     qualifications: ['PhD in History', 'QTS'],
     availability: ['2024-08-19', '2024-08-20', '2024-08-21', '2025-01-20', '2025-01-21'],
-    imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdHxlbnwwfHx8fDE3NjMzNDAzOTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: images['candidate-1'].src,
     cvUrl: '#',
     bio: 'Passionate historian with a knack for making the past come alive for students of all ages.',
     reviewsData: [
@@ -34,7 +34,7 @@ export const mockCandidates: Candidate[] = [
     location: 'Manchester, UK',
     qualifications: ['M.Sc. in Mathematics', '5+ Years Experience', 'PGCE'],
     availability: ['2024-08-22', '2024-08-23'],
-    imageUrl: 'https://images.unsplash.com/photo-1595211877493-41a4e5f236b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cHJvZmVzc2lvbmFsJTIwaGVhZHNob3R8ZW58MHx8fHwxNzYzMzQwMzkwfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: images['candidate-2'].src,
     cvUrl: '#',
     bio: 'An experienced math educator who excels at breaking down complex concepts into understandable lessons.',
     reviewsData: [
@@ -52,7 +52,7 @@ export const mockCandidates: Candidate[] = [
     location: 'Birmingham, UK',
     qualifications: ['Child Development Cert.', 'First Aid'],
     availability: ['2024-08-19', '2024-08-26', '2024-08-27'],
-    imageUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdHxlbnwwfHx8fDE3NjMzNDAzOTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: images['candidate-3'].src,
     cvUrl: '#',
     bio: 'A nurturing and patient teaching assistant dedicated to creating a supportive and positive learning environment.',
      reviewsData: [
@@ -71,7 +71,7 @@ export const mockCandidates: Candidate[] = [
     location: 'London, UK',
     qualifications: ['M.Ed', 'Chemistry Specialization', 'QTS'],
     availability: ['2024-08-20', '2024-08-21', '2024-08-28'],
-    imageUrl: 'https://images.unsplash.com/photo-1701096374092-bb70915fdc5c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdHxlbnwwfHx8fDE3NjMzNDAzOTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: images['candidate-4'].src,
     cvUrl: '#',
     bio: 'Engaging science teacher who loves sparking curiosity through hands-on experiments and real-world examples.',
   },
@@ -86,7 +86,7 @@ export const mockCandidates: Candidate[] = [
     location: 'Bristol, UK',
     qualifications: ['MA in English Lit', 'TEFL Certified', 'PGCE'],
     availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
-    imageUrl: 'https://images.unsplash.com/photo-1685760259914-ee8d2c92d2e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdHxlbnwwfHx8fDE3NjMzNDAzOTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: images['candidate-5'].src,
     cvUrl: '#',
     bio: 'A literature enthusiast committed to developing strong reading and writing skills in her students.',
   },
@@ -413,6 +413,7 @@ export const mockAuditLogs: AuditLog[] = [
     
 
     
+
 
 
 

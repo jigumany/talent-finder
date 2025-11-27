@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
@@ -123,7 +123,7 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation, ra
 }
 
 export default function BrowseCandidatesPage() {
-    const [allCandidates] = useState<Candidate[]>(mockCandidates);
+    const allCandidates = useMemo(() => mockCandidates, []);
     const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(allCandidates);
     
     // Filter states
@@ -136,53 +136,48 @@ export default function BrowseCandidatesPage() {
     const [maxRate, setMaxRate] = useState('');
 
     useEffect(() => {
-        let filtered = allCandidates;
+        const lowercasedTerm = searchTerm.toLowerCase();
+        const minRateNum = parseFloat(minRate);
+        const maxRateNum = parseFloat(maxRate);
 
-        // Search term filter
-        if (searchTerm) {
-            const lowercasedTerm = searchTerm.toLowerCase();
-            filtered = filtered.filter(candidate => 
+        const filtered = allCandidates.filter(candidate => {
+            if (searchTerm && !(
                 candidate.name.toLowerCase().includes(lowercasedTerm) ||
                 candidate.role.toLowerCase().includes(lowercasedTerm) ||
                 candidate.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
-            );
-        }
+            )) {
+                return false;
+            }
 
-        // Role filter
-        if (roleFilter !== 'all') {
-            filtered = filtered.filter(candidate => candidate.role === roleFilter);
-        }
+            if (roleFilter !== 'all' && candidate.role !== roleFilter) {
+                return false;
+            }
 
-        // Subject filter
-        if (subjectFilter !== 'all') {
-            filtered = filtered.filter(candidate => 
+            if (subjectFilter !== 'all' && !(
                 candidate.qualifications.some(q => q.toLowerCase().includes(subjectFilter)) ||
                 candidate.role.toLowerCase().includes(subjectFilter)
-            );
-        }
-        
-        // Rate Type filter
-        if (rateTypeFilter !== 'all') {
-            filtered = filtered.filter(candidate => candidate.rateType === rateTypeFilter);
-        }
-        
-        // Rate Range filter
-        const minRateNum = parseFloat(minRate);
-        const maxRateNum = parseFloat(maxRate);
-        
-        if (!isNaN(minRateNum)) {
-            filtered = filtered.filter(c => c.rate >= minRateNum);
-        }
-        if (!isNaN(maxRateNum)) {
-            filtered = filtered.filter(c => c.rate <= maxRateNum);
-        }
+            )) {
+                return false;
+            }
 
-        // Location filter
-        if (locationFilter) {
-            filtered = filtered.filter(candidate => 
-                candidate.location.toLowerCase().includes(locationFilter.toLowerCase())
-            );
-        }
+            if (rateTypeFilter !== 'all' && candidate.rateType !== rateTypeFilter) {
+                return false;
+            }
+
+            if (!isNaN(minRateNum) && candidate.rate < minRateNum) {
+                return false;
+            }
+
+            if (!isNaN(maxRateNum) && candidate.rate > maxRateNum) {
+                return false;
+            }
+
+            if (locationFilter && !candidate.location.toLowerCase().includes(locationFilter.toLowerCase())) {
+                return false;
+            }
+
+            return true;
+        });
         
         setFilteredCandidates(filtered);
     }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates]);
