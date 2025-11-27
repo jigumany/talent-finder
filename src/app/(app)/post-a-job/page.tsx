@@ -209,7 +209,7 @@ export default function PostAJobPage() {
         });
     }, [jobs, applications]);
 
-    const totalPages = Math.ceil(jobsWithCounts.length / JOBS_PER_PAGE);
+    const totalPages = useMemo(() => Math.ceil(jobsWithCounts.length / JOBS_PER_PAGE), [jobsWithCounts.length]);
 
     const paginatedJobs = useMemo(() => {
         const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
@@ -217,6 +217,16 @@ export default function PostAJobPage() {
         return jobsWithCounts.slice(startIndex, endIndex);
     }, [jobsWithCounts, currentPage]);
     
+    const { totalActiveJobs, totalApplicants, totalShortlisted } = useMemo(() => {
+        const activeJobs = jobsWithCounts.filter(j => j.status === 'Active');
+        const applicants = jobsWithCounts.reduce((acc, job) => acc + (job.applicants || 0), 0);
+        const shortlisted = jobsWithCounts.reduce((acc, job) => acc + (job.shortlisted || 0), 0);
+        return {
+            totalActiveJobs: activeJobs.length,
+            totalApplicants: applicants,
+            totalShortlisted: shortlisted,
+        };
+    }, [jobsWithCounts]);
 
     if (role !== 'client') {
         return (
@@ -265,10 +275,6 @@ export default function PostAJobPage() {
         addAuditLog(updatedJob.id, 'Job Edited', 'Job details were updated.');
         setIsEditingJob(false);
     };
-    
-    const totalActiveJobs = jobs.filter(j => j.status === 'Active').length;
-    const totalApplicants = jobsWithCounts.reduce((acc, job) => acc + (job.applicants || 0), 0);
-    const totalShortlisted = jobsWithCounts.reduce((acc, job) => acc + (job.shortlisted || 0), 0);
 
     const handleJobStatusChange = (jobId: string, status: Job['status']) => {
         setJobs(prev => prev.map(job => job.id === jobId ? { ...job, status } : job));
@@ -354,9 +360,9 @@ export default function PostAJobPage() {
         setCandidateToBook(null);
     };
     
-    const selectedJobLogs = selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [];
+    const selectedJobLogs = useMemo(() => selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [], [selectedJob, auditLogs]);
     
-    const jobApplications = selectedJob 
+    const jobApplications = useMemo(() => selectedJob 
         ? applications
             .filter(app => app.jobId === selectedJob.id)
             .map(application => {
@@ -368,7 +374,7 @@ export default function PostAJobPage() {
                 const statusOrder: ApplicationStatus[] = ['Offer', 'Hired', 'Interview', 'Shortlisted', 'Applied', 'Rejected'];
                 return statusOrder.indexOf(a.application.status) - statusOrder.indexOf(b.application.status);
             })
-        : [];
+        : [], [selectedJob, applications]);
 
 
     return (
