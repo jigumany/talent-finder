@@ -2,16 +2,17 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { findSomeoneAction } from '@/app/(app)/find-me-someone/actions';
-import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Search, Frown } from 'lucide-react';
+import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Search, Frown, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -19,6 +20,7 @@ import { mockCandidates } from '@/lib/mock-data';
 import { CandidateCard } from './candidate-card';
 import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { Separator } from './ui/separator';
+import { cn } from '@/lib/utils';
 
 const findSomeoneFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -212,7 +214,7 @@ export function FindSomeoneForm() {
             )}
 
 
-            <div className="text-center mt-8">
+            <div className="text-center mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button onClick={() => {
                     setResult(null);
                     form.reset();
@@ -220,6 +222,10 @@ export function FindSomeoneForm() {
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Start a New Search
                 </Button>
+                <Link href="/browse-candidates" className={cn(buttonVariants({ variant: 'outline' }))}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Browse All Candidates
+                </Link>
             </div>
         </div>
       )}
