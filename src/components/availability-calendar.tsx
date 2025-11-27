@@ -6,6 +6,8 @@ import { DayPicker } from 'react-day-picker';
 import { isSameDay, format } from 'date-fns';
 import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
+import { buttonVariants } from './ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const interviewDays: Date[] = [
     new Date(2024, 7, 21), 
@@ -53,20 +55,38 @@ export function AvailabilityCalendar() {
     
     return (
         <div className="flex flex-col items-center">
-            <DayPicker
+             <DayPicker
                 mode="single"
                 className="w-full"
-                components={{
-                    DayContent: (props) => <DayWithIndicator date={props.date} modifiers={modifiers} />
+                classNames={{
+                    month: 'w-full space-y-4',
+                    caption: "flex justify-between pt-1 relative items-center",
+                    caption_label: "text-lg font-medium text-primary",
+                    nav: "space-x-1 flex items-center",
+                    nav_button: cn(
+                      buttonVariants({ variant: "outline" }),
+                      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                    ),
+                    table: 'w-full border-collapse',
+                    head_row: 'flex justify-around',
+                    head_cell: 'text-muted-foreground rounded-md w-full font-normal text-[0.8rem]',
+                    row: 'flex w-full mt-2 justify-around',
+                    cell: 'h-12 w-12 text-center text-sm p-0 relative first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
+                    day: cn(
+                      buttonVariants({ variant: "ghost" }),
+                      "h-12 w-12 p-0 font-normal aria-selected:opacity-100"
+                    ),
+                    day_selected:
+                      "bg-primary/20 text-primary hover:bg-primary/20 hover:text-primary focus:bg-primary/20 focus:text-primary",
+                    day_today: "font-bold text-accent-foreground",
+                    day_outside:
+                      "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+                    day_disabled: "text-muted-foreground opacity-50",
                 }}
-                styles={{
-                    caption: { color: 'hsl(var(--primary))' },
-                    head: { color: 'hsl(var(--muted-foreground))' },
-                    cell: { position: 'relative' },
-                    day_outside: {
-                        color: 'hsl(var(--muted-foreground))',
-                        opacity: 0.5,
-                    },
+                components={{
+                    DayContent: (props) => <DayWithIndicator date={props.date} modifiers={modifiers} />,
+                    IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+                    IconRight: () => <ChevronRight className="h-4 w-4" />,
                 }}
                 modifiersClassNames={{
                     today: 'font-bold text-accent-foreground bg-accent/20 rounded-md',
