@@ -83,7 +83,7 @@ export function ActivityLog({ logs }: ActivityLogProps) {
   }
 
   return (
-    <div className="space-y-6 p-2">
+    <div className="space-y-0 p-2">
       {logs.map((log, index) => {
         const isLast = index === logs.length - 1;
         return <LogItem key={log.id} log={log} isLast={isLast} />;
