@@ -22,7 +22,6 @@ import { Calendar } from './ui/calendar';
 const postJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
   subject: z.string().optional(),
-  payRate: z.coerce.number().min(1, { message: 'Pay rate is required.' }),
   location: z.string().min(1, { message: 'Location is required.' }),
   skills: z.string().min(1, 'Please list at least one required skill or qualification.'),
   notes: z.string().optional(),
@@ -45,15 +44,11 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
     defaultValues: {
       role: '',
       subject: '',
-      payRate: 0,
       location: '',
       skills: '',
       notes: '',
     },
   });
-
-  const payRate = form.watch('payRate');
-  const chargeRate = (payRate * 1.40).toFixed(2);
 
   const onSubmit = (values: PostJobFormValues) => {
     startTransition(async () => {
@@ -194,35 +189,6 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
                       </FormItem>
                     )}
                   />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 items-start">
-               <FormField
-                control={form.control}
-                name="payRate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pay Rate (£)</FormLabel>
-                     <div className="relative">
-                        <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <FormControl>
-                          <Input type="number" placeholder="e.g., 150" {...field} className="pl-10" />
-                        </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormItem>
-                <FormLabel>Charge Rate (£)</FormLabel>
-                 <div className="relative">
-                    <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input readOnly value={chargeRate} className="pl-10 bg-muted" />
-                </div>
-                 <FormDescription>
-                    Charge rate is calculated at 40% markup.
-                  </FormDescription>
-              </FormItem>
             </div>
 
             <FormField

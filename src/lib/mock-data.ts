@@ -211,7 +211,6 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 12,
         shortlisted: 3,
-        payRate: 200,
         location: 'London, UK',
         startDate: '2024-09-01T00:00:00Z',
         subject: 'History',
@@ -224,7 +223,6 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 25,
         shortlisted: 5,
-        payRate: 90,
         location: 'Manchester, UK',
     },
     {
@@ -235,7 +233,6 @@ export const mockJobs: Job[] = [
         status: 'Closed',
         applicants: 8,
         shortlisted: 1,
-        payRate: 180,
         location: 'Birmingham, UK',
         subject: 'Mathematics'
     },
@@ -247,7 +244,6 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 15,
         shortlisted: 4,
-        payRate: 250,
         location: 'London, UK',
         subject: 'Science'
     },
@@ -259,7 +255,6 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 18,
         shortlisted: 2,
-        payRate: 120,
         location: 'Bristol, UK',
         subject: 'Art'
     },
@@ -271,7 +266,6 @@ export const mockJobs: Job[] = [
         status: 'Closed',
         applicants: 30,
         shortlisted: 3,
-        payRate: 300,
         location: 'Leeds, UK',
         subject: 'English'
     },
@@ -283,7 +277,6 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 22,
         shortlisted: 6,
-        payRate: 160,
         location: 'Glasgow, UK',
         subject: 'Physical Education'
     },
@@ -295,7 +288,6 @@ export const mockJobs: Job[] = [
         status: 'Active',
         applicants: 45,
         shortlisted: 8,
-        payRate: 100,
         location: 'London, UK',
     },
 ];
@@ -413,6 +405,7 @@ export const mockAuditLogs: AuditLog[] = [
     
 
     
+
 
 
 

@@ -49,8 +49,6 @@ export type Job = {
   status: 'Active' | 'Closed' | 'Draft' | 'Paused';
   applicants?: number;
   shortlisted?: number;
-  payRate?: number;
-  chargeRate?: number;
   location?: string;
   startDate?: string;
   endDate?: string;
@@ -87,6 +85,8 @@ export type AuditLog = {
     
 
     
+
+
 
 
 

@@ -21,7 +21,6 @@ import { Calendar } from './ui/calendar';
 const editJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
   subject: z.string().optional(),
-  payRate: z.coerce.number().min(1, { message: 'Pay rate is required.' }),
   location: z.string().min(1, { message: 'Location is required.' }),
   skills: z.string().min(1, 'Please list at least one required skill or qualification.'),
   notes: z.string().optional(),
@@ -46,7 +45,6 @@ export function EditJobForm({ job, onJobUpdated, onCancel }: EditJobFormProps) {
     defaultValues: {
       role: job.title,
       subject: job.subject || '',
-      payRate: job.payRate || 0,
       location: job.location || '',
       skills: job.description, // Mapping description to skills
       notes: job.notes || '',
@@ -54,9 +52,6 @@ export function EditJobForm({ job, onJobUpdated, onCancel }: EditJobFormProps) {
       endDate: job.endDate ? new Date(job.endDate) : undefined,
     },
   });
-
-  const payRate = form.watch('payRate');
-  const chargeRate = (payRate * 1.40).toFixed(2);
 
   const onSubmit = (values: EditJobFormValues) => {
     startTransition(async () => {
@@ -67,8 +62,6 @@ export function EditJobForm({ job, onJobUpdated, onCancel }: EditJobFormProps) {
         ...job,
         title: values.role,
         subject: values.subject,
-        payRate: values.payRate,
-        chargeRate: parseFloat(chargeRate),
         location: values.location,
         description: values.skills,
         notes: values.notes,
@@ -203,35 +196,6 @@ export function EditJobForm({ job, onJobUpdated, onCancel }: EditJobFormProps) {
                       </FormItem>
                     )}
                   />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 items-start">
-               <FormField
-                control={form.control}
-                name="payRate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pay Rate (£)</FormLabel>
-                     <div className="relative">
-                        <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <FormControl>
-                          <Input type="number" placeholder="e.g., 150" {...field} className="pl-10" />
-                        </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormItem>
-                <FormLabel>Charge Rate (£)</FormLabel>
-                 <div className="relative">
-                    <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input readOnly value={chargeRate} className="pl-10 bg-muted" />
-                </div>
-                 <FormDescription>
-                    Charge rate is calculated at 40% markup.
-                  </FormDescription>
-              </FormItem>
             </div>
 
             <FormField
