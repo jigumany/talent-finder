@@ -207,7 +207,7 @@ export default function ProfilePage() {
                                             {member.role}
                                         </Badge>
                                         <Button variant="ghost" size="icon" onClick={() => handlePasswordReset(member)}>
-                                            <KeyRound className="h-4 w-4 text-muted-foreground" />
+                                            <KeyRound className="h-4 w-4 text-amber-500" />
                                         </Button>
                                         <Button variant="ghost" size="icon" onClick={() => setTeam(team.filter(t => t.id !== member.id))}>
                                             <Trash2 className="h-4 w-4 text-destructive" />
