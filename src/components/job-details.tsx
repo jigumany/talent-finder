@@ -73,7 +73,6 @@ export function JobDetails({ job, onEditClick, onStatusChange, onDelete }: JobDe
                         <DetailItem icon={CalendarIcon} label="Start Date" value={job.startDate ? format(new Date(job.startDate), 'PPP') : undefined} />
                         <DetailItem icon={CalendarIcon} label="End Date" value={job.endDate ? format(new Date(job.endDate), 'PPP') : undefined} />
                         <Separator />
-                        <DetailItem icon={PoundSterling} label="Pay Rate" value={job.payRate ? `£${job.payRate}`: undefined} />
                         <DetailItem icon={PoundSterling} label="Charge Rate" value={`£${chargeRate}`} />
                     </CardContent>
                 </Card>
