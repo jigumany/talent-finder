@@ -37,6 +37,7 @@ import {
     Pencil as PencilIcon,
     Loader2,
     Ban,
+    Menu,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -46,6 +47,7 @@ import { Logo } from './logo';
 import images from '@/lib/placeholder-images.json';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState, useEffect } from 'react';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 
 
 const clientNav = [
@@ -67,30 +69,6 @@ const candidateNav = [
     { name: 'Profile', href: '/profile', icon: User },
 ];
 
-function BottomNavBar({ navItems }: { navItems: typeof clientNav | typeof candidateNav }) {
-    const pathname = usePathname();
-
-    return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
-            <div className="flex h-16 items-center justify-around">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                            "flex flex-col items-center justify-center gap-1 text-muted-foreground w-full h-full",
-                            (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))) && "text-primary"
-                        )}
-                    >
-                        <item.icon className="h-6 w-6" />
-                        <span className="text-xs font-medium">{item.name}</span>
-                    </Link>
-                ))}
-            </div>
-        </nav>
-    );
-}
-
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
@@ -99,6 +77,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const avatarImage = images['user-avatar-fallback'];
     const isMobile = useIsMobile();
     const [isClient, setIsClient] = useState(false);
+    const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
@@ -118,6 +97,41 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         return (
             <>
                  <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
+                    <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="md:hidden">
+                                <Menu className="h-5 w-5" />
+                                <span className="sr-only">Toggle navigation menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0">
+                            <nav className="flex flex-col h-full">
+                                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+                                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary" onClick={() => setIsMobileSheetOpen(false)}>
+                                        <Logo className="h-8 w-auto" />
+                                    </Link>
+                                </div>
+                                <div className="flex-1 overflow-y-auto">
+                                    <div className="grid items-start p-2 text-sm font-medium lg:px-4">
+                                        {navItems.map((item) => (
+                                            <SheetClose asChild key={item.name}>
+                                                <Link
+                                                    href={item.href}
+                                                    className={cn(
+                                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                                                        (pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')) && "bg-muted text-primary"
+                                                    )}>
+                                                    <item.icon className="h-4 w-4" />
+                                                    {item.name}
+                                                </Link>
+                                            </SheetClose>
+                                        ))}
+                                    </div>
+                                </div>
+                            </nav>
+                        </SheetContent>
+                    </Sheet>
+                    
                     <div className="flex-1">
                          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
                             <Logo className="h-7 w-auto" />
@@ -162,7 +176,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <main className="p-4 sm:p-6 pb-20">
                     {children}
                 </main>
-                <BottomNavBar navItems={navItems} />
             </>
         )
     }
