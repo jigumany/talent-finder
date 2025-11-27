@@ -95,7 +95,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                                 </Link>
                             </Button>
                              {application.status === 'Applied' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-yellow-50">
+                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-white">
                                     <Star className="mr-2 h-4 w-4" /> Shortlist
                                 </Button>
                              )}
@@ -606,9 +606,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    
-
-    
-
-    
