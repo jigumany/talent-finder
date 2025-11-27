@@ -8,7 +8,7 @@ import { mockCandidates } from '@/lib/mock-data';
 import type { Candidate } from '@/lib/types';
 import { ListFilter, Search, PoundSterling } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -217,8 +217,15 @@ export default function BrowseCandidatesPage() {
                                 </Button>
                             </SheetTrigger>
                             <SheetContent className="w-[300px] sm:w-[400px]">
-                                <h2 className="text-lg font-semibold my-4">Filters</h2>
-                                <Filters {...filterProps} />
+                                <SheetHeader>
+                                    <SheetTitle>Filters</SheetTitle>
+                                    <SheetDescription>
+                                        Refine your search for the perfect candidate.
+                                    </SheetDescription>
+                                </SheetHeader>
+                                <div className="mt-4">
+                                    <Filters {...filterProps} />
+                                </div>
                             </SheetContent>
                         </Sheet>
                     </div>

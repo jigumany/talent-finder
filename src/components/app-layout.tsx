@@ -47,7 +47,7 @@ import { Logo } from './logo';
 import images from '@/lib/placeholder-images.json';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 
 const clientNav = [
@@ -98,12 +98,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0">
-                            <nav className="flex flex-col h-full">
-                                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary" onClick={() => setIsMobileSheetOpen(false)}>
+                            <SheetHeader className="border-b p-4">
+                                <SheetTitle asChild>
+                                    <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary" onClick={() => setIsMobileSheetOpen(false)}>
                                         <Logo className="h-8 w-auto" />
                                     </Link>
-                                </div>
+                                </SheetTitle>
+                                <SheetDescription className="sr-only">
+                                    Main navigation menu.
+                                </SheetDescription>
+                            </SheetHeader>
+                            <nav className="flex flex-col h-full">
                                 <div className="flex-1 overflow-y-auto">
                                     <div className="grid items-start p-2 text-sm font-medium lg:px-4">
                                         {navItems.map((item) => (
