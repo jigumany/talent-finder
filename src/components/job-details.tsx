@@ -1,5 +1,4 @@
 
-
 'use client';
 import type { Job } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
