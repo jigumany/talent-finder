@@ -2,14 +2,40 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
+import { useToast } from '@/hooks/use-toast';
+
 
 export default function AuthPage() {
+  const { toast } = useToast();
+  const [isResetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+
+  const handlePasswordReset = () => {
+    if (!resetEmail) {
+        toast({
+            title: 'Email Required',
+            description: 'Please enter your email address.',
+            variant: 'destructive'
+        });
+        return;
+    }
+    // In a real app, you would call your auth provider here.
+    setResetDialogOpen(false);
+    toast({
+        title: 'Password Reset Sent',
+        description: `If an account exists for ${resetEmail}, a password reset link has been sent.`,
+    });
+    setResetEmail('');
+  }
+
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2 bg-background">
       {/* Left Column - Image and Branding */}
@@ -67,12 +93,42 @@ export default function AuthPage() {
                 <div className="grid gap-2">
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
-                    <Link
-                      href="#"
-                      className="ml-auto inline-block text-sm underline"
-                    >
-                      Forgot your password?
-                    </Link>
+                    <Dialog open={isResetDialogOpen} onOpenChange={setResetDialogOpen}>
+                      <DialogTrigger asChild>
+                        <button className="ml-auto inline-block text-sm underline">
+                          Forgot your password?
+                        </button>
+                      </DialogTrigger>
+                       <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Forgot Password</DialogTitle>
+                          <DialogDescription>
+                            Enter your email address and we'll send you a link to reset your password.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="reset-email">Email Address</Label>
+                            <Input
+                              id="reset-email"
+                              type="email"
+                              placeholder="me@example.co.uk"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancel</Button>
+                            </DialogClose>
+                            <Button type="button" onClick={handlePasswordReset}>
+                                Send Reset Link
+                            </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   <Input id="password" type="password" required />
                 </div>
