@@ -73,7 +73,7 @@ const candidateNav = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
     const pathname = usePathname();
-    const user = role === 'client' ? { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' } : { name: 'Amelia Collins', email: 'amelia.c@example.co.uk', fallback: 'AC' };
+    const user = { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' };
     const avatarImage = images['user-avatar-fallback'];
     const isMobile = useIsMobile();
     const [isClient, setIsClient] = useState(false);
@@ -83,7 +83,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         setIsClient(true);
     }, []);
 
-    const navItems = role === 'client' ? clientNav : candidateNav;
+    const navItems = clientNav;
 
     if (!isClient) {
         return (
@@ -154,19 +154,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 <div className="text-xs text-muted-foreground">{user.email}</div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                             <DropdownMenuGroup>
-                                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors">
-                                    <Label htmlFor="role-switcher" className="flex-1 pr-2">
-                                        Client Role
-                                    </Label>
-                                    <Switch
-                                        id="role-switcher"
-                                        checked={role === 'client'}
-                                        onCheckedChange={(checked) => setRole(checked ? 'client' : 'candidate')}
-                                    />
-                                </div>
-                            </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                                 <Link href="/"><LogOut className="mr-2 h-4 w-4" />Logout</Link>
                             </DropdownMenuItem>
@@ -228,19 +215,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 <div className="font-medium">{user.name}</div>
                                 <div className="text-xs text-muted-foreground">{user.email}</div>
                             </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                             <DropdownMenuGroup>
-                                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors">
-                                    <Label htmlFor="role-switcher-desktop" className="flex-1 pr-2">
-                                        Client Role
-                                    </Label>
-                                    <Switch
-                                        id="role-switcher-desktop"
-                                        checked={role === 'client'}
-                                        onCheckedChange={(checked) => setRole(checked ? 'client' : 'candidate')}
-                                    />
-                                </div>
-                            </DropdownMenuGroup>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                                 <Link href="/"><LogOut className="mr-2 h-4 w-4" />Logout</Link>

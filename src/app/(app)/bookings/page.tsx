@@ -122,7 +122,7 @@ export default function BookingsPage() {
     const { role } = useRole();
     const isClient = role === 'client';
     
-    const [bookings, setBookings] = useState<Booking[]>(isClient ? mockClientBookings : mockCandidateBookings);
+    const [bookings, setBookings] = useState<Booking[]>(mockClientBookings);
 
     const applicantBookings = bookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status));
     const upcomingBookings = bookings.filter(b => b.status === 'Confirmed');
@@ -373,49 +373,39 @@ export default function BookingsPage() {
                 )}
             </div>
             
-            {isClient ? (
-                <Card>
-                    <Tabs defaultValue="applicants">
-                        <CardHeader>
-                            <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="applicants">
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Applicants ({applicantBookings.length})
-                                </TabsTrigger>
-                                <TabsTrigger value="upcoming">
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    Upcoming ({upcomingBookings.length})
-                                </TabsTrigger>
-                                <TabsTrigger value="completed">
-                                    <ClipboardEdit className="mr-2 h-4 w-4" />
-                                    Completed ({completedBookings.length})
-                                </TabsTrigger>
-                            </TabsList>
-                        </CardHeader>
-                        <CardContent>
-                            <TabsContent value="applicants">
-                                <BookingsTable bookings={applicantBookings} {...tableProps} />
-                            </TabsContent>
-                            <TabsContent value="upcoming">
-                                <BookingsTable bookings={upcomingBookings} {...tableProps} />
-                            </TabsContent>
-                            <TabsContent value="completed">
-                                <BookingsTable bookings={completedBookings} {...tableProps} />
-                            </TabsContent>
-                        </CardContent>
-                    </Tabs>
-                </Card>
-            ) : (
-                 <Card>
+            
+            <Card>
+                <Tabs defaultValue="applicants">
                     <CardHeader>
-                        <CardTitle>My Jobs</CardTitle>
-                        <CardDescription>Review your past and upcoming job assignments.</CardDescription>
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="applicants">
+                                <Users className="mr-2 h-4 w-4" />
+                                Applicants ({applicantBookings.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="upcoming">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                Upcoming ({upcomingBookings.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="completed">
+                                <ClipboardEdit className="mr-2 h-4 w-4" />
+                                Completed ({completedBookings.length})
+                            </TabsTrigger>
+                        </TabsList>
                     </CardHeader>
                     <CardContent>
-                         <BookingsTable bookings={bookings} {...tableProps} />
+                        <TabsContent value="applicants">
+                            <BookingsTable bookings={applicantBookings} {...tableProps} />
+                        </TabsContent>
+                        <TabsContent value="upcoming">
+                            <BookingsTable bookings={upcomingBookings} {...tableProps} />
+                        </TabsContent>
+                        <TabsContent value="completed">
+                            <BookingsTable bookings={completedBookings} {...tableProps} />
+                        </TabsContent>
                     </CardContent>
-                </Card>
-            )}
+                </Tabs>
+            </Card>
+            
 
 
             {/* Rebook Dialog */}
@@ -560,9 +550,3 @@ export default function BookingsPage() {
         </div>
     );
 }
-
-    
-
-    
-
-    
