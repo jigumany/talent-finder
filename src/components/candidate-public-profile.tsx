@@ -43,7 +43,7 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
             <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-primary/10">
                 <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
