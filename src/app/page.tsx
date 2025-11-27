@@ -16,7 +16,7 @@ export default function AuthPage() {
       <div className="relative flex-col justify-between h-full p-10 bg-primary/90 text-primary-foreground hidden lg:flex">
         <div className="absolute inset-0 z-0 transition-transform duration-500 ease-in-out">
             <Image
-                src="https://images.unsplash.com/photo-1517486808906-6538cb3b8656?q=80&w=2670&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2670&auto=format&fit=crop"
                 alt="Diverse group of professionals in a meeting"
                 fill
                 style={{objectFit: 'cover'}}
