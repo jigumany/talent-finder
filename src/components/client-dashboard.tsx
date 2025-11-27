@@ -80,7 +80,7 @@ export default function ClientDashboard() {
     return (
       <div className="flex flex-col gap-8">
          <div className="flex justify-between items-start">
-            <h1 className="text-2xl font-bold font-headline">Client Dashboard</h1>
+            <h1 id="tour-step-0" className="text-2xl font-bold font-headline">Client Dashboard</h1>
             <div className="flex gap-2">
                  <Button asChild size="sm">
                     <Link href="/browse-candidates">
@@ -88,7 +88,7 @@ export default function ClientDashboard() {
                         <span className="hidden md:inline">Go to Marketplace</span>
                     </Link>
                 </Button>
-                <Button asChild size="sm">
+                <Button asChild size="sm" id="tour-step-2-action">
                     <Link href="/post-a-job">
                         <FilePlus2 className="md:mr-2 h-4 w-4"/>
                         <span className="hidden md:inline">Post a Job</span>

@@ -4,6 +4,7 @@ import { PT_Sans } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 import { TourProvider } from '@/context/tour-context';
 import './globals.css';
+import { ThemeProvider } from 'next-themes';
 
 const ptSans = PT_Sans({ 
   subsets: ['latin'], 
@@ -26,9 +27,16 @@ export default function RootLayout({
     <html lang="en" className={ptSans.variable} suppressHydrationWarning>
       <head/>
       <body className="font-body antialiased">
-        <TourProvider>
-          {children}
-        </TourProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TourProvider>
+            {children}
+          </TourProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

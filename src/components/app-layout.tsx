@@ -51,21 +51,14 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 
 
 const clientNav = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Browse', href: '/browse-candidates', icon: Users },
+    { name: 'Dashboard', href: '/dashboard', icon: Home, id: 'tour-step-1' },
+    { name: 'Browse', href: '/browse-candidates', icon: Users, id: 'tour-step-3' },
     { name: 'Find', href: '/find-me-someone', icon: Search },
-    { name: 'Booking Manager', href: '/post-a-job', icon: FilePlus2 },
+    { name: 'Booking Manager', href: '/post-a-job', icon: FilePlus2, id: 'tour-step-2' },
     { name: 'Diary', href: '/diary', icon: Calendar },
-    { name: 'Bookings', href: '/bookings', icon: Briefcase },
+    { name: 'Bookings', href: '/bookings', icon: Briefcase, id: 'tour-step-4' },
     { name: 'Reviews', href: '/review-generator', icon: PenSquare },
     { name: 'Blacklist', href: '/blacklist', icon: Ban },
-    { name: 'Profile', href: '/profile', icon: User },
-];
-
-const candidateNav = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Timesheets', href: '/timesheets', icon: FileText },
-    { name: 'Bookings', href: '/bookings', icon: Briefcase },
     { name: 'Profile', href: '/profile', icon: User },
 ];
 
@@ -116,6 +109,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                         {navItems.map((item) => (
                                             <SheetClose asChild key={item.name}>
                                                 <Link
+                                                    id={item.id}
                                                     href={item.href}
                                                     className={cn(
                                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
@@ -181,6 +175,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             {navItems.map((item) => (
                                  <Link
                                     key={item.name}
+                                    id={item.id}
                                     href={item.href}
                                     className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",

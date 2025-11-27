@@ -58,7 +58,7 @@ export function AIAssistant() {
 
     return (
         <>
-            <div className={cn("fixed bottom-6 right-6 z-50 transition-transform duration-300 ease-in-out", { 'scale-0': isOpen, 'scale-100': !isOpen })}>
+            <div id="tour-step-5" className={cn("fixed bottom-6 right-6 z-50 transition-transform duration-300 ease-in-out", { 'scale-0': isOpen, 'scale-100': !isOpen })}>
                 <Button onClick={toggleOpen} size="lg" className="rounded-full w-16 h-16 shadow-lg">
                     <MessageSquare className="h-8 w-8" />
                 </Button>
