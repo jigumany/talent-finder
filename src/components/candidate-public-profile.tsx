@@ -99,7 +99,7 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                 </Dialog>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="lg" variant="outline" className="w-full">
+                    <Button size="lg" variant="warning" className="w-full">
                       <FileText className="mr-2"/> View CV
                     </Button>
                   </DialogTrigger>
