@@ -1,5 +1,4 @@
 
-
 export type Review = {
   reviewerName: string;
   rating: number;
@@ -82,15 +81,12 @@ export type AuditLog = {
     user: string;
     details?: string;
 };
-    
 
-    
-
-
-
-
-
-
-    
-
+export type TeamMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Admin' | 'Member';
+  avatarUrl: string;
+};
     

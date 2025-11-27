@@ -1,6 +1,5 @@
 
-
-import type { Candidate, Booking, Timesheet, Job, Application, ClientReview, AuditLog } from './types';
+import type { Candidate, Booking, Timesheet, Job, Application, ClientReview, AuditLog, TeamMember } from './types';
 import images from './placeholder-images.json';
 
 export const mockCandidates: Candidate[] = [
@@ -209,8 +208,6 @@ export const mockJobs: Job[] = [
         description: 'Seeking an experienced history teacher for A-Level students. Must have a passion for modern history.',
         datePosted: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        applicants: 12,
-        shortlisted: 3,
         location: 'London, UK',
         startDate: '2024-09-01T00:00:00Z',
         subject: 'History',
@@ -221,8 +218,6 @@ export const mockJobs: Job[] = [
         description: 'A supportive and nurturing teaching assistant for our Year 3 class. Experience with special needs is a plus.',
         datePosted: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        applicants: 25,
-        shortlisted: 5,
         location: 'Manchester, UK',
     },
     {
@@ -231,8 +226,6 @@ export const mockJobs: Job[] = [
         description: 'Required for immediate start for a two-week cover. Must be qualified to teach GCSE level.',
         datePosted: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Closed',
-        applicants: 8,
-        shortlisted: 1,
         location: 'Birmingham, UK',
         subject: 'Mathematics'
     },
@@ -242,8 +235,6 @@ export const mockJobs: Job[] = [
         description: 'We are looking for a Lead Science Coordinator to oversee the science department and curriculum development.',
         datePosted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        applicants: 15,
-        shortlisted: 4,
         location: 'London, UK',
         subject: 'Science'
     },
@@ -253,8 +244,6 @@ export const mockJobs: Job[] = [
         description: 'A creative and inspiring art teacher for our after-school program. 2 days a week.',
         datePosted: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        applicants: 18,
-        shortlisted: 2,
         location: 'Bristol, UK',
         subject: 'Art'
     },
@@ -264,8 +253,6 @@ export const mockJobs: Job[] = [
         description: 'A leadership role for an experienced English teacher to manage the department and mentor staff.',
         datePosted: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Closed',
-        applicants: 30,
-        shortlisted: 3,
         location: 'Leeds, UK',
         subject: 'English'
     },
@@ -275,8 +262,6 @@ export const mockJobs: Job[] = [
         description: 'Enthusiastic PE teacher wanted for a secondary school. Must be able to coach football and athletics.',
         datePosted: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        applicants: 22,
-        shortlisted: 6,
         location: 'Glasgow, UK',
         subject: 'Physical Education'
     },
@@ -286,8 +271,6 @@ export const mockJobs: Job[] = [
         description: 'Entry-level IT support role. Responsibilities include hardware, software, and network troubleshooting.',
         datePosted: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        applicants: 45,
-        shortlisted: 8,
         location: 'London, UK',
     },
 ];
@@ -400,14 +383,10 @@ export const mockAuditLogs: AuditLog[] = [
     { id: 'log-16', jobId: 'job-7', date: fiveDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Full-Time PE Teacher.' },
     { id: 'log-17', jobId: 'job-7', date: threeDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Liam O\'Connell moved to Interview.' },
 ];
+
+export const mockTeamMembers: TeamMember[] = [
+  { id: 'tm-1', name: 'Sarah Wilson', email: 'sarah.wilson@oakwoodprimary.org.uk', role: 'Admin', avatarUrl: 'https://picsum.photos/seed/201/100/100' },
+  { id: 'tm-2', name: 'David Lee', email: 'david.lee@oakwoodprimary.org.uk', role: 'Member', avatarUrl: 'https://picsum.photos/seed/202/100/100' },
+  { id: 'tm-3', name: 'Laura Brown', email: 'laura.brown@oakwoodprimary.org.uk', role: 'Member', avatarUrl: 'https://picsum.photos/seed/203/100/100' },
+];
     
-
-    
-
-    
-
-
-
-
-
-
