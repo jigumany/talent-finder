@@ -1,12 +1,11 @@
 
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, PoundSterling, MapPin } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, MapPin } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -194,7 +193,6 @@ export default function PostAJobPage() {
     const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
     const [candidateToBook, setCandidateToBook] = useState<Candidate | null>(null);
     const [bookingDates, setBookingDates] = useState<Date[] | undefined>([]);
-    const [bookingPay, setBookingPay] = useState('');
     const [bookingLocation, setBookingLocation] = useState('');
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -267,12 +265,61 @@ export default function PostAJobPage() {
         setManageJobDialogOpen(true);
     }
     
+    const getChanges = (original: Job, updated: Job): string => {
+        const changes: string[] = [];
+        const originalJob = {
+            ...original,
+            title: original.title,
+            description: original.description,
+            subject: original.subject || '',
+            location: original.location || '',
+            notes: original.notes || '',
+            startDate: original.startDate ? format(new Date(original.startDate), 'PPP') : '',
+            endDate: original.endDate ? format(new Date(original.endDate), 'PPP') : ''
+        };
+
+        const updatedJob = {
+            ...updated,
+            startDate: updated.startDate ? format(new Date(updated.startDate), 'PPP') : '',
+            endDate: updated.endDate ? format(new Date(updated.endDate), 'PPP') : ''
+        };
+        
+        const keyMap: Record<keyof Job, string> = {
+            title: "Title",
+            description: "Description",
+            subject: "Subject",
+            location: "Location",
+            notes: "Notes",
+            startDate: "Start Date",
+            endDate: "End Date"
+        };
+
+
+        (Object.keys(keyMap) as Array<keyof Job>).forEach(key => {
+            const originalValue = originalJob[key] || '';
+            const updatedValue = updatedJob[key] || '';
+            if (originalValue !== updatedValue) {
+                changes.push(
+                    `${keyMap[key]} changed from "${originalValue || 'empty'}" to "${updatedValue || 'empty'}".`
+                );
+            }
+        });
+
+        return changes.join(' ');
+    };
+
     const handleJobUpdated = (updatedJob: Job) => {
+        if (selectedJob) {
+            const changeDetails = getChanges(selectedJob, updatedJob);
+            if (changeDetails) {
+                 addAuditLog(updatedJob.id, 'Job Edited', changeDetails);
+            }
+        }
+        
         setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
         if (selectedJob) {
             setSelectedJob(updatedJob);
         }
-        addAuditLog(updatedJob.id, 'Job Edited', 'Job details were updated.');
         setIsEditingJob(false);
     };
 
@@ -319,7 +366,6 @@ export default function PostAJobPage() {
     const handleBookNowClick = (candidate: Candidate) => {
         if (!selectedJob) return;
         setCandidateToBook(candidate);
-        setBookingPay(selectedJob.payRate?.toString() ?? '');
         setBookingLocation(selectedJob.location ?? '');
         setBookingDates([]);
         setIsBookingDialogOpen(true);
@@ -551,20 +597,11 @@ export default function PostAJobPage() {
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
-                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">Role</Label>
-                                     <div className="relative">
-                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="role" value={selectedJob.title} readOnly className="pl-10 bg-muted" />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="pay">Pay Rate (£)</Label>
-                                    <div className="relative">
-                                        <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="pay" type="number" placeholder="e.g. 150" value={bookingPay} onChange={(e) => setBookingPay(e.target.value)} className="pl-10" />
-                                    </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="role">Role</Label>
+                                 <div className="relative">
+                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input id="role" value={selectedJob.title} readOnly className="pl-10 bg-muted" />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -612,3 +649,5 @@ export default function PostAJobPage() {
         </div>
     );
 }
+
+    
