@@ -54,7 +54,7 @@ export function AvailabilityCalendar() {
     const modifiers = useModifiers();
     
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex justify-center">
              <DayPicker
                 mode="single"
                 className="w-full"
@@ -67,11 +67,11 @@ export function AvailabilityCalendar() {
                       buttonVariants({ variant: "outline" }),
                       "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
                     ),
-                    table: 'w-full border-collapse',
-                    head_row: 'flex justify-around',
-                    head_cell: 'text-muted-foreground rounded-md w-full font-normal text-[0.8rem]',
-                    row: 'flex w-full mt-2 justify-around',
-                    cell: 'h-12 w-12 text-center text-sm p-0 relative first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
+                    table: 'w-full border-collapse border-spacing-y-2',
+                    head_row: '',
+                    head_cell: 'text-muted-foreground font-normal text-[0.8rem] w-12',
+                    row: 'w-full',
+                    cell: 'text-center text-sm p-0 relative first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
                     day: cn(
                       buttonVariants({ variant: "ghost" }),
                       "h-12 w-12 p-0 font-normal aria-selected:opacity-100"
