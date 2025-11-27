@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, Handshake, Mail, X, Users, PlusCircle, Trash2, Shield } from "lucide-react";
+import { Upload, Handshake, Mail, X, Users, PlusCircle, Trash2, Shield, KeyRound } from "lucide-react";
 import images from '@/lib/placeholder-images.json';
 import { mockTeamMembers } from "@/lib/mock-data";
 import type { TeamMember } from "@/lib/types";
@@ -70,6 +70,13 @@ export default function ProfilePage() {
         setNewMemberName('');
         setNewMemberEmail('');
         setNewMemberRole('Member');
+    };
+    
+    const handlePasswordReset = (member: TeamMember) => {
+        toast({
+            title: "Password Reset Sent",
+            description: `A password reset link has been sent to ${member.email}.`
+        });
     };
 
     return (
@@ -199,6 +206,9 @@ export default function ProfilePage() {
                                             {member.role === 'Admin' && <Shield className="mr-1.5 h-3 w-3" />}
                                             {member.role}
                                         </Badge>
+                                        <Button variant="ghost" size="icon" onClick={() => handlePasswordReset(member)}>
+                                            <KeyRound className="h-4 w-4 text-muted-foreground" />
+                                        </Button>
                                         <Button variant="ghost" size="icon" onClick={() => setTeam(team.filter(t => t.id !== member.id))}>
                                             <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
