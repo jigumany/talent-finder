@@ -89,7 +89,7 @@ function ApplicantTable({ applications, onStatusChange, onBookNowClick }: Applic
                             </div>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                             <Button variant="outline" size="sm" asChild>
+                             <Button variant="warning" size="sm" asChild>
                                 <Link href={`/profile/candidate/${candidate.id}`}>
                                      View Profile
                                 </Link>
