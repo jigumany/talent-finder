@@ -67,9 +67,8 @@ export default function AuthPage() {
     
     // Redirect to dashboard and start the tour
     router.push('/dashboard');
-    setTimeout(() => {
-      startTour();
-    }, 500); // Small delay to allow for page transition
+    // Use a timeout to ensure the tour starts after the page transition is likely complete.
+    setTimeout(startTour, 500);
   }
 
   return (
