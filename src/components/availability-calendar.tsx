@@ -54,7 +54,7 @@ export function AvailabilityCalendar() {
     const modifiers = useModifiers();
     
     return (
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center">
              <DayPicker
                 mode="single"
                 className="w-full"
