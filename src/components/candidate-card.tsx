@@ -81,12 +81,12 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2 mt-auto">
         <Button variant="outline" asChild>
           <Link href={`/profile/candidate/${candidate.id}`}>
-            <User />View Profile
+            <User className="mr-2"/>View Profile
           </Link>
         </Button>
          <Dialog open={isBookingDialogOpen} onOpenChange={setBookingDialogOpen}>
           <DialogTrigger asChild>
-            <Button><BookUser />Book Now</Button>
+            <Button><BookUser className="mr-2"/>Book Now</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>

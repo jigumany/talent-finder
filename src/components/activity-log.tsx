@@ -1,7 +1,6 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { mockAuditLogs } from '@/lib/mock-data';
 import type { AuditLog } from '@/lib/types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { FilePlus2, Pencil, CheckCircle, PauseCircle, XCircle } from 'lucide-react';

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRole } from "@/context/role-context";
 import { mockClientBookings, mockCandidateBookings, mockCandidates } from "@/lib/mock-data";
@@ -124,9 +124,9 @@ export default function BookingsPage() {
     
     const [bookings, setBookings] = useState<Booking[]>(mockClientBookings);
 
-    const applicantBookings = bookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status));
-    const upcomingBookings = bookings.filter(b => b.status === 'Confirmed');
-    const completedBookings = bookings.filter(b => b.status === 'Completed');
+    const applicantBookings = useMemo(() => bookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status)), [bookings]);
+    const upcomingBookings = useMemo(() => bookings.filter(b => b.status === 'Confirmed'), [bookings]);
+    const completedBookings = useMemo(() => bookings.filter(b => b.status === 'Completed'), [bookings]);
     
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const { toast } = useToast();

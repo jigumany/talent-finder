@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DiaryCalendar } from "@/components/diary-calendar";
 import { mockClientBookings } from "@/lib/mock-data";
@@ -26,9 +26,9 @@ export default function DiaryPage() {
         setSelectedDate(month);
     }
 
-    const selectedDayBookings = bookings.filter(booking => 
+    const selectedDayBookings = useMemo(() => bookings.filter(booking => 
         selectedDate && isSameDay(parseISO(booking.date), selectedDate)
-    );
+    ), [bookings, selectedDate]);
 
     return (
         <div className="max-w-6xl mx-auto">
