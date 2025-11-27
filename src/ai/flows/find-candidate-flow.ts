@@ -71,12 +71,14 @@ const prompt = ai.definePrompt({
   tools: [getAvailableCandidates],
   prompt: `You are an expert recruitment consultant for the education sector. Your task is to find the best candidate for a school based on their specific requirements.
 
-First, use the getAvailableCandidates tool to get a list of all candidates.
+First, you MUST use the getAvailableCandidates tool to get a list of all candidates.
 
-Then, carefully analyze the client's request and the list of available candidates. Identify the single best match. Provide a concise, compelling reason for your choice. You must provide a best match.
-IMPORTANT: The 'id' for the bestMatch and any otherCandidates in your output MUST be the exact 'id' from the candidate returned by the getAvailableCandidates tool. Do not modify it.
+Then, carefully analyze the client's request and the list of available candidates. Identify the single best match.
+IMPORTANT: You must provide a best match. The 'id' for the bestMatch and any otherCandidates in your output MUST be one of the exact 'id's from the candidates returned by the getAvailableCandidates tool. Do NOT invent, create, or modify an ID in any way.
 
-After identifying the best match, also provide a list of 2-3 other candidates who are also a good fit in the 'otherCandidates' field.
+Provide a concise, compelling reason for your choice in the 'reasoning' field.
+
+After identifying the best match, also provide a list of 1-2 other candidates who are also a good fit in the 'otherCandidates' field.
 
 Client's Request:
 - Role: {{{role}}}
