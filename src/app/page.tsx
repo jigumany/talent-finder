@@ -109,7 +109,7 @@ export default function AuthPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Login</CardTitle>
               <CardDescription>
-                Select your role and enter your details below to login to your account.
+                Enter your details below to login to your account.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -195,28 +195,28 @@ export default function AuthPage() {
                     <DialogTrigger asChild>
                          <button className="underline">Sign up</button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                             <DialogTitle>Create a Client Account</DialogTitle>
                             <DialogDescription>
-                                Join GSL today to find the best educational staff for your needs.
+                                Join GSL today to find the best educational staff.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
                                 <Label htmlFor="school-name">School Name</Label>
-                                <Input id="school-name" placeholder="e.g. Oakwood Primary School" value={signUpSchoolName} onChange={e => setSignUpSchoolName(e.target.value)} />
+                                <Input id="school-name" placeholder="e.g. Oakwood Primary" value={signUpSchoolName} onChange={e => setSignUpSchoolName(e.target.value)} />
                             </div>
-                             <div className="grid gap-2">
+                             <div className="space-y-2">
                                 <Label htmlFor="signup-email">Email</Label>
                                 <Input id="signup-email" type="email" placeholder="me@example.co.uk" value={signUpEmail} onChange={e => setSignUpEmail(e.target.value)} />
                             </div>
-                             <div className="grid gap-2">
+                             <div className="space-y-2">
                                 <Label htmlFor="signup-password">Password</Label>
                                 <Input id="signup-password" type="password" value={signUpPassword} onChange={e => setSignUpPassword(e.target.value)} />
                             </div>
                         </div>
-                        <DialogFooter>
+                        <DialogFooter className="gap-2">
                             <DialogClose asChild>
                                 <Button variant="secondary">Cancel</Button>
                             </DialogClose>
@@ -232,3 +232,5 @@ export default function AuthPage() {
     </div>
   );
 }
+
+    
