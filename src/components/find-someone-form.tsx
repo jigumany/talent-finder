@@ -222,7 +222,7 @@ export function FindSomeoneForm() {
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Start a New Search
                 </Button>
-                <Link href="/browse-candidates" className={cn(buttonVariants({ variant: 'outline' }))}>
+                <Link href="/browse-candidates" className={cn(buttonVariants({ variant: 'warning' }))}>
                     <Users className="mr-2 h-4 w-4" />
                     Browse All Candidates
                 </Link>
