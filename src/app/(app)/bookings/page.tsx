@@ -122,7 +122,7 @@ export default function BookingsPage() {
     const { role } = useRole();
     const isClient = role === 'client';
     
-    const [bookings, setBookings] = useState<Booking[]>(mockClientBookings);
+    const [bookings, setBookings] = useState<Booking[]>(isClient ? mockClientBookings : mockCandidateBookings);
 
     const applicantBookings = useMemo(() => bookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status)), [bookings]);
     const upcomingBookings = useMemo(() => bookings.filter(b => b.status === 'Confirmed'), [bookings]);
@@ -140,7 +140,6 @@ export default function BookingsPage() {
     const [newBookingCandidateId, setNewBookingCandidateId] = useState<string>('');
     const [newBookingDates, setNewBookingDates] = useState<Date[] | undefined>([]);
     const [newBookingRole, setNewBookingRole] = useState('');
-    const [newBookingPay, setNewBookingPay] = useState('');
     const [newBookingLocation, setNewBookingLocation] = useState('');
 
 
@@ -199,7 +198,6 @@ export default function BookingsPage() {
         setNewBookingCandidateId('');
         setNewBookingDates([]);
         setNewBookingRole('');
-        setNewBookingPay('');
         setNewBookingLocation('');
     };
 
@@ -212,12 +210,20 @@ export default function BookingsPage() {
     const handleConfirmRebook = () => {
         if (!selectedBooking || !rebookDates || rebookDates.length === 0) return;
         
-        // In a real app, this would create new booking records.
-        // For now, we just show a toast.
+        const newBookings: Booking[] = rebookDates.map(date => ({
+            id: `b-rebook-${Date.now()}-${Math.random()}`,
+            candidateName: selectedBooking.candidateName,
+            candidateRole: selectedBooking.candidateRole,
+            date: date.toISOString(),
+            status: 'Confirmed'
+        }));
+
+        setBookings(prev => [...newBookings, ...prev]);
+        
         const bookedDates = rebookDates.map(date => format(date, "PPP")).join(', ');
         toast({
-            title: "Booking Request Sent!",
-            description: `Your request to book ${selectedBooking.candidateName} for ${bookedDates} has been sent.`,
+            title: "Booking Confirmed!",
+            description: `${selectedBooking.candidateName} has been rebooked for ${bookedDates}.`,
         });
         setRebookDialogOpen(false);
     }
@@ -324,20 +330,11 @@ export default function BookingsPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="role">Role</Label>
-                                         <div className="relative">
-                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="pay">Pay Rate (£)</Label>
-                                        <div className="relative">
-                                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input id="pay" type="number" placeholder="e.g. 150" value={newBookingPay} onChange={(e) => setNewBookingPay(e.target.value)} className="pl-10" />
-                                        </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="role">Role</Label>
+                                     <div className="relative">
+                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -550,3 +547,5 @@ export default function BookingsPage() {
         </div>
     );
 }
+
+    
