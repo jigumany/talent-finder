@@ -216,7 +216,7 @@ export default function DiaryPage() {
                     </Button>
                   </DialogClose>
                    <Button type="button" onClick={handleConfirmReschedule} disabled={!rescheduleDates || rescheduleDates.length === 0}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <Calendar className="mr-2 h-4 w-4" />
                         Confirm Reschedule
                     </Button>
                 </DialogFooter>
