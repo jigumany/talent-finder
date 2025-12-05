@@ -9,10 +9,10 @@ import { isSameDay, format, parseISO } from "date-fns";
 import type { Booking } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2, Pencil } from "lucide-react";
+import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Calendar as CalendarSelector } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,8 @@ export default function DiaryPage() {
     const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
     const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
     const [rescheduleDates, setRescheduleDates] = useState<Date[] | undefined>([]);
+    const [isRescheduleConfirmOpen, setRescheduleConfirmOpen] = useState(false);
+
 
     const handleMonthChange = (month: Date) => {
         setDisplayedMonth(month);
@@ -74,6 +76,7 @@ export default function DiaryPage() {
             description: `${bookingToReschedule.candidateName} has been rebooked for ${bookedDates}.`,
         });
         setBookingToReschedule(null);
+        setRescheduleConfirmOpen(false);
     };
 
 
@@ -91,6 +94,7 @@ export default function DiaryPage() {
                         </CardHeader>
                         <CardContent className="p-2 md:p-6">
                             <DiaryCalendar 
+                                bookings={bookings}
                                 selected={selectedDate}
                                 onSelect={setSelectedDate}
                                 month={displayedMonth}
@@ -215,10 +219,28 @@ export default function DiaryPage() {
                       Cancel
                     </Button>
                   </DialogClose>
-                   <Button type="button" onClick={handleConfirmReschedule} disabled={!rescheduleDates || rescheduleDates.length === 0}>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Confirm Reschedule
-                    </Button>
+                  <AlertDialog open={isRescheduleConfirmOpen} onOpenChange={setRescheduleConfirmOpen}>
+                    <AlertDialogTrigger asChild>
+                         <Button type="button" disabled={!rescheduleDates || rescheduleDates.length === 0}>
+                            <Calendar className="mr-2 h-4 w-4" />
+                            Confirm Reschedule
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Reschedule</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to reschedule this booking for the selected dates? The original booking will be removed.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleConfirmReschedule}>
+                                Yes, Reschedule
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                   </AlertDialog>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -226,3 +248,4 @@ export default function DiaryPage() {
         </div>
     );
 }
+

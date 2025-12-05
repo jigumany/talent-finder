@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { isSameDay, format, parseISO } from 'date-fns';
-import { mockClientBookings } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import type { Booking } from '@/lib/types';
 import { buttonVariants } from './ui/button';
@@ -39,14 +38,14 @@ function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] 
 }
 
 interface DiaryCalendarProps {
+    bookings: Booking[];
     selected: Date | undefined;
     onSelect: (date: Date | undefined) => void;
     month: Date;
     onMonthChange: (date: Date) => void;
 }
 
-export function DiaryCalendar({ selected, onSelect, month, onMonthChange }: DiaryCalendarProps) {
-    const [bookings] = useState<Booking[]>(mockClientBookings);
+export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChange }: DiaryCalendarProps) {
     
     return (
         <div className="flex flex-col items-center">
