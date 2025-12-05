@@ -23,7 +23,7 @@ const postJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
   subject: z.string().optional(),
   location: z.string().min(1, { message: 'Location is required.' }),
-  skills: z.string().min(1, 'Please list at least one required skill or qualification.'),
+  skills: z.string().optional(),
   notes: z.string().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -213,7 +213,7 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
               name="skills"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Job Description & Skills</FormLabel>
+                  <FormLabel>Job Description & Skills (Optional)</FormLabel>
                    <div className="relative">
                       <ListChecks className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                       <FormControl>

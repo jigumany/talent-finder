@@ -136,9 +136,10 @@ export default function BrowseCandidatesPage() {
     const [maxRate, setMaxRate] = useState('');
 
     useEffect(() => {
+      try {
         const lowercasedTerm = searchTerm.toLowerCase();
-        const minRateNum = parseFloat(minRate);
-        const maxRateNum = parseFloat(maxRate);
+        const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
+        const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
 
         const filtered = allCandidates.filter(candidate => {
             if (searchTerm && !(
@@ -163,12 +164,8 @@ export default function BrowseCandidatesPage() {
             if (rateTypeFilter !== 'all' && candidate.rateType !== rateTypeFilter) {
                 return false;
             }
-
-            if (!isNaN(minRateNum) && candidate.rate < minRateNum) {
-                return false;
-            }
-
-            if (!isNaN(maxRateNum) && candidate.rate > maxRateNum) {
+            
+            if (candidate.rate < minRateNum || candidate.rate > maxRateNum) {
                 return false;
             }
 
@@ -180,6 +177,10 @@ export default function BrowseCandidatesPage() {
         });
         
         setFilteredCandidates(filtered);
+      } catch (error) {
+        console.error("Error filtering candidates:", error);
+        setFilteredCandidates([]);
+      }
     }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates]);
     
     const filterProps = {

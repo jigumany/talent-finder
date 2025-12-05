@@ -8,7 +8,7 @@ const PostJobSchema = z.object({
   role: z.string().min(1, { message: 'Role is required.' }),
   subject: z.string().optional(),
   location: z.string().min(1, { message: 'Location is required.' }),
-  skills: z.string().min(1, { message: 'Please list at least one skill.' }),
+  skills: z.string().optional(),
   notes: z.string().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -25,14 +25,14 @@ export async function postJobAction(values: z.infer<typeof PostJobSchema>): Prom
   }
 
   try {
-    const { startDate, endDate } = validatedFields.data;
+    const { startDate, endDate, skills } = validatedFields.data;
 
     // In a real app, this would save to a database and return the new job.
     // Here, we simulate creating a new job object.
     const newJob: Job = {
         id: `job-${Date.now()}`,
         title: validatedFields.data.role,
-        description: validatedFields.data.skills, // Using skills for description as per form
+        description: skills || 'No specific skills provided.', // Use skills for description
         datePosted: new Date().toISOString(),
         status: 'Active',
         applicants: 0,

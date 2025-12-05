@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRole } from "@/context/role-context";
-import { mockClientBookings, mockCandidateBookings, mockCandidates } from "@/lib/mock-data";
+import { mockClientBookings, mockCandidates } from "@/lib/mock-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare, PlusCircle, PoundSterling, Briefcase, MapPin } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -124,9 +124,13 @@ export default function BookingsPage() {
     
     const [bookings, setBookings] = useState<Booking[]>(isClient ? mockClientBookings : mockCandidateBookings);
 
-    const applicantBookings = useMemo(() => bookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status)), [bookings]);
-    const upcomingBookings = useMemo(() => bookings.filter(b => b.status === 'Confirmed'), [bookings]);
-    const completedBookings = useMemo(() => bookings.filter(b => b.status === 'Completed'), [bookings]);
+    const sortedBookings = useMemo(() => {
+        return [...bookings].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+    }, [bookings]);
+
+    const applicantBookings = useMemo(() => sortedBookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status)), [sortedBookings]);
+    const upcomingBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Confirmed'), [sortedBookings]);
+    const completedBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Completed'), [sortedBookings]);
     
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const { toast } = useToast();
@@ -547,5 +551,3 @@ export default function BookingsPage() {
         </div>
     );
 }
-
-    

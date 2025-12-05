@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,8 @@ import { generateReviewAction } from '@/app/(app)/review-generator/actions';
 import { Sparkles, Clipboard, Star, User, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { mockClientBookings, mockCandidates } from '@/lib/mock-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const reviewFormSchema = z.object({
   candidateName: z.string().min(1, 'Candidate name is required.'),
@@ -31,6 +33,11 @@ export function ReviewGeneratorForm() {
   const [hoverRating, setHoverRating] = useState(0);
 
   const { toast } = useToast();
+
+  const previouslyBookedCandidates = useMemo(() => {
+    const candidateNames = new Set(mockClientBookings.map(b => b.candidateName));
+    return mockCandidates.filter(c => candidateNames.has(c.name));
+  }, []);
 
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewFormSchema),
@@ -79,12 +86,18 @@ export function ReviewGeneratorForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Candidate Name</FormLabel>
-                <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <FormControl>
-                      <Input placeholder="e.g., Jane Doe" {...field} className="pl-10" />
-                    </FormControl>
-                </div>
+                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a previously booked candidate" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {previouslyBookedCandidates.map(c => (
+                      <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
