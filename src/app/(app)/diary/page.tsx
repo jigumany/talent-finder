@@ -118,12 +118,12 @@ export default function DiaryPage() {
                             {selectedDayBookings.length > 0 ? (
                                 selectedDayBookings.map(booking => (
                                     <div key={booking.id} className="p-4 rounded-lg border bg-muted/50">
-                                        <div className="flex justify-between items-start">
+                                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                                             <div className="flex-1">
                                                 <p className="font-semibold text-primary flex items-center gap-2"><User className="h-4 w-4"/> {booking.candidateName}</p>
                                                 <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase className="h-4 w-4"/> {booking.candidateRole}</p>
                                             </div>
-                                             <div className="flex items-center gap-2">
+                                             <div className="flex items-center gap-2 self-start sm:self-center">
                                                  <Badge
                                                     variant={'outline'}
                                                     className={cn({
