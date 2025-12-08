@@ -18,7 +18,6 @@ import { useToast } from '@/hooks/use-toast';
 import type { Job } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Calendar } from './ui/calendar';
-import { LocationInput } from './location-input';
 
 const postJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -198,15 +197,12 @@ export function PostJobForm({ onJobPosted }: PostJobFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <LocationInput 
-                        value={field.value}
-                        onChange={(address, lat, lng) => {
-                           field.onChange(address);
-                           // In a real app you'd save lat/lng to state or form
-                        }}
-                      />
-                    </FormControl>
+                    <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <FormControl>
+                           <Input placeholder="e.g. London, UK" {...field} className="pl-10" />
+                        </FormControl>
+                    </div>
                   <FormMessage />
                 </FormItem>
               )}

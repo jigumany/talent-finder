@@ -328,7 +328,7 @@ export default function BookingsPage() {
                                     Add Booking
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-lg">
+                            <DialogContent className="sm:max-w-2xl">
                                 <DialogHeader>
                                     <DialogTitle>Add a New Booking</DialogTitle>
                                     <DialogDescription>

@@ -5,7 +5,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { TourProvider } from '@/context/tour-context';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
-import { GoogleMapsProvider } from '@/components/google-maps-provider';
 import { FirebaseClientProvider } from '@/firebase';
 
 const ptSans = PT_Sans({ 
@@ -30,7 +29,6 @@ export default function RootLayout({
       <head/>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <GoogleMapsProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="light"
@@ -42,7 +40,6 @@ export default function RootLayout({
               </TourProvider>
             </ThemeProvider>
             <Toaster />
-          </GoogleMapsProvider>
         </FirebaseClientProvider>
       </body>
     </html>

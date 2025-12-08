@@ -27,7 +27,6 @@ import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { LocationInput } from '@/components/location-input';
 import { CandidateCard } from '@/components/candidate-card';
 import {
   Select,
@@ -678,7 +677,15 @@ export default function PostAJobPage() {
                                      {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                            <LocationInput value={locationFilter} onChange={(address) => setLocationFilter(address)} />
+                             <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input
+                                    value={locationFilter}
+                                    onChange={(e) => setLocationFilter(e.target.value)}
+                                    className="pl-10"
+                                    placeholder="Enter a location"
+                                />
+                            </div>
                         </div>
                         
                         <ScrollArea className="flex-1">
