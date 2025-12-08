@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
@@ -71,7 +71,7 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
-                                <Dialog onOpenChange={(isOpen) => setReviewDialogOpen(isOpen)}>
+                                <Dialog>
                                     <DialogTrigger asChild>
                                         <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
                                             <PenSquare className="mr-2 h-4 w-4" />
@@ -374,7 +374,6 @@ export default function BookingsPage() {
                                                 mode="multiple"
                                                 selected={newBookingDates}
                                                 onSelect={setNewBookingDates}
-                                                className="rounded-md border"
                                                 disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
                                                 candidate={mockCandidates.find(c => c.id === newBookingCandidateId)}
                                                 allBookings={mockClientBookings}
@@ -443,7 +442,6 @@ export default function BookingsPage() {
                         mode="multiple"
                         selected={rebookDates}
                         onSelect={setRebookDates}
-                        className="rounded-md border"
                         candidate={selectedCandidateForRebook}
                         allBookings={mockClientBookings}
                     />
