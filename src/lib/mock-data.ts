@@ -273,6 +273,15 @@ export const mockJobs: Job[] = [
         status: 'Active',
         location: 'London, UK',
     },
+     {
+        id: 'job-9',
+        title: 'TESOL Teacher',
+        description: 'Experienced TESOL teacher required for a group of international students. Full-time for 6 weeks.',
+        datePosted: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Active',
+        location: 'Online / Remote',
+        subject: 'English',
+    },
 ];
 
 export const mockApplications: Application[] = [
@@ -316,6 +325,11 @@ export const mockApplications: Application[] = [
     // Job 8: School IT Support Technician
     { id: 'app-21', jobId: 'job-8', candidateId: '8', status: 'Shortlisted', dateApplied: '2024-08-22T13:00:00Z' },
     { id: 'app-22', jobId: 'job-8', candidateId: '3', status: 'Applied', dateApplied: '2024-08-23T14:00:00Z' },
+
+    // Job 9: TESOL Teacher
+    { id: 'app-23', jobId: 'job-9', candidateId: '5', status: 'Interview', dateApplied: '2024-08-22T15:00:00Z' },
+    { id: 'app-24', jobId: 'job-9', candidateId: '9', status: 'Shortlisted', dateApplied: '2024-08-23T10:00:00Z' },
+    { id: 'app-25', jobId: 'job-9', candidateId: '1', status: 'Applied', dateApplied: '2024-08-23T11:00:00Z' },
 ];
 
 export const mockClientReviews: ClientReview[] = [

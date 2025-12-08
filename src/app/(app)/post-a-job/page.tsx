@@ -29,96 +29,114 @@ import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Calendar } from '@/components/ui/calendar';
 import { LocationInput } from '@/components/location-input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 
 interface ApplicantTableProps {
     applications: { application: Application; candidate: Candidate }[];
     onStatusChange: (applicationId: string, newStatus: ApplicationStatus) => void;
     onBookNowClick: (candidate: Candidate) => void;
+    onAddCandidateClick: () => void;
 }
 
-function ApplicantTable({ applications, onStatusChange, onBookNowClick }: ApplicantTableProps) {
+function ApplicantTable({ applications, onStatusChange, onBookNowClick, onAddCandidateClick }: ApplicantTableProps) {
     if (applications.length === 0) {
         return (
             <div className="text-center text-muted-foreground p-8">
                 <p>No applicants for this job yet.</p>
+                 <Button onClick={onAddCandidateClick} className="mt-4">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Candidate
+                </Button>
             </div>
         );
     }
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Candidate</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {applications.map(({ application, candidate }) => (
-                    <TableRow key={application.id}>
-                        <TableCell>
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-12 w-12 border">
-                                    <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
-                                    <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-semibold">{candidate.name}</p>
-                                    <p className="text-sm text-muted-foreground">{candidate.role}</p>
-                                </div>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                             <Badge className={cn({
-                                'bg-purple-600 text-purple-50 hover:bg-purple-600/90': application.status === 'Interview',
-                                'bg-yellow-500 text-yellow-50 hover:bg-yellow-500/90': application.status === 'Shortlisted',
-                                'bg-red-600 text-red-50 hover:bg-red-600/90': application.status === 'Rejected',
-                                'bg-green-600 text-green-50 hover:bg-green-600/90': application.status === 'Hired',
-                                'bg-sky-500 text-sky-50 hover:bg-sky-500/90': application.status === 'Offer',
-                                'bg-gray-200 text-gray-800 hover:bg-gray-200/90': application.status === 'Applied'
-                            })}>
-                                {application.status}
-                            </Badge>
-                        </TableCell>
-                         <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-amber-500">
-                                <Star className="w-4 h-4 fill-current" />
-                                <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                             <Button variant="warning" size="sm" asChild>
-                                <Link href={`/profile/candidate/${candidate.id}`}>
-                                     View Profile
-                                </Link>
-                            </Button>
-                             {application.status === 'Applied' && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-white">
-                                    <Star className="mr-2 h-4 w-4" /> Shortlist
-                                </Button>
-                             )}
-                             {(application.status === 'Applied' || application.status === 'Shortlisted') && (
-                                <Button size="sm" onClick={() => onStatusChange(application.id, 'Interview')} className="bg-purple-600 hover:bg-purple-700 text-white">
-                                    <MessageSquare className="mr-2 h-4 w-4" /> Interview
-                                </Button>
-                             )}
-                             {(application.status === 'Interview' || application.status === 'Shortlisted' || application.status === 'Offer') && (
-                                <Button size="sm" onClick={() => onBookNowClick(candidate)} className="bg-green-600 hover:bg-green-700 text-white">
-                                   <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
-                                </Button>
-                             )}
-                             {application.status !== 'Rejected' && application.status !== 'Hired' && (
-                                <Button variant="destructive" size="sm" onClick={() => onStatusChange(application.id, 'Rejected')}>
-                                    <Ban className="mr-2 h-4 w-4" /> Not a Match
-                                </Button>
-                             )}
-                        </TableCell>
+        <>
+            <div className="text-right mb-4">
+                <Button onClick={onAddCandidateClick}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Candidate
+                </Button>
+            </div>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Candidate</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {applications.map(({ application, candidate }) => (
+                        <TableRow key={application.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-4">
+                                    <Avatar className="h-12 w-12 border">
+                                        <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
+                                        <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold">{candidate.name}</p>
+                                        <p className="text-sm text-muted-foreground">{candidate.role}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Badge className={cn({
+                                    'bg-purple-600 text-purple-50 hover:bg-purple-600/90': application.status === 'Interview',
+                                    'bg-yellow-500 text-yellow-50 hover:bg-yellow-500/90': application.status === 'Shortlisted',
+                                    'bg-red-600 text-red-50 hover:bg-red-600/90': application.status === 'Rejected',
+                                    'bg-green-600 text-green-50 hover:bg-green-600/90': application.status === 'Hired',
+                                    'bg-sky-500 text-sky-50 hover:bg-sky-500/90': application.status === 'Offer',
+                                    'bg-gray-200 text-gray-800 hover:bg-gray-200/90': application.status === 'Applied'
+                                })}>
+                                    {application.status}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-1 text-sm text-amber-500">
+                                    <Star className="w-4 h-4 fill-current" />
+                                    <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right space-x-2">
+                                <Button variant="warning" size="sm" asChild>
+                                    <Link href={`/profile/candidate/${candidate.id}`}>
+                                        View Profile
+                                    </Link>
+                                </Button>
+                                {application.status === 'Applied' && (
+                                    <Button size="sm" onClick={() => onStatusChange(application.id, 'Shortlisted')} className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                                        <Star className="mr-2 h-4 w-4" /> Shortlist
+                                    </Button>
+                                )}
+                                {(application.status === 'Applied' || application.status === 'Shortlisted') && (
+                                    <Button size="sm" onClick={() => onStatusChange(application.id, 'Interview')} className="bg-purple-600 hover:bg-purple-700 text-white">
+                                        <MessageSquare className="mr-2 h-4 w-4" /> Interview
+                                    </Button>
+                                )}
+                                {(application.status === 'Interview' || application.status === 'Shortlisted' || application.status === 'Offer') && (
+                                    <Button size="sm" onClick={() => onBookNowClick(candidate)} className="bg-green-600 hover:bg-green-700 text-white">
+                                    <BriefcaseBusiness className="mr-2 h-4 w-4" /> Book Now
+                                    </Button>
+                                )}
+                                {application.status !== 'Rejected' && application.status !== 'Hired' && (
+                                    <Button variant="destructive" size="sm" onClick={() => onStatusChange(application.id, 'Rejected')}>
+                                        <Ban className="mr-2 h-4 w-4" /> Not a Match
+                                    </Button>
+                                )}
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </>
     )
 }
 
@@ -371,9 +389,16 @@ export default function PostAJobPage() {
         setBookingDates([]);
         setIsBookingDialogOpen(true);
     };
+    
+    const handleAddCandidateClick = () => {
+        if (!selectedJob) return;
+        setCandidateToBook(null); // Clear any previously selected candidate for booking
+        setIsBookingDialogOpen(true); // Open the generic booking dialog
+    };
+
 
     const handleConfirmBooking = () => {
-        if (!candidateToBook || !selectedJob || !bookingDates || bookingDates.length === 0) {
+         if (!selectedJob || !bookingDates || bookingDates.length === 0) {
             toast({
                 title: "Incomplete Information",
                 description: "Please select at least one date.",
@@ -382,9 +407,26 @@ export default function PostAJobPage() {
             return;
         }
 
+        let candidateToAdd = candidateToBook;
+        // If booking from "Add Candidate" flow, the candidate is in the select input
+        if (!candidateToBook) {
+            const selectedId = (document.getElementById('add-candidate-select') as HTMLSelectElement)?.value;
+             if (!selectedId) {
+                toast({ title: "Candidate not selected", description: "Please select a candidate to add.", variant: "destructive" });
+                return;
+            }
+            candidateToAdd = mockCandidates.find(c => c.id === selectedId) || null;
+        }
+        
+        if (!candidateToAdd) {
+             toast({ title: "Error", description: "Could not find selected candidate.", variant: "destructive" });
+             return;
+        }
+
+
         const newBookings: Booking[] = bookingDates.map(date => ({
             id: `b-${Date.now()}-${Math.random()}`,
-            candidateName: candidateToBook.name,
+            candidateName: candidateToAdd!.name,
             candidateRole: selectedJob.title,
             date: date.toISOString(),
             status: 'Confirmed'
@@ -392,15 +434,27 @@ export default function PostAJobPage() {
         
         setBookings(prev => [...newBookings, ...prev]);
 
-        // Update application status to 'Hired'
-        const application = applications.find(app => app.candidateId === candidateToBook.id && app.jobId === selectedJob.id);
+        // Check if an application already exists. If not, create one.
+        let application = applications.find(app => app.candidateId === candidateToAdd!.id && app.jobId === selectedJob.id);
+        
         if (application) {
-            handleApplicationStatusChange(application.id, 'Hired');
+             handleApplicationStatusChange(application.id, 'Hired');
+        } else {
+            const newApplication: Application = {
+                id: `app-${Date.now()}`,
+                jobId: selectedJob.id,
+                candidateId: candidateToAdd!.id,
+                status: 'Hired',
+                dateApplied: new Date().toISOString(),
+            };
+            setApplications(prev => [...prev, newApplication]);
+            addAuditLog(selectedJob.id, 'Applicant Added', `${candidateToAdd!.name} was added and booked.`);
         }
+
 
         toast({
             title: "Booking Confirmed!",
-            description: `${candidateToBook.name} has been booked for ${bookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
+            description: `${candidateToAdd!.name} has been booked for ${bookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
         });
 
         setIsBookingDialogOpen(false);
@@ -437,13 +491,13 @@ export default function PostAJobPage() {
                              <Button><FilePlus2 className="mr-2" /> Add a Booking</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl">
-                             <DialogHeader>
+                             <DialogHeader className="bg-primary text-primary-foreground -m-6 p-6 rounded-t-lg">
                                 <DialogTitle className="text-2xl">Add your Booking</DialogTitle>
-                                <DialogDescription>
+                                <DialogDescription className="text-primary-foreground/80">
                                     Fill in the details below. Our AI can then help find the best candidates for you.
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="p-1">
+                            <div className="p-1 pt-8">
                               <PostJobForm onJobPosted={handleJobPosted} />
                             </div>
                         </DialogContent>
@@ -532,13 +586,13 @@ export default function PostAJobPage() {
                     <DialogContent className="max-w-full w-full sm:max-w-6xl sm:h-auto flex flex-col data-[state=open]:sm:h-[90vh]">
                          {isEditingJob ? (
                             <>
-                                <DialogHeader>
+                                <DialogHeader className="bg-primary text-primary-foreground -m-6 p-6 rounded-t-lg">
                                     <DialogTitle>Edit Job Posting</DialogTitle>
-                                    <DialogDescription>
+                                    <DialogDescription className="text-primary-foreground/80">
                                         Update the details for your job posting: "{selectedJob.title}"
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="p-1 overflow-auto">
+                                <div className="p-1 overflow-auto pt-8">
                                     <EditJobForm job={selectedJob} onJobUpdated={(updatedJob) => handleJobUpdated(updatedJob)} onCancel={() => setIsEditingJob(false)} />
                                 </div>
                             </>
@@ -560,11 +614,16 @@ export default function PostAJobPage() {
                                                 <TabsTrigger value="details"><Info className="mr-2 h-4 w-4" />Details</TabsTrigger>
                                                 <TabsTrigger value="activity"><Activity className="mr-2 h-4 w-4" />Activity</TabsTrigger>
                                             </TabsList>
+                                             <DialogClose asChild>
+                                                <Button variant="ghost" size="icon" className="ml-auto">
+                                                    <XCircle className="h-6 w-6" />
+                                                </Button>
+                                            </DialogClose>
                                         </div>
                                     </div>
                                 </DialogHeader>
                                 <TabsContent value="applicants" className="flex-1 mt-4 overflow-auto">
-                                     <ApplicantTable applications={jobApplications} onStatusChange={handleApplicationStatusChange} onBookNowClick={handleBookNowClick} />
+                                     <ApplicantTable applications={jobApplications} onStatusChange={handleApplicationStatusChange} onBookNowClick={handleBookNowClick} onAddCandidateClick={handleAddCandidateClick} />
                                 </TabsContent>
                                 <TabsContent value="details" className="flex-1 overflow-auto mt-4">
                                   <ScrollArea className="h-full">
@@ -587,17 +646,31 @@ export default function PostAJobPage() {
                 </Dialog>
             )}
 
-            {/* Booking Dialog from Job Page */}
-            {candidateToBook && selectedJob && (
+             {selectedJob && (
                 <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
                     <DialogContent className="sm:max-w-lg">
-                        <DialogHeader>
-                            <DialogTitle>Book {candidateToBook.name}</DialogTitle>
-                            <DialogDescription>
-                                Schedule {candidateToBook.name} for the role of {selectedJob.title}.
+                        <DialogHeader className="bg-primary text-primary-foreground -m-6 p-6 rounded-t-lg">
+                            <DialogTitle>{candidateToBook ? `Book ${candidateToBook.name}` : 'Add a Candidate to this Job'}</DialogTitle>
+                            <DialogDescription className="text-primary-foreground/80">
+                                {candidateToBook ? `Schedule ${candidateToBook.name} for the role of ${selectedJob.title}.` : 'Select a candidate and the dates to book them.'}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-4 py-4">
+                        <div className="space-y-4 pt-8">
+                             {!candidateToBook && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="add-candidate-select">Candidate</Label>
+                                    <Select>
+                                        <SelectTrigger id="add-candidate-select">
+                                            <SelectValue placeholder="Select a candidate..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {mockCandidates.map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                              <div className="space-y-2">
                                 <Label htmlFor="role">Role</Label>
                                  <div className="relative">
@@ -625,11 +698,11 @@ export default function PostAJobPage() {
                                 </div>
                              </div>
                         </div>
-                        <DialogFooter className="sm:justify-end gap-2">
+                        <DialogFooter className="sm:justify-end gap-2 pt-4">
                             <DialogClose asChild>
-                                <Button type="button" variant="secondary" onClick={() => setCandidateToBook(null)}>Cancel</Button>
+                                <Button type="button" variant="destructive" onClick={() => setCandidateToBook(null)}>Cancel</Button>
                             </DialogClose>
-                            <Button type="button" onClick={handleConfirmBooking} disabled={!bookingDates || bookingDates.length === 0}>
+                            <Button type="button" variant="warning" onClick={handleConfirmBooking} disabled={!bookingDates || bookingDates.length === 0}>
                                 Confirm Booking
                             </Button>
                         </DialogFooter>
