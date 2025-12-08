@@ -41,30 +41,26 @@ export async function findCandidate(input: FindCandidateInput): Promise<FindCand
   return findCandidateFlow(input);
 }
 
-// Simple service to get candidate list. In a real app, this would query a database.
-const getAvailableCandidates = ai.defineTool(
-    {
-        name: 'getAvailableCandidates',
-        description: 'Returns a list of all available candidates in the system.',
-        outputSchema: z.any(),
-    },
-    async () => {
-        // Return the full mock candidates array.
-        return mockCandidates;
-    }
-);
 
 const prompt = ai.definePrompt({
   name: 'findCandidatePrompt',
-  input: {schema: FindCandidateInputSchema},
+  input: {
+    schema: z.object({
+      ...FindCandidateInputSchema.shape,
+      // We are adding the candidates directly to the prompt context
+      candidates: z.string().describe('A JSON string of all available candidates.'),
+    }),
+  },
   output: {schema: FindCandidateOutputSchema},
-  tools: [getAvailableCandidates],
   prompt: `You are an expert recruitment consultant for the education sector. Your task is to find the best candidate for a school based on their specific requirements.
 
-First, you MUST use the getAvailableCandidates tool to get a list of all candidates.
+Carefully analyze the client's request and the list of available candidates provided in the JSON block below.
 
-Then, carefully analyze the client's request and the list of available candidates. Identify the single best match.
-IMPORTANT: You must provide a best match. The 'id' for the bestMatch and any otherCandidates in your output MUST be one of the exact 'id's from the candidates returned by the getAvailableCandidates tool. Do NOT invent, create, or modify an ID in any way.
+Available Candidates:
+{{{candidates}}}
+
+Identify the single best match from the list.
+IMPORTANT: You must provide a best match. The 'id' for the bestMatch and any otherCandidates in your output MUST be one of the exact 'id's from the provided JSON list. Do NOT invent, create, or modify an ID in any way.
 
 Provide a concise, compelling reason for your choice in the 'reasoning' field.
 
@@ -74,7 +70,7 @@ Client's Request:
 - Role: {{{role}}}
 - Subject: {{#if subject}}{{{subject}}}{{else}}N/A{{/if}}
 - Required Skills/Qualifications: {{{skills}}}
-- Additional Notes: {{#if notes}}{{{notes}}}{{else}}N a a{{/if}}
+- Additional Notes: {{#if notes}}{{{notes}}}{{else}}N/A{{/if}}
 
 Your response must be in the specified JSON format.
 `,
@@ -87,7 +83,11 @@ const findCandidateFlow = ai.defineFlow(
     outputSchema: FindCandidateOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    // Pass the mock candidates directly into the prompt's context.
+    const {output} = await prompt({
+        ...input,
+        candidates: JSON.stringify(mockCandidates),
+    });
     return output!;
   }
 );
