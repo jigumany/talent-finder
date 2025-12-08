@@ -67,6 +67,7 @@ export type Application = {
 
 export type ClientReview = {
     id: string;
+    bookingId: string;
     candidateName: string;
     date: string; // ISO date string
     rating: number;

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useMemo } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,10 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { generateReviewAction } from '@/app/(app)/review-generator/actions';
-import { Sparkles, Clipboard, Star, User, Pencil } from 'lucide-react';
+import { Sparkles, Clipboard, Star, User, Pencil, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { mockClientBookings, mockCandidates } from '@/lib/mock-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const reviewFormSchema = z.object({
@@ -27,28 +26,34 @@ const reviewFormSchema = z.object({
 
 type ReviewFormValues = z.infer<typeof reviewFormSchema>;
 
-export function ReviewGeneratorForm() {
+interface ReviewGeneratorFormProps {
+    candidateName?: string;
+    onReviewSubmitted?: () => void;
+}
+
+export function ReviewGeneratorForm({ candidateName, onReviewSubmitted }: ReviewGeneratorFormProps) {
   const [isPending, startTransition] = useTransition();
   const [generatedReview, setGeneratedReview] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
 
   const { toast } = useToast();
 
-  const previouslyBookedCandidates = useMemo(() => {
-    const candidateNames = new Set(mockClientBookings.map(b => b.candidateName));
-    return mockCandidates.filter(c => candidateNames.has(c.name));
-  }, []);
-
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
-      candidateName: '',
-      clientName: '',
+      candidateName: candidateName || '',
+      clientName: 'Jane Doe', // Simulating a logged-in user
       pastPerformance: '',
       specificFeedbackRequest: '',
       rating: 0,
     },
   });
+
+  useEffect(() => {
+    if (candidateName) {
+      form.setValue('candidateName', candidateName);
+    }
+  }, [candidateName, form]);
 
   const onSubmit = (values: ReviewFormValues) => {
     setGeneratedReview('');
@@ -74,6 +79,17 @@ export function ReviewGeneratorForm() {
     });
   }
 
+  const handleSubmitReview = () => {
+    // In a real app, this would save the review to the database
+    toast({
+      title: 'Review Submitted!',
+      description: 'Your feedback has been recorded.',
+    });
+    if (onReviewSubmitted) {
+      onReviewSubmitted();
+    }
+  };
+
   const currentRating = form.watch('rating');
 
   return (
@@ -86,18 +102,7 @@ export function ReviewGeneratorForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Candidate Name</FormLabel>
-                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a previously booked candidate" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {previouslyBookedCandidates.map(c => (
-                      <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                 <Input {...field} readOnly className="bg-muted/50" />
                 <FormMessage />
               </FormItem>
             )}
@@ -188,29 +193,39 @@ export function ReviewGeneratorForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
-          <Sparkles className="mr-2 h-4 w-4" />
-          {isPending ? 'Generating...' : 'Generate Review'}
-        </Button>
-      </form>
-
-      {generatedReview && (
-        <div className="mt-8 pt-8 border-t">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Generated Review</h3>
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                    <Clipboard className="mr-2 h-4 w-4" />
-                    Copy
-                </Button>
+        
+        {generatedReview ? (
+            <div className="pt-8 border-t">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">Generated Review</h3>
+                    <Button variant="outline" size="sm" onClick={handleCopy}>
+                        <Clipboard className="mr-2 h-4 w-4" />
+                        Copy
+                    </Button>
+                </div>
+                <Textarea
+                    readOnly
+                    value={generatedReview}
+                    rows={10}
+                    className="bg-muted"
+                />
+                <div className="flex justify-end gap-2 mt-4">
+                    <Button type="button" variant="ghost" onClick={() => setGeneratedReview('')}>
+                        Regenerate
+                    </Button>
+                    <Button type="button" onClick={handleSubmitReview}>
+                        <Send className="mr-2 h-4 w-4" />
+                        Submit Review
+                    </Button>
+                </div>
             </div>
-          <Textarea
-            readOnly
-            value={generatedReview}
-            rows={10}
-            className="bg-muted"
-          />
-        </div>
-      )}
+        ) : (
+             <Button type="submit" disabled={isPending}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                {isPending ? 'Generating...' : 'Generate with AI'}
+            </Button>
+        )}
+      </form>
     </Form>
   );
 }

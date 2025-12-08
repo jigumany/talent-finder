@@ -335,6 +335,7 @@ export const mockApplications: Application[] = [
 export const mockClientReviews: ClientReview[] = [
     {
         id: 'cr1',
+        bookingId: 'b1',
         candidateName: 'Eleanor Vance',
         date: '2024-07-18T10:00:00Z',
         rating: 5,
@@ -342,6 +343,7 @@ export const mockClientReviews: ClientReview[] = [
     },
     {
         id: 'cr2',
+        bookingId: 'b2',
         candidateName: 'Marcus Thorne',
         date: '2024-07-20T14:30:00Z',
         rating: 4,
@@ -349,6 +351,7 @@ export const mockClientReviews: ClientReview[] = [
     },
     {
         id: 'cr3',
+        bookingId: 'b6',
         candidateName: 'Priya Sharma',
         date: '2024-07-25T09:15:00Z',
         rating: 5,
