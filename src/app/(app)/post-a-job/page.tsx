@@ -195,7 +195,7 @@ function JobCard({ job, onManageClick }: JobCardProps) {
 }
 
 const roles = [...new Set(mockCandidates.map(c => c.role))];
-const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS'];
+const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL'];
 
 export default function PostAJobPage() {
     const { role } = useRole();
@@ -219,15 +219,36 @@ export default function PostAJobPage() {
     const [rateTypeFilter, setRateTypeFilter] = useState('all');
     const [minRate, setMinRate] = useState('');
     const [maxRate, setMaxRate] = useState('');
-    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(mockCandidates);
+    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
 
+
+    const jobApplications = useMemo(() => selectedJob 
+        ? applications
+            .filter(app => app.jobId === selectedJob.id)
+            .map(application => {
+                const candidate = mockCandidates.find(c => c.id === application.candidateId);
+                return { application, candidate: candidate! };
+            })
+            .filter(item => item.candidate)
+            .sort((a,b) => {
+                const statusOrder: ApplicationStatus[] = ['Offer', 'Hired', 'Interview', 'Shortlisted', 'Applied', 'Rejected'];
+                return statusOrder.indexOf(a.application.status) - statusOrder.indexOf(b.application.status);
+            })
+        : [], [selectedJob, applications]);
 
     useEffect(() => {
         const lowercasedTerm = searchTerm.toLowerCase();
         const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
         const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
 
+        const currentApplicantIds = new Set(jobApplications.map(app => app.candidate.id));
+
         const filtered = mockCandidates.filter(candidate => {
+            // Exclude candidates who are already applicants
+            if (currentApplicantIds.has(candidate.id)) {
+                return false;
+            }
+            
             if (searchTerm && !(
                 candidate.name.toLowerCase().includes(lowercasedTerm) ||
                 candidate.role.toLowerCase().includes(lowercasedTerm) ||
@@ -244,7 +265,7 @@ export default function PostAJobPage() {
             return true;
         });
         setFilteredCandidates(filtered);
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, jobApplications]);
 
     const [currentPage, setCurrentPage] = useState(1);
     const JOBS_PER_PAGE = 6;
@@ -461,20 +482,6 @@ export default function PostAJobPage() {
 
     
     const selectedJobLogs = useMemo(() => selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [], [selectedJob, auditLogs]);
-    
-    const jobApplications = useMemo(() => selectedJob 
-        ? applications
-            .filter(app => app.jobId === selectedJob.id)
-            .map(application => {
-                const candidate = mockCandidates.find(c => c.id === application.candidateId);
-                return { application, candidate: candidate! };
-            })
-            .filter(item => item.candidate)
-            .sort((a,b) => {
-                const statusOrder: ApplicationStatus[] = ['Offer', 'Hired', 'Interview', 'Shortlisted', 'Applied', 'Rejected'];
-                return statusOrder.indexOf(a.application.status) - statusOrder.indexOf(b.application.status);
-            })
-        : [], [selectedJob, applications]);
 
 
     return (

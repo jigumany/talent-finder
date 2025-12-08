@@ -83,7 +83,7 @@ export const mockCandidates: Candidate[] = [
     rating: 4.9,
     reviews: 28,
     location: 'Bristol, UK',
-    qualifications: ['MA in English Lit', 'TEFL Certified', 'PGCE'],
+    qualifications: ['MA in English Lit', 'TEFL Certified', 'PGCE', 'TESOL'],
     availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
     imageUrl: images['candidate-5'].src,
     cvUrl: '#',
@@ -143,7 +143,7 @@ export const mockCandidates: Candidate[] = [
     rating: 5.0,
     reviews: 25,
     location: 'Cardiff, UK',
-    qualifications: ['BA in Hispanic Studies', 'PGCE', 'DELE C2'],
+    qualifications: ['BA in Hispanic Studies', 'PGCE', 'DELE C2', 'TESOL'],
     availability: ['2024-08-26', '2024-08-27', '2024-08-28'],
     imageUrl: 'https://picsum.photos/seed/109/100/100',
     cvUrl: '#',
@@ -280,7 +280,7 @@ export const mockJobs: Job[] = [
         datePosted: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
         location: 'Online / Remote',
-        subject: 'English',
+        subject: 'TESOL',
     },
 ];
 
