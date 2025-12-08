@@ -1,0 +1,116 @@
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The user's name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["client", "candidate"],
+          "description": "The user's role."
+        }
+      }
+    },
+    "Candidate": {
+      "title": "Candidate",
+      "description": "A candidate seeking a job.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "rate": {
+          "type": "number"
+        },
+        "rateType": {
+          "type": "string",
+          "enum": ["hourly", "daily"]
+        },
+        "rating": {
+          "type": "number"
+        },
+        "reviews": {
+          "type": "number"
+        },
+        "location": {
+          "type": "string"
+        },
+        "qualifications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "availability": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "cvUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "bio": {
+          "type": "string"
+        }
+      }
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A booking made by a client for a candidate.",
+      "type": "object",
+      "properties": {
+        "candidateId": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Confirmed", "Completed", "Pending", "Interview", "Hired", "Rejected"]
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profile information."
+    },
+    "/candidates/{candidateId}": {
+      "schema": { "$ref": "#/entities/Candidate" },
+      "description": "Stores candidate profile information."
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Stores booking information."
+    }
+  }
+}
