@@ -4,7 +4,7 @@ import { mockCandidates } from '@/lib/mock-data';
 import { CandidatePublicProfile } from '@/components/candidate-public-profile';
 
 export default function CandidatePublicProfilePage({ params }: { params: { id: string } }) {
-  const id = params.id;
+  const { id } = params;
   const candidate = mockCandidates.find((c) => c.id === id);
 
   if (!candidate) {
