@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRole } from "@/context/role-context";
-import { mockClientBookings, mockCandidates } from "@/lib/mock-data";
+import { mockClientBookings, mockCandidates, mockCandidateBookings } from "@/lib/mock-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,11 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
                         <TableCell>
                             <Badge
+                                variant={
+                                    booking.status === 'Hired' || booking.status === 'Completed' ? 'default' :
+                                    booking.status === 'Rejected' ? 'destructive' :
+                                    'secondary'
+                                }
                                 className={cn({
                                     'bg-sky-500 text-sky-50': booking.status === 'Confirmed',
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
@@ -66,10 +71,12 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
-                                <Button size="sm" variant="outline" onClick={() => onLeaveReviewClick(booking)}>
-                                    <PenSquare className="mr-2 h-4 w-4" />
-                                    Leave Review
-                                </Button>
+                                <DialogTrigger asChild>
+                                    <Button size="sm" variant="outline" onClick={() => onLeaveReviewClick(booking)}>
+                                        <PenSquare className="mr-2 h-4 w-4" />
+                                        Leave Review
+                                    </Button>
+                                </DialogTrigger>
                             )}
                             {isClient && booking.status === 'Completed' && (
                                 <Button size="sm" onClick={() => onRebookClick(booking)}>Rebook</Button>
@@ -81,10 +88,12 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                                 </Button>
                             )}
                             {isClient && booking.status === 'Interview' && (
-                                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
-                                    <ClipboardEdit className="mr-2 h-4 w-4" />
-                                    Log Outcome
-                                </Button>
+                                 <DialogTrigger asChild>
+                                    <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
+                                        <ClipboardEdit className="mr-2 h-4 w-4" />
+                                        Log Outcome
+                                    </Button>
+                                 </DialogTrigger>
                             )}
                             {isClient && booking.status === 'Confirmed' && (
                                  <AlertDialog>
@@ -256,7 +265,6 @@ export default function BookingsPage() {
             });
             return;
         }
-        console.log(`Review for ${selectedBooking.candidateName}: ${reviewRating} stars, "${reviewText}"`);
         
         setReviewedBookingIds(prev => new Set(prev).add(selectedBooking.id));
 
@@ -302,252 +310,252 @@ export default function BookingsPage() {
 
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold font-headline">My Bookings</h1>
-                {isClient && (
-                    <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add Booking
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-lg">
-                            <DialogHeader>
-                                <DialogTitle>Add a New Booking</DialogTitle>
-                                <DialogDescription>
-                                    Select a candidate and the dates you wish to book them for.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="candidate-select">Candidate</Label>
-                                    <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
-                                        <SelectTrigger id="candidate-select">
-                                            <SelectValue placeholder="Select a candidate..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {mockCandidates.map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">Role</Label>
-                                     <div className="relative">
-                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="location">Location</Label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
-                                    </div>
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label>Booking Dates</Label>
-                                    <div className="flex justify-center">
-                                        <Calendar
-                                            mode="multiple"
-                                            selected={newBookingDates}
-                                            onSelect={setNewBookingDates}
-                                            className="rounded-md border"
-                                            disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                                        />
-                                    </div>
-                                 </div>
-                            </div>
-                            <DialogFooter className="sm:justify-end gap-2">
-                                <DialogClose asChild>
-                                    <Button type="button" variant="secondary">Cancel</Button>
-                                </DialogClose>
-                                <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
-                                    Confirm Booking
+        <Dialog>
+            <div className="max-w-4xl mx-auto space-y-6">
+                <div className="flex justify-between items-center">
+                    <h1 className="text-2xl font-bold font-headline">My Bookings</h1>
+                    {isClient && (
+                        <Dialog open={addBookingDialogOpen} onOpenChange={setAddBookingDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Booking
                                 </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                )}
-            </div>
-            
-            
-            <Card>
-                <Tabs defaultValue="applicants">
-                    <CardHeader>
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="applicants">
-                                <Users className="mr-2 h-4 w-4" />
-                                Applicants ({applicantBookings.length})
-                            </TabsTrigger>
-                            <TabsTrigger value="upcoming">
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                Upcoming ({upcomingBookings.length})
-                            </TabsTrigger>
-                            <TabsTrigger value="completed">
-                                <ClipboardEdit className="mr-2 h-4 w-4" />
-                                Completed ({completedBookings.length})
-                            </TabsTrigger>
-                        </TabsList>
-                    </CardHeader>
-                    <CardContent>
-                        <TabsContent value="applicants">
-                            <BookingsTable bookings={applicantBookings} {...tableProps} />
-                        </TabsContent>
-                        <TabsContent value="upcoming">
-                            <BookingsTable bookings={upcomingBookings} {...tableProps} />
-                        </TabsContent>
-                        <TabsContent value="completed">
-                            <BookingsTable bookings={completedBookings} {...tableProps} />
-                        </TabsContent>
-                    </CardContent>
-                </Tabs>
-            </Card>
-            
-
-
-            {/* Rebook Dialog */}
-            <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Book {selectedBooking?.candidateName}</DialogTitle>
-                  <DialogDescription>
-                    Select one or more new dates to book {selectedBooking?.candidateRole}.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex justify-center">
-                     <Calendar
-                        mode="multiple"
-                        selected={rebookDates}
-                        onSelect={setRebookDates}
-                        className="rounded-md border"
-                    />
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add a New Booking</DialogTitle>
+                                    <DialogDescription>
+                                        Select a candidate and the dates you wish to book them for.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="candidate-select">Candidate</Label>
+                                        <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
+                                            <SelectTrigger id="candidate-select">
+                                                <SelectValue placeholder="Select a candidate..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {mockCandidates.map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Role</Label>
+                                         <div className="relative">
+                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} className="pl-10" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="location">Location</Label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="location" placeholder="e.g. London, UK" value={newBookingLocation} onChange={(e) => setNewBookingLocation(e.target.value)} className="pl-10" />
+                                        </div>
+                                    </div>
+                                     <div className="space-y-2">
+                                        <Label>Booking Dates</Label>
+                                        <div className="flex justify-center">
+                                            <Calendar
+                                                mode="multiple"
+                                                selected={newBookingDates}
+                                                onSelect={setNewBookingDates}
+                                                className="rounded-md border"
+                                                disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                            />
+                                        </div>
+                                     </div>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="destructive">Cancel</Button>
+                                    </DialogClose>
+                                    <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
+                                        Confirm Booking
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
-                 <DialogFooter className="sm:justify-end gap-2">
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                   <Button type="button" onClick={handleConfirmRebook} disabled={!rebookDates || rebookDates.length === 0}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        Confirm Booking
-                    </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                
+                
+                <Card>
+                    <Tabs defaultValue="applicants">
+                        <CardHeader>
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="applicants">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Applicants ({applicantBookings.length})
+                                </TabsTrigger>
+                                <TabsTrigger value="upcoming">
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    Upcoming ({upcomingBookings.length})
+                                </TabsTrigger>
+                                <TabsTrigger value="completed">
+                                    <ClipboardEdit className="mr-2 h-4 w-4" />
+                                    Completed ({completedBookings.length})
+                                </TabsTrigger>
+                            </TabsList>
+                        </CardHeader>
+                        <CardContent>
+                            <TabsContent value="applicants">
+                                <BookingsTable bookings={applicantBookings} {...tableProps} />
+                            </TabsContent>
+                            <TabsContent value="upcoming">
+                                <BookingsTable bookings={upcomingBookings} {...tableProps} />
+                            </TabsContent>
+                            <TabsContent value="completed">
+                                <BookingsTable bookings={completedBookings} {...tableProps} />
+                            </TabsContent>
+                        </CardContent>
+                    </Tabs>
+                </Card>
+                
 
-            {/* Log Interview Outcome Dialog */}
-            <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Log Interview Outcome</DialogTitle>
-                  <DialogDescription>
-                    Record the result of the interview with {selectedBooking?.candidateName}.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4 px-4">
-                    <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)} className="flex justify-around gap-4">
-                        <Label htmlFor="hired" className={cn(
-                          "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out w-full",
-                          "hover:bg-green-50 hover:border-green-400",
-                           outcome === 'hired' ? "bg-green-100 border-green-500 text-green-800" : "bg-popover border-muted"
-                        )}>
-                             <RadioGroupItem value="hired" id="hired" className="sr-only" />
-                             <CheckCircle className="mb-3 h-6 w-6" />
-                             Hire
-                        </Label>
 
-                         <Label htmlFor="rejected" className={cn(
-                            "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out w-full",
-                            "hover:bg-red-50 hover:border-red-400",
-                            outcome === 'rejected' ? "bg-red-100 border-red-500 text-red-800" : "bg-popover border-muted"
-                          )}>
-                             <RadioGroupItem value="rejected" id="rejected" className="sr-only" />
-                             <XCircle className="mb-3 h-6 w-6" />
-                             Reject
-                        </Label>
-                    </RadioGroup>
-                    <div className="grid w-full gap-1.5">
-                        <Label htmlFor="notes">Notes (Optional)</Label>
-                        <Textarea 
-                            placeholder="Add any relevant notes..." 
-                            id="notes" 
-                            value={outcomeNotes}
-                            onChange={(e) => setOutcomeNotes(e.target.value)}
+                {/* Rebook Dialog */}
+                <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Book {selectedBooking?.candidateName}</DialogTitle>
+                      <DialogDescription>
+                        Select one or more new dates to book {selectedBooking?.candidateRole}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-center">
+                         <Calendar
+                            mode="multiple"
+                            selected={rebookDates}
+                            onSelect={setRebookDates}
+                            className="rounded-md border"
                         />
                     </div>
-                </div>
-                 <DialogFooter className="sm:justify-end gap-2">
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                   <Button type="button" onClick={handleConfirmOutcome} disabled={!outcome}>
-                        Submit Outcome
-                    </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                     <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="destructive">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                       <Button type="button" onClick={handleConfirmRebook} disabled={!rebookDates || rebookDates.length === 0}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            Confirm Booking
+                        </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-            {/* Leave Review Dialog */}
-             <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Leave a Review</DialogTitle>
-                  <DialogDescription>
-                    Provide feedback for {selectedBooking?.candidateName}'s performance.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label>Rating</Label>
-                        <div 
-                            className="flex items-center gap-1"
-                            onMouseLeave={() => setReviewHoverRating(0)}
-                        >
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={cn(
-                                  'h-8 w-8 cursor-pointer transition-colors',
-                                  (reviewHoverRating >= star || reviewRating >= star)
-                                    ? 'text-amber-400 fill-amber-400'
-                                    : 'text-muted-foreground/50'
-                                )}
-                                onClick={() => setReviewRating(star)}
-                                onMouseEnter={() => setReviewHoverRating(star)}
-                              />
-                            ))}
+                {/* Log Interview Outcome Dialog */}
+                <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Log Interview Outcome</DialogTitle>
+                      <DialogDescription>
+                        Record the result of the interview with {selectedBooking?.candidateName}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4 px-4">
+                        <RadioGroup value={outcome} onValueChange={(value) => setOutcome(value as any)} className="flex justify-around gap-4">
+                            <Label htmlFor="hired" className={cn(
+                              "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out w-full",
+                              "hover:bg-green-50 hover:border-green-400",
+                               outcome === 'hired' ? "bg-green-100 border-green-500 text-green-800" : "bg-popover border-muted"
+                            )}>
+                                 <RadioGroupItem value="hired" id="hired" className="sr-only" />
+                                 <CheckCircle className="mb-3 h-6 w-6" />
+                                 Hire
+                            </Label>
+
+                             <Label htmlFor="rejected" className={cn(
+                                "flex flex-col items-center justify-center rounded-md border-2 p-4 cursor-pointer transition-colors duration-200 ease-in-out w-full",
+                                "hover:bg-red-50 hover:border-red-400",
+                                outcome === 'rejected' ? "bg-red-100 border-red-500 text-red-800" : "bg-popover border-muted"
+                              )}>
+                                 <RadioGroupItem value="rejected" id="rejected" className="sr-only" />
+                                 <XCircle className="mb-3 h-6 w-6" />
+                                 Reject
+                            </Label>
+                        </RadioGroup>
+                        <div className="grid w-full gap-1.5">
+                            <Label htmlFor="notes">Notes (Optional)</Label>
+                            <Textarea 
+                                placeholder="Add any relevant notes..." 
+                                id="notes" 
+                                value={outcomeNotes}
+                                onChange={(e) => setOutcomeNotes(e.target.value)}
+                            />
                         </div>
                     </div>
-                    <div className="grid w-full gap-1.5">
-                        <Label htmlFor="review-text">Feedback</Label>
-                        <Textarea 
-                            id="review-text"
-                            placeholder="Share your thoughts on their performance..." 
-                            value={reviewText}
-                            onChange={(e) => setReviewText(e.target.value)}
-                            rows={5}
-                        />
+                     <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="destructive">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                       <Button type="button" onClick={handleConfirmOutcome} disabled={!outcome}>
+                            Submit Outcome
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+
+                {/* Leave Review Dialog */}
+                 <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Leave a Review</DialogTitle>
+                      <DialogDescription>
+                        Provide feedback for {selectedBooking?.candidateName}'s performance.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Rating</Label>
+                            <div 
+                                className="flex items-center gap-1"
+                                onMouseLeave={() => setReviewHoverRating(0)}
+                            >
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={cn(
+                                      'h-8 w-8 cursor-pointer transition-colors',
+                                      (reviewHoverRating >= star || reviewRating >= star)
+                                        ? 'text-amber-400 fill-amber-400'
+                                        : 'text-muted-foreground/50'
+                                    )}
+                                    onClick={() => setReviewRating(star)}
+                                    onMouseEnter={() => setReviewHoverRating(star)}
+                                  />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="grid w-full gap-1.5">
+                            <Label htmlFor="review-text">Feedback</Label>
+                            <Textarea 
+                                id="review-text"
+                                placeholder="Share your thoughts on their performance..." 
+                                value={reviewText}
+                                onChange={(e) => setReviewText(e.target.value)}
+                                rows={5}
+                            />
+                        </div>
                     </div>
-                </div>
-                 <DialogFooter className="sm:justify-end gap-2">
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                   <Button type="button" onClick={handleConfirmReview} disabled={reviewRating === 0 || !reviewText}>
-                        Submit Review
-                    </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-        </div>
+                     <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="destructive">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                       <Button type="button" variant="warning" onClick={handleConfirmReview} disabled={reviewRating === 0 || !reviewText}>
+                            Submit Review
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </div>
+        </Dialog>
     );
 }
+
+    
