@@ -213,6 +213,8 @@ export default function PostAJobPage() {
     const [candidateToBook, setCandidateToBook] = useState<Candidate | null>(null);
     const [bookingDates, setBookingDates] = useState<Date[] | undefined>([]);
     const [bookingLocation, setBookingLocation] = useState('');
+    const [candidateToAdd, setCandidateToAdd] = useState<string>('');
+
 
     const [currentPage, setCurrentPage] = useState(1);
     const JOBS_PER_PAGE = 6;
@@ -392,13 +394,51 @@ export default function PostAJobPage() {
     
     const handleAddCandidateClick = () => {
         if (!selectedJob) return;
-        setCandidateToBook(null); // Clear any previously selected candidate for booking
-        setIsBookingDialogOpen(true); // Open the generic booking dialog
+        setCandidateToBook(null);
+        setCandidateToAdd('');
+        setIsBookingDialogOpen(true); 
     };
 
 
+    const handleAddCandidateToJob = () => {
+        if (!selectedJob || !candidateToAdd) {
+           toast({ title: "Candidate not selected", description: "Please select a candidate to add.", variant: "destructive" });
+           return;
+        }
+
+        const candidate = mockCandidates.find(c => c.id === candidateToAdd);
+        if (!candidate) {
+            toast({ title: "Error", description: "Could not find selected candidate.", variant: "destructive" });
+            return;
+        }
+
+        const existingApplication = applications.find(app => app.candidateId === candidate.id && app.jobId === selectedJob.id);
+        if (existingApplication) {
+            toast({ title: "Already an Applicant", description: `${candidate.name} has already applied for this job.`, variant: "destructive" });
+            return;
+        }
+        
+        const newApplication: Application = {
+            id: `app-${Date.now()}`,
+            jobId: selectedJob.id,
+            candidateId: candidate.id,
+            status: 'Applied',
+            dateApplied: new Date().toISOString(),
+        };
+
+        setApplications(prev => [...prev, newApplication]);
+        addAuditLog(selectedJob.id, 'Applicant Added', `${candidate.name} was manually added to the job.`);
+        
+        toast({
+            title: "Candidate Added",
+            description: `${candidate.name} has been added as an applicant for ${selectedJob.title}.`,
+        });
+
+        setIsBookingDialogOpen(false);
+    };
+
     const handleConfirmBooking = () => {
-         if (!selectedJob || !bookingDates || bookingDates.length === 0) {
+         if (!selectedJob || !candidateToBook || !bookingDates || bookingDates.length === 0) {
             toast({
                 title: "Incomplete Information",
                 description: "Please select at least one date.",
@@ -407,26 +447,9 @@ export default function PostAJobPage() {
             return;
         }
 
-        let candidateToAdd = candidateToBook;
-        // If booking from "Add Candidate" flow, the candidate is in the select input
-        if (!candidateToBook) {
-            const selectedId = (document.getElementById('add-candidate-select') as HTMLSelectElement)?.value;
-             if (!selectedId) {
-                toast({ title: "Candidate not selected", description: "Please select a candidate to add.", variant: "destructive" });
-                return;
-            }
-            candidateToAdd = mockCandidates.find(c => c.id === selectedId) || null;
-        }
-        
-        if (!candidateToAdd) {
-             toast({ title: "Error", description: "Could not find selected candidate.", variant: "destructive" });
-             return;
-        }
-
-
         const newBookings: Booking[] = bookingDates.map(date => ({
             id: `b-${Date.now()}-${Math.random()}`,
-            candidateName: candidateToAdd!.name,
+            candidateName: candidateToBook!.name,
             candidateRole: selectedJob.title,
             date: date.toISOString(),
             status: 'Confirmed'
@@ -434,8 +457,7 @@ export default function PostAJobPage() {
         
         setBookings(prev => [...newBookings, ...prev]);
 
-        // Check if an application already exists. If not, create one.
-        let application = applications.find(app => app.candidateId === candidateToAdd!.id && app.jobId === selectedJob.id);
+        let application = applications.find(app => app.candidateId === candidateToBook!.id && app.jobId === selectedJob.id);
         
         if (application) {
              handleApplicationStatusChange(application.id, 'Hired');
@@ -443,18 +465,17 @@ export default function PostAJobPage() {
             const newApplication: Application = {
                 id: `app-${Date.now()}`,
                 jobId: selectedJob.id,
-                candidateId: candidateToAdd!.id,
+                candidateId: candidateToBook!.id,
                 status: 'Hired',
                 dateApplied: new Date().toISOString(),
             };
             setApplications(prev => [...prev, newApplication]);
-            addAuditLog(selectedJob.id, 'Applicant Added', `${candidateToAdd!.name} was added and booked.`);
+            addAuditLog(selectedJob.id, 'Applicant Added & Booked', `${candidateToBook!.name} was added and booked.`);
         }
-
 
         toast({
             title: "Booking Confirmed!",
-            description: `${candidateToAdd!.name} has been booked for ${bookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
+            description: `${candidateToBook!.name} has been booked for ${bookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
         });
 
         setIsBookingDialogOpen(false);
@@ -646,20 +667,20 @@ export default function PostAJobPage() {
                 </Dialog>
             )}
 
-             {selectedJob && (
+            {selectedJob && (
                 <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
                     <DialogContent className="sm:max-w-lg">
                         <DialogHeader>
-                            <DialogTitle>{candidateToBook ? `Book ${candidateToBook.name}` : 'Add a Candidate to this Job'}</DialogTitle>
+                            <DialogTitle>{candidateToBook ? `Book ${candidateToBook.name}` : 'Add Candidate to Job'}</DialogTitle>
                             <DialogDescription>
-                                {candidateToBook ? `Schedule ${candidateToBook.name} for the role of ${selectedJob.title}.` : 'Select a candidate and the dates to book them.'}
+                                {candidateToBook ? `Schedule ${candidateToBook.name} for the role of ${selectedJob.title}.` : `Select a candidate to add to this job as an applicant.`}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 pt-8">
-                             {!candidateToBook && (
+                             {!candidateToBook ? (
                                 <div className="space-y-2">
                                     <Label htmlFor="add-candidate-select">Candidate</Label>
-                                    <Select>
+                                    <Select value={candidateToAdd} onValueChange={setCandidateToAdd}>
                                         <SelectTrigger id="add-candidate-select">
                                             <SelectValue placeholder="Select a candidate..." />
                                         </SelectTrigger>
@@ -670,41 +691,50 @@ export default function PostAJobPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            )}
-                             <div className="space-y-2">
-                                <Label htmlFor="role">Role</Label>
-                                 <div className="relative">
-                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input id="role" value={selectedJob.title} readOnly className="pl-10 bg-muted" />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="location">Location</Label>
-                                <LocationInput
-                                    value={bookingLocation}
-                                    onChange={(address) => setBookingLocation(address)}
-                                />
-                            </div>
-                             <div className="space-y-2">
-                                <Label>Booking Dates</Label>
-                                <div className="flex justify-center">
-                                    <Calendar
-                                        mode="multiple"
-                                        selected={bookingDates}
-                                        onSelect={setBookingDates}
-                                        className="rounded-md border"
-                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                                    />
-                                </div>
-                             </div>
+                            ) : (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Role</Label>
+                                        <div className="relative">
+                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input id="role" value={selectedJob.title} readOnly className="pl-10 bg-muted" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="location">Location</Label>
+                                        <LocationInput
+                                            value={bookingLocation}
+                                            onChange={(address) => setBookingLocation(address)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Booking Dates</Label>
+                                        <div className="flex justify-center">
+                                            <Calendar
+                                                mode="multiple"
+                                                selected={bookingDates}
+                                                onSelect={setBookingDates}
+                                                className="rounded-md border"
+                                                disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                             )}
                         </div>
                         <DialogFooter className="sm:justify-end gap-2 pt-4">
                             <DialogClose asChild>
                                 <Button type="button" variant="destructive" onClick={() => setCandidateToBook(null)}>Cancel</Button>
                             </DialogClose>
-                            <Button type="button" variant="warning" onClick={handleConfirmBooking} disabled={!bookingDates || bookingDates.length === 0}>
-                                Confirm Booking
-                            </Button>
+                            {candidateToBook ? (
+                                <Button type="button" variant="warning" onClick={handleConfirmBooking} disabled={!bookingDates || bookingDates.length === 0}>
+                                    Confirm Booking
+                                </Button>
+                            ) : (
+                                 <Button type="button" variant="warning" onClick={handleAddCandidateToJob} disabled={!candidateToAdd}>
+                                    Add Candidate
+                                </Button>
+                            )}
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
