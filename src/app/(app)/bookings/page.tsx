@@ -73,7 +73,7 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
                                 <DialogTrigger asChild>
-                                    <Button size="sm" variant="outline" onClick={() => onLeaveReviewClick(booking)}>
+                                    <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
                                         <PenSquare className="mr-2 h-4 w-4" />
                                         Leave Review
                                     </Button>
@@ -560,3 +560,5 @@ export default function BookingsPage() {
         </Dialog>
     );
 }
+
+    
