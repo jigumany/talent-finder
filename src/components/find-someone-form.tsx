@@ -207,7 +207,7 @@ export function FindSomeoneForm() {
                             We couldn't find any candidates that matched your specific criteria. Please try broadening your search.
                         </p>
                         <p className="text-sm mt-4 text-muted-foreground italic">
-                            AI Reasoning: "{result.bestMatch.reasoning}"
+                           AI Reasoning: "{result.bestMatch.reasoning}"
                         </p>
                     </CardContent>
                 </Card>
