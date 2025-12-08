@@ -23,7 +23,7 @@ export type FindCandidateInput = z.infer<typeof FindCandidateInputSchema>;
 
 const FindCandidateOutputSchema = z.object({
   bestMatch: z.object({
-    id: z.string().describe("The ID of the recommended candidate."),
+    id: z.string().describe("The ID of the recommended candidate. This MUST be an ID from the provided candidate list."),
     name: z.string().describe("The name of the recommended candidate."),
     reasoning: z.string().describe("A brief explanation of why this candidate is the best match."),
   }),
@@ -51,7 +51,7 @@ const getAvailableCandidates = ai.defineTool(
             name: z.string(),
             role: z.string(),
             qualifications: z.array(z.string()),
-            // bio: z.string(), // A short bio would be useful here in a real app
+            bio: z.string(),
         }))
     },
     async () => {
@@ -60,6 +60,7 @@ const getAvailableCandidates = ai.defineTool(
             name: c.name,
             role: c.role,
             qualifications: c.qualifications,
+            bio: c.bio,
         }));
     }
 );

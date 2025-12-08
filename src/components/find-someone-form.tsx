@@ -63,7 +63,7 @@ export function FindSomeoneForm() {
   };
   
   const recommendedCandidate = result ? mockCandidates.find(c => c.id === result.bestMatch.id) : null;
-  const otherCandidates = result?.otherCandidates?.map(other => mockCandidates.find(c => c.id === other.id)).filter(c => c !== undefined && c.id !== result.bestMatch.id) as (typeof mockCandidates) | undefined || [];
+  const otherCandidates = result?.otherCandidates?.map(other => mockCandidates.find(c => c.id === other.id)).filter(c => !!c && c.id !== result?.bestMatch.id) as (typeof mockCandidates) | undefined || [];
 
 
   return (
