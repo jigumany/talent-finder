@@ -32,7 +32,7 @@ export async function postJobAction(values: z.infer<typeof PostJobSchema>): Prom
     const newJob: Job = {
         id: `job-${Date.now()}`,
         title: validatedFields.data.role,
-        description: skills || 'No specific skills provided.', // Use skills for description
+        description: skills || '', // No longer providing a default
         datePosted: new Date().toISOString(),
         status: 'Active',
         applicants: 0,

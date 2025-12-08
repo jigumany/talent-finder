@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Job } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Calendar } from './ui/calendar';
+import { LocationInput } from './location-input';
 
 const editJobFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
@@ -204,12 +205,15 @@ export function EditJobForm({ job, onJobUpdated, onCancel }: EditJobFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
-                   <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <FormControl>
-                        <Input placeholder="Enter a full address" {...field} className="pl-10" />
-                      </FormControl>
-                  </div>
+                    <FormControl>
+                        <LocationInput
+                           value={field.value}
+                           onChange={(address, lat, lng) => {
+                               field.onChange(address);
+                               // In a real app you'd save lat/lng to state or form
+                           }}
+                        />
+                    </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

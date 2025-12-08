@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TourProvider } from '@/context/tour-context';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
+import { GoogleMapsProvider } from '@/components/google-maps-provider';
 
 const ptSans = PT_Sans({ 
   subsets: ['latin'], 
@@ -27,17 +28,19 @@ export default function RootLayout({
     <html lang="en" className={ptSans.variable} suppressHydrationWarning>
       <head/>
       <body className="font-body antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <TourProvider>
-            {children}
-          </TourProvider>
-        </ThemeProvider>
-        <Toaster />
+        <GoogleMapsProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <TourProvider>
+              {children}
+            </TourProvider>
+          </ThemeProvider>
+          <Toaster />
+        </GoogleMapsProvider>
       </body>
     </html>
   );

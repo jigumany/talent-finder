@@ -28,6 +28,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Calendar } from '@/components/ui/calendar';
+import { LocationInput } from '@/components/location-input';
 
 
 interface ApplicantTableProps {
@@ -606,10 +607,10 @@ export default function PostAJobPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input id="location" placeholder="e.g. London, UK" value={bookingLocation} onChange={(e) => setBookingLocation(e.target.value)} className="pl-10" />
-                                </div>
+                                <LocationInput
+                                    value={bookingLocation}
+                                    onChange={(address) => setBookingLocation(address)}
+                                />
                             </div>
                              <div className="space-y-2">
                                 <Label>Booking Dates</Label>
@@ -649,5 +650,3 @@ export default function PostAJobPage() {
         </div>
     );
 }
-
-    
