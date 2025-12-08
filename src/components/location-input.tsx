@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
@@ -20,19 +20,20 @@ export function LocationInput({ value, onChange, className }: LocationInputProps
     });
 
     const [inputValue, setInputValue] = useState(value);
-    const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+    const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setInputValue(value);
     }, [value]);
 
     const onLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
-        setAutocomplete(autocompleteInstance);
+        autocompleteRef.current = autocompleteInstance;
     };
 
     const onPlaceChanged = () => {
-        if (autocomplete) {
-            const place = autocomplete.getPlace();
+        if (autocompleteRef.current) {
+            const place = autocompleteRef.current.getPlace();
             if (place.geometry && place.formatted_address) {
                 const lat = place.geometry.location?.lat();
                 const lng = place.geometry.location?.lng();
@@ -44,6 +45,8 @@ export function LocationInput({ value, onChange, className }: LocationInputProps
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
+        // We only call the parent onChange here to allow free text entry if needed
+        // The selection will override it.
         onChange(e.target.value);
     };
 
@@ -62,10 +65,18 @@ export function LocationInput({ value, onChange, className }: LocationInputProps
     }
 
     return (
-        <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+        <Autocomplete
+            onLoad={onLoad}
+            onPlaceChanged={onPlaceChanged}
+            options={{
+              componentRestrictions: { country: 'gb' },
+              fields: ["address_components", "geometry", "icon", "name", "formatted_address"]
+            }}
+        >
             <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
+                    ref={inputRef}
                     value={inputValue}
                     onChange={handleInputChange}
                     className={cn("pl-10", className)}
