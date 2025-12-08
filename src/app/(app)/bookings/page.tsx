@@ -71,7 +71,7 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
-                                <Dialog onOpenChange={setReviewDialogOpen}>
+                                <Dialog onOpenChange={(isOpen) => setReviewDialogOpen(isOpen)}>
                                     <DialogTrigger asChild>
                                         <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
                                             <PenSquare className="mr-2 h-4 w-4" />
@@ -369,7 +369,7 @@ export default function BookingsPage() {
                                     </div>
                                      <div className="space-y-2">
                                         <Label>Booking Dates</Label>
-                                        <div className="flex justify-center">
+                                        <div className="flex justify-center p-1">
                                             <BookingCalendar
                                                 mode="multiple"
                                                 selected={newBookingDates}
@@ -438,7 +438,7 @@ export default function BookingsPage() {
                     Select one or more new dates to book {selectedBooking?.candidateRole}.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="flex justify-center">
+                <div className="flex justify-center p-1">
                      <BookingCalendar
                         mode="multiple"
                         selected={rebookDates}

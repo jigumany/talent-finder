@@ -86,7 +86,7 @@ export default function CandidatePublicProfilePage() {
                         Select one or more dates to book {candidate.role} for your school.
                       </DialogDescriptionComponent>
                     </DialogHeader>
-                    <div className="flex justify-center">
+                    <div className="flex justify-center p-1">
                          <BookingCalendar
                             mode="multiple"
                             selected={dates}
@@ -228,7 +228,7 @@ export default function CandidatePublicProfilePage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex justify-center">
+                      <div className="flex justify-center p-1">
                         <AvailabilityCalendar />
                       </div>
                     </CardContent>

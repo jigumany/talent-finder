@@ -57,10 +57,10 @@ export function AvailabilityCalendar() {
         <div className="flex flex-col items-center">
              <DayPicker
                 mode="single"
-                className="w-full"
+                className="w-full rounded-md border"
                 classNames={{
                     month: 'w-full space-y-4',
-                    caption: "flex justify-between pt-1 relative items-center",
+                    caption: "flex justify-between pt-1 relative items-center px-4",
                     caption_label: "text-lg font-medium text-primary",
                     nav: "space-x-1 flex items-center",
                     nav_button: cn(
@@ -68,9 +68,9 @@ export function AvailabilityCalendar() {
                       "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
                     ),
                     table: 'w-full border-collapse border-spacing-y-2',
-                    head_row: '',
+                    head_row: 'px-4',
                     head_cell: 'text-muted-foreground font-normal text-[0.8rem] w-12',
-                    row: 'w-full',
+                    row: 'w-full px-4',
                     cell: 'text-center text-sm p-0 relative first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
                     day: cn(
                       buttonVariants({ variant: "ghost" }),

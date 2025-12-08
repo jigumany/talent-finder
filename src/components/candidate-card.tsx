@@ -96,7 +96,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                 Select one or more dates to book {candidate.role} for your school.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex justify-center">
+            <div className="flex justify-center p-1">
                  <BookingCalendar
                     mode="multiple"
                     selected={dates}
