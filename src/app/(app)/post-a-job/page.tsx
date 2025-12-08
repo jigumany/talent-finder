@@ -5,7 +5,7 @@ import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, MapPin } from "lucide-react";
+import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, MapPin, Search } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -27,8 +27,8 @@ import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Calendar } from '@/components/ui/calendar';
 import { LocationInput } from '@/components/location-input';
+import { CandidateCard } from '@/components/candidate-card';
 import {
   Select,
   SelectContent,
@@ -194,11 +194,12 @@ function JobCard({ job, onManageClick }: JobCardProps) {
     );
 }
 
+const roles = [...new Set(mockCandidates.map(c => c.role))];
+const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS'];
 
 export default function PostAJobPage() {
     const { role } = useRole();
     const [jobs, setJobs] = useState<Job[]>(mockJobs);
-    const [bookings, setBookings] = useState<Booking[]>(mockClientBookings);
     const [applications, setApplications] = useState<Application[]>(mockApplications);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs);
     const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
@@ -208,13 +209,42 @@ export default function PostAJobPage() {
     const [activeTab, setActiveTab] = useState('applicants');
     const isMobile = useIsMobile();
 
-    // State for booking from job page
-    const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
-    const [candidateToBook, setCandidateToBook] = useState<Candidate | null>(null);
-    const [bookingDates, setBookingDates] = useState<Date[] | undefined>([]);
-    const [bookingLocation, setBookingLocation] = useState('');
-    const [candidateToAdd, setCandidateToAdd] = useState<string>('');
+    const [isAddCandidateDialogOpen, setIsAddCandidateDialogOpen] = useState(false);
 
+    // Search and filter state for "Add Candidate" modal
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [subjectFilter, setSubjectFilter] = useState('all');
+    const [locationFilter, setLocationFilter] = useState('');
+    const [rateTypeFilter, setRateTypeFilter] = useState('all');
+    const [minRate, setMinRate] = useState('');
+    const [maxRate, setMaxRate] = useState('');
+    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(mockCandidates);
+
+
+    useEffect(() => {
+        const lowercasedTerm = searchTerm.toLowerCase();
+        const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
+        const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
+
+        const filtered = mockCandidates.filter(candidate => {
+            if (searchTerm && !(
+                candidate.name.toLowerCase().includes(lowercasedTerm) ||
+                candidate.role.toLowerCase().includes(lowercasedTerm) ||
+                candidate.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
+            )) {
+                return false;
+            }
+            if (roleFilter !== 'all' && candidate.role !== roleFilter) return false;
+            if (subjectFilter !== 'all' && !candidate.qualifications.some(q => q.toLowerCase().includes(subjectFilter))) return false;
+            if (locationFilter && !candidate.location.toLowerCase().includes(locationFilter.toLowerCase())) return false;
+            if (rateTypeFilter !== 'all' && candidate.rateType !== rateTypeFilter) return false;
+            if (candidate.rate < minRateNum || candidate.rate > maxRateNum) return false;
+
+            return true;
+        });
+        setFilteredCandidates(filtered);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate]);
 
     const [currentPage, setCurrentPage] = useState(1);
     const JOBS_PER_PAGE = 6;
@@ -385,28 +415,21 @@ export default function PostAJobPage() {
     };
 
     const handleBookNowClick = (candidate: Candidate) => {
-        if (!selectedJob) return;
-        setCandidateToBook(candidate);
-        setBookingLocation(selectedJob.location ?? '');
-        setBookingDates([]);
-        setIsBookingDialogOpen(true);
+        // This is now handled by a different flow. Keeping the function signature for now.
+        // The Book Now button in the applicant table can open a booking dialog if needed.
+        toast({ title: "Redirecting to booking...", description: "This will eventually open a full booking form."})
     };
     
     const handleAddCandidateClick = () => {
         if (!selectedJob) return;
-        setCandidateToBook(null);
-        setCandidateToAdd('');
-        setIsBookingDialogOpen(true); 
+        setIsAddCandidateDialogOpen(true);
     };
 
 
-    const handleAddCandidateToJob = () => {
-        if (!selectedJob || !candidateToAdd) {
-           toast({ title: "Candidate not selected", description: "Please select a candidate to add.", variant: "destructive" });
-           return;
-        }
+    const handleAddCandidateToJob = (candidateId: string) => {
+        if (!selectedJob) return;
 
-        const candidate = mockCandidates.find(c => c.id === candidateToAdd);
+        const candidate = mockCandidates.find(c => c.id === candidateId);
         if (!candidate) {
             toast({ title: "Error", description: "Could not find selected candidate.", variant: "destructive" });
             return;
@@ -433,54 +456,9 @@ export default function PostAJobPage() {
             title: "Candidate Added",
             description: `${candidate.name} has been added as an applicant for ${selectedJob.title}.`,
         });
-
-        setIsBookingDialogOpen(false);
+        setIsAddCandidateDialogOpen(false);
     };
 
-    const handleConfirmBooking = () => {
-         if (!selectedJob || !candidateToBook || !bookingDates || bookingDates.length === 0) {
-            toast({
-                title: "Incomplete Information",
-                description: "Please select at least one date.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        const newBookings: Booking[] = bookingDates.map(date => ({
-            id: `b-${Date.now()}-${Math.random()}`,
-            candidateName: candidateToBook!.name,
-            candidateRole: selectedJob.title,
-            date: date.toISOString(),
-            status: 'Confirmed'
-        }));
-        
-        setBookings(prev => [...newBookings, ...prev]);
-
-        let application = applications.find(app => app.candidateId === candidateToBook!.id && app.jobId === selectedJob.id);
-        
-        if (application) {
-             handleApplicationStatusChange(application.id, 'Hired');
-        } else {
-            const newApplication: Application = {
-                id: `app-${Date.now()}`,
-                jobId: selectedJob.id,
-                candidateId: candidateToBook!.id,
-                status: 'Hired',
-                dateApplied: new Date().toISOString(),
-            };
-            setApplications(prev => [...prev, newApplication]);
-            addAuditLog(selectedJob.id, 'Applicant Added & Booked', `${candidateToBook!.name} was added and booked.`);
-        }
-
-        toast({
-            title: "Booking Confirmed!",
-            description: `${candidateToBook!.name} has been booked for ${bookingDates.map(d => format(d, 'PPP')).join(', ')}.`,
-        });
-
-        setIsBookingDialogOpen(false);
-        setCandidateToBook(null);
-    };
     
     const selectedJobLogs = useMemo(() => selectedJob ? auditLogs.filter(log => log.jobId === selectedJob.id) : [], [selectedJob, auditLogs]);
     
@@ -512,8 +490,8 @@ export default function PostAJobPage() {
                              <Button><FilePlus2 className="mr-2" /> Add a Booking</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl">
-                             <DialogHeader>
-                                <DialogTitle className="text-2xl">Add your Booking</DialogTitle>
+                            <DialogHeader>
+                                <DialogTitle>Add your Booking</DialogTitle>
                                 <DialogDescription>
                                     Fill in the details below. Our AI can then help find the best candidates for you.
                                 </DialogDescription>
@@ -668,73 +646,78 @@ export default function PostAJobPage() {
             )}
 
             {selectedJob && (
-                <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                    <DialogContent className="sm:max-w-lg">
+                <Dialog open={isAddCandidateDialogOpen} onOpenChange={setIsAddCandidateDialogOpen}>
+                    <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col">
                         <DialogHeader>
-                            <DialogTitle>{candidateToBook ? `Book ${candidateToBook.name}` : 'Add Candidate to Job'}</DialogTitle>
+                            <DialogTitle>Find and Add Candidate</DialogTitle>
                             <DialogDescription>
-                                {candidateToBook ? `Schedule ${candidateToBook.name} for the role of ${selectedJob.title}.` : `Select a candidate to add to this job as an applicant.`}
+                                Search for a candidate and add them to the "{selectedJob.title}" job.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-4 pt-8">
-                             {!candidateToBook ? (
-                                <div className="space-y-2">
-                                    <Label htmlFor="add-candidate-select">Candidate</Label>
-                                    <Select value={candidateToAdd} onValueChange={setCandidateToAdd}>
-                                        <SelectTrigger id="add-candidate-select">
-                                            <SelectValue placeholder="Select a candidate..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {mockCandidates.map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="role">Role</Label>
-                                        <div className="relative">
-                                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input id="role" value={selectedJob.title} readOnly className="pl-10 bg-muted" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="location">Location</Label>
-                                        <LocationInput
-                                            value={bookingLocation}
-                                            onChange={(address) => setBookingLocation(address)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Booking Dates</Label>
-                                        <div className="flex justify-center">
-                                            <Calendar
-                                                mode="multiple"
-                                                selected={bookingDates}
-                                                onSelect={setBookingDates}
-                                                className="rounded-md border"
-                                                disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                                            />
-                                        </div>
-                                    </div>
-                                </>
-                             )}
+
+                        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b">
+                            <Input placeholder="Search by keyword..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                             <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                <SelectTrigger><SelectValue placeholder="Select Role" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Roles</SelectItem>
+                                    {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                                <SelectTrigger><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Subjects</SelectItem>
+                                     {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <LocationInput value={locationFilter} onChange={(address) => setLocationFilter(address)} />
                         </div>
-                        <DialogFooter className="sm:justify-end gap-2 pt-4">
-                            <DialogClose asChild>
-                                <Button type="button" variant="destructive" onClick={() => setCandidateToBook(null)}>Cancel</Button>
-                            </DialogClose>
-                            {candidateToBook ? (
-                                <Button type="button" variant="warning" onClick={handleConfirmBooking} disabled={!bookingDates || bookingDates.length === 0}>
-                                    Confirm Booking
-                                </Button>
-                            ) : (
-                                 <Button type="button" variant="warning" onClick={handleAddCandidateToJob} disabled={!candidateToAdd}>
-                                    Add Candidate
-                                </Button>
+                        
+                        <ScrollArea className="flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+                               {filteredCandidates.map(candidate => (
+                                    <Card key={candidate.id} className="flex flex-col">
+                                         <CardHeader className="flex-row items-start gap-4">
+                                            <Avatar className="h-12 w-12 border">
+                                                <AvatarImage src={candidate.imageUrl} alt={candidate.name} />
+                                                <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <CardTitle className="text-lg">{candidate.name}</CardTitle>
+                                                <CardDescription>{candidate.role}</CardDescription>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="text-sm text-muted-foreground flex-grow">
+                                            <div className="flex items-center gap-1 text-amber-500">
+                                                <Star className="w-4 h-4 fill-current" />
+                                                <span>{candidate.rating.toFixed(1)}</span>
+                                            </div>
+                                             <div className="flex items-center gap-1 mt-1">
+                                                <MapPin className="w-4 h-4" />
+                                                <span>{candidate.location}</span>
+                                            </div>
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Button className="w-full" size="sm" onClick={() => handleAddCandidateToJob(candidate.id)}>
+                                                <PlusCircle className="mr-2 h-4 w-4" />
+                                                Add to Job
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                               ))}
+                            </div>
+                            {filteredCandidates.length === 0 && (
+                                <div className="text-center py-16 text-muted-foreground">
+                                    <p>No candidates match your search.</p>
+                                </div>
                             )}
+                        </ScrollArea>
+                        
+                        <DialogFooter className="sm:justify-end gap-2 pt-4 border-t">
+                            <DialogClose asChild>
+                                <Button type="button" variant="ghost">Cancel</Button>
+                            </DialogClose>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
