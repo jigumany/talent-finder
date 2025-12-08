@@ -19,9 +19,10 @@ import {
   DialogClose,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { mockClientBookings } from '@/lib/mock-data';
+import { BookingCalendar } from './booking-calendar';
 
 
 interface CandidateCardProps {
@@ -96,12 +97,13 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center">
-                 <Calendar
+                 <BookingCalendar
                     mode="multiple"
-                    min={0}
                     selected={dates}
                     onSelect={setDates}
                     className="rounded-md border"
+                    candidate={candidate}
+                    allBookings={mockClientBookings}
                 />
             </div>
              <DialogFooter className="sm:justify-end gap-2">

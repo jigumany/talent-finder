@@ -9,9 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { Calendar as CalendarIcon, ClipboardEdit, Users, CheckCircle, XCircle, Star, PenSquare, PlusCircle, PoundSterling, Briefcase, MapPin } from "lucide-react";
@@ -21,9 +20,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Booking, Candidate } from "@/lib/types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/ui/combobox";
+import { BookingCalendar } from "@/components/booking-calendar";
 
 
 function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient, onLeaveReviewClick, reviewedBookingIds }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean, onLeaveReviewClick: (booking: Booking) => void, reviewedBookingIds: Set<string> }) {
@@ -72,10 +71,14 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
-                                <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
-                                    <PenSquare className="mr-2 h-4 w-4" />
-                                    Leave Review
-                                </Button>
+                                <Dialog onOpenChange={setReviewDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
+                                            <PenSquare className="mr-2 h-4 w-4" />
+                                            Leave Review
+                                        </Button>
+                                    </DialogTrigger>
+                                </Dialog>
                             )}
                             {isClient && booking.status === 'Completed' && (
                                 <Button size="sm" onClick={() => onRebookClick(booking)}>Rebook</Button>
@@ -87,10 +90,14 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                                 </Button>
                             )}
                             {isClient && booking.status === 'Interview' && (
-                                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
-                                    <ClipboardEdit className="mr-2 h-4 w-4" />
-                                    Log Outcome
-                                </Button>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
+                                            <ClipboardEdit className="mr-2 h-4 w-4" />
+                                            Log Outcome
+                                        </Button>
+                                    </DialogTrigger>
+                                </Dialog>
                             )}
                             {isClient && booking.status === 'Confirmed' && (
                                  <AlertDialog>
@@ -310,6 +317,10 @@ export default function BookingsPage() {
         label: `${c.name} - ${c.role}`
     })), []);
 
+    const selectedCandidateForRebook = useMemo(() => {
+        if (!selectedBooking) return undefined;
+        return mockCandidates.find(c => c.name === selectedBooking.candidateName);
+    }, [selectedBooking]);
 
     return (
         <>
@@ -359,12 +370,14 @@ export default function BookingsPage() {
                                      <div className="space-y-2">
                                         <Label>Booking Dates</Label>
                                         <div className="flex justify-center">
-                                            <Calendar
+                                            <BookingCalendar
                                                 mode="multiple"
                                                 selected={newBookingDates}
                                                 onSelect={setNewBookingDates}
                                                 className="rounded-md border"
                                                 disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                                candidate={mockCandidates.find(c => c.id === newBookingCandidateId)}
+                                                allBookings={mockClientBookings}
                                             />
                                         </div>
                                      </div>
@@ -426,11 +439,13 @@ export default function BookingsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-center">
-                     <Calendar
+                     <BookingCalendar
                         mode="multiple"
                         selected={rebookDates}
                         onSelect={setRebookDates}
                         className="rounded-md border"
+                        candidate={selectedCandidateForRebook}
+                        allBookings={mockClientBookings}
                     />
                 </div>
                  <DialogFooter>
