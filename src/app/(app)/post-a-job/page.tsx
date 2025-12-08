@@ -491,9 +491,9 @@ export default function PostAJobPage() {
                              <Button><FilePlus2 className="mr-2" /> Add a Booking</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl">
-                             <DialogHeader className="bg-primary text-primary-foreground -m-6 p-6 rounded-t-lg">
+                             <DialogHeader>
                                 <DialogTitle className="text-2xl">Add your Booking</DialogTitle>
-                                <DialogDescription className="text-primary-foreground/80">
+                                <DialogDescription>
                                     Fill in the details below. Our AI can then help find the best candidates for you.
                                 </DialogDescription>
                             </DialogHeader>
@@ -586,9 +586,9 @@ export default function PostAJobPage() {
                     <DialogContent className="max-w-full w-full sm:max-w-6xl sm:h-auto flex flex-col data-[state=open]:sm:h-[90vh]">
                          {isEditingJob ? (
                             <>
-                                <DialogHeader className="bg-primary text-primary-foreground -m-6 p-6 rounded-t-lg">
+                                <DialogHeader>
                                     <DialogTitle>Edit Job Posting</DialogTitle>
-                                    <DialogDescription className="text-primary-foreground/80">
+                                    <DialogDescription>
                                         Update the details for your job posting: "{selectedJob.title}"
                                     </DialogDescription>
                                 </DialogHeader>
@@ -649,9 +649,9 @@ export default function PostAJobPage() {
              {selectedJob && (
                 <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
                     <DialogContent className="sm:max-w-lg">
-                        <DialogHeader className="bg-primary text-primary-foreground -m-6 p-6 rounded-t-lg">
+                        <DialogHeader>
                             <DialogTitle>{candidateToBook ? `Book ${candidateToBook.name}` : 'Add a Candidate to this Job'}</DialogTitle>
-                            <DialogDescription className="text-primary-foreground/80">
+                            <DialogDescription>
                                 {candidateToBook ? `Schedule ${candidateToBook.name} for the role of ${selectedJob.title}.` : 'Select a candidate and the dates to book them.'}
                             </DialogDescription>
                         </DialogHeader>
