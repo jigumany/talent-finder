@@ -418,7 +418,7 @@ export default function BookingsPage() {
 
             {/* Rebook Dialog */}
             <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
-              <DialogContent>
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Book {selectedBooking?.candidateName}</DialogTitle>
                   <DialogDescription>
@@ -449,7 +449,7 @@ export default function BookingsPage() {
 
             {/* Log Interview Outcome Dialog */}
             <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Log Interview Outcome</DialogTitle>
                       <DialogDescription>
@@ -503,7 +503,7 @@ export default function BookingsPage() {
 
             {/* Leave Review Dialog */}
             <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-                 <DialogContent>
+                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Leave a Review</DialogTitle>
                       <DialogDescription>
