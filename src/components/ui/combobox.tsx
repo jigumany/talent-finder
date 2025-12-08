@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -70,6 +71,7 @@ export function Combobox({
                     onValueChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
+                  filter={option.label}
                 >
                   <Check
                     className={cn(
