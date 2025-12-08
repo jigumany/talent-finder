@@ -371,7 +371,7 @@ export default function BookingsPage() {
                                 </div>
                                 <DialogFooter>
                                     <DialogClose asChild>
-                                        <Button type="button" variant="destructive">Cancel</Button>
+                                        <Button type="button" variant="secondary">Cancel</Button>
                                     </DialogClose>
                                     <Button type="button" onClick={handleAddNewBooking} disabled={!newBookingCandidateId || !newBookingDates || newBookingDates.length === 0 || !newBookingRole}>
                                         Confirm Booking
@@ -435,7 +435,7 @@ export default function BookingsPage() {
                 </div>
                  <DialogFooter>
                   <DialogClose asChild>
-                    <Button type="button" variant="destructive">
+                    <Button type="button" variant="secondary">
                       Cancel
                     </Button>
                   </DialogClose>
@@ -490,7 +490,7 @@ export default function BookingsPage() {
                     </div>
                      <DialogFooter>
                       <DialogClose asChild>
-                        <Button type="button" variant="destructive">
+                        <Button type="button" variant="secondary">
                           Cancel
                         </Button>
                       </DialogClose>
@@ -545,7 +545,7 @@ export default function BookingsPage() {
                     </div>
                      <DialogFooter>
                       <DialogClose asChild>
-                        <Button type="button" variant="destructive">
+                        <Button type="button" variant="secondary">
                           Cancel
                         </Button>
                       </DialogClose>
