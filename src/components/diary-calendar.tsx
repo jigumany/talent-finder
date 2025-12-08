@@ -15,7 +15,7 @@ function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] 
   // This logic now supports multiple bookings on the same day by prioritizing the status for display
   const getIndicatorClass = () => {
     if (dayBookings.some(b => b.status === 'Confirmed')) return 'bg-primary';
-    if (dayBookings.some(b => b.status === 'Interview')) return 'bg-amber-400';
+    if (dayBookings.some(b => b.status === 'Interview')) return 'bg-purple-500';
     if (dayBookings.some(b => b.status === 'Completed')) return 'bg-green-500';
     return '';
   }
@@ -97,7 +97,7 @@ export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChan
                     <span>Completed</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+                    <span className="w-3 h-3 rounded-full bg-purple-500"></span>
                     <span>Interview</span>
                 </div>
             </div>
