@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Booking, Candidate } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Combobox } from "@/components/ui/combobox";
 
 
 function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeClick, isClient, onLeaveReviewClick, reviewedBookingIds }: { bookings: Booking[], onCancelBooking: (id: string) => void, onRebookClick: (booking: Booking) => void, onLogOutcomeClick: (booking: Booking) => void, isClient: boolean, onLeaveReviewClick: (booking: Booking) => void, reviewedBookingIds: Set<string> }) {
@@ -134,7 +135,7 @@ export default function BookingsPage() {
     const [bookings, setBookings] = useState<Booking[]>(isClient ? mockClientBookings : mockCandidateBookings);
 
     const sortedBookings = useMemo(() => {
-        return [...bookings].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+        return [...bookings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [bookings]);
 
     const applicantBookings = useMemo(() => sortedBookings.filter(b => ['Interview', 'Hired', 'Rejected'].includes(b.status)), [sortedBookings]);
@@ -308,6 +309,11 @@ export default function BookingsPage() {
         isClient
     };
 
+    const candidateOptions = useMemo(() => mockCandidates.map(c => ({
+        value: c.id,
+        label: `${c.name} - ${c.role}`
+    })), []);
+
 
     return (
         <Dialog>
@@ -332,16 +338,13 @@ export default function BookingsPage() {
                                 <div className="space-y-4 py-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="candidate-select">Candidate</Label>
-                                        <Select value={newBookingCandidateId} onValueChange={setNewBookingCandidateId}>
-                                            <SelectTrigger id="candidate-select">
-                                                <SelectValue placeholder="Select a candidate..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {mockCandidates.map(c => (
-                                                    <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <Combobox
+                                            options={candidateOptions}
+                                            value={newBookingCandidateId}
+                                            onValueChange={setNewBookingCandidateId}
+                                            placeholder="Select a candidate..."
+                                            emptyMessage="No candidate found."
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="role">Role</Label>
@@ -557,5 +560,3 @@ export default function BookingsPage() {
         </Dialog>
     );
 }
-
-    
