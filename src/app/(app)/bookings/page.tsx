@@ -72,12 +72,10 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                              {isClient && booking.status === 'Completed' && !reviewedBookingIds.has(booking.id) && (
-                                <DialogTrigger asChild>
-                                    <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
-                                        <PenSquare className="mr-2 h-4 w-4" />
-                                        Leave Review
-                                    </Button>
-                                </DialogTrigger>
+                                <Button size="sm" variant="warning" onClick={() => onLeaveReviewClick(booking)}>
+                                    <PenSquare className="mr-2 h-4 w-4" />
+                                    Leave Review
+                                </Button>
                             )}
                             {isClient && booking.status === 'Completed' && (
                                 <Button size="sm" onClick={() => onRebookClick(booking)}>Rebook</Button>
@@ -89,12 +87,10 @@ function BookingsTable({ bookings, onCancelBooking, onRebookClick, onLogOutcomeC
                                 </Button>
                             )}
                             {isClient && booking.status === 'Interview' && (
-                                 <DialogTrigger asChild>
-                                    <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
-                                        <ClipboardEdit className="mr-2 h-4 w-4" />
-                                        Log Outcome
-                                    </Button>
-                                 </DialogTrigger>
+                                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => onLogOutcomeClick(booking)}>
+                                    <ClipboardEdit className="mr-2 h-4 w-4" />
+                                    Log Outcome
+                                </Button>
                             )}
                             {isClient && booking.status === 'Confirmed' && (
                                  <AlertDialog>
@@ -316,7 +312,7 @@ export default function BookingsPage() {
 
 
     return (
-        <Dialog>
+        <>
             <div className="max-w-4xl mx-auto space-y-6">
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold font-headline">My Bookings</h1>
@@ -418,41 +414,41 @@ export default function BookingsPage() {
                         </CardContent>
                     </Tabs>
                 </Card>
-                
+            </div>
 
+            {/* Rebook Dialog */}
+            <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Book {selectedBooking?.candidateName}</DialogTitle>
+                  <DialogDescription>
+                    Select one or more new dates to book {selectedBooking?.candidateRole}.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-center">
+                     <Calendar
+                        mode="multiple"
+                        selected={rebookDates}
+                        onSelect={setRebookDates}
+                        className="rounded-md border"
+                    />
+                </div>
+                 <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="button" variant="destructive">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                   <Button type="button" onClick={handleConfirmRebook} disabled={!rebookDates || rebookDates.length === 0}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        Confirm Booking
+                    </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
-                {/* Rebook Dialog */}
-                <Dialog open={rebookDialogOpen} onOpenChange={setRebookDialogOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Book {selectedBooking?.candidateName}</DialogTitle>
-                      <DialogDescription>
-                        Select one or more new dates to book {selectedBooking?.candidateRole}.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-center">
-                         <Calendar
-                            mode="multiple"
-                            selected={rebookDates}
-                            onSelect={setRebookDates}
-                            className="rounded-md border"
-                        />
-                    </div>
-                     <DialogFooter>
-                      <DialogClose asChild>
-                        <Button type="button" variant="destructive">
-                          Cancel
-                        </Button>
-                      </DialogClose>
-                       <Button type="button" onClick={handleConfirmRebook} disabled={!rebookDates || rebookDates.length === 0}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            Confirm Booking
-                        </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                {/* Log Interview Outcome Dialog */}
+            {/* Log Interview Outcome Dialog */}
+            <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Log Interview Outcome</DialogTitle>
@@ -503,8 +499,10 @@ export default function BookingsPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
+            </Dialog>
 
-                {/* Leave Review Dialog */}
+            {/* Leave Review Dialog */}
+            <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
                  <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Leave a Review</DialogTitle>
@@ -556,11 +554,7 @@ export default function BookingsPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </div>
-        </Dialog>
+            </Dialog>
+        </>
     );
 }
-
-    
-
-    
