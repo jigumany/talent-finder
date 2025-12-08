@@ -46,22 +46,11 @@ const getAvailableCandidates = ai.defineTool(
     {
         name: 'getAvailableCandidates',
         description: 'Returns a list of all available candidates in the system.',
-        outputSchema: z.array(z.object({
-            id: z.string(),
-            name: z.string(),
-            role: z.string(),
-            qualifications: z.array(z.string()),
-            bio: z.string(),
-        }))
+        outputSchema: z.any(),
     },
     async () => {
-        return mockCandidates.map(c => ({
-            id: c.id,
-            name: c.name,
-            role: c.role,
-            qualifications: c.qualifications,
-            bio: c.bio,
-        }));
+        // Return the full mock candidates array.
+        return mockCandidates;
     }
 );
 
@@ -85,7 +74,7 @@ Client's Request:
 - Role: {{{role}}}
 - Subject: {{#if subject}}{{{subject}}}{{else}}N/A{{/if}}
 - Required Skills/Qualifications: {{{skills}}}
-- Additional Notes: {{#if notes}}{{{notes}}}{{else}}N/A{{/if}}
+- Additional Notes: {{#if notes}}{{{notes}}}{{else}}N a a{{/if}}
 
 Your response must be in the specified JSON format.
 `,
