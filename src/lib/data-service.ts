@@ -3,18 +3,31 @@ import type { Candidate } from './types';
 
 const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates';
 
+const detailTypeMap: Record<string, string> = {
+    'KS1': 'Key Stage 1',
+    'KS2': 'Key Stage 2',
+    'KS3': 'Key Stage 3',
+    'KS4': 'Key Stage 4',
+    'KS5': 'Key Stage 5',
+    'SEND': 'SEND',
+    'Add': 'Additional Criteria',
+    'Langs': 'Languages',
+    'Quals': 'Qualifications',
+};
+
 const transformCandidateData = (apiCandidate: any): Candidate => {
     const qualifications = apiCandidate.details?.map((detail: any) => detail.detail_type_value) || [];
     
     const details: Record<string, string[]> = {};
     if (apiCandidate.details) {
         for (const detail of apiCandidate.details) {
-            const type = detail.detail_type;
+            const rawType = detail.detail_type;
+            const mappedType = detailTypeMap[rawType] || rawType; // Use mapped name or fallback to raw name
             const value = detail.detail_type_value;
-            if (!details[type]) {
-                details[type] = [];
+            if (!details[mappedType]) {
+                details[mappedType] = [];
             }
-            details[type].push(value);
+            details[mappedType].push(value);
         }
     }
 
@@ -60,6 +73,8 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
+        // In a real API, you would fetch a single candidate by ID.
+        // Here, we fetch all and find the one, which is inefficient but works for this mock setup.
         const candidates = await fetchCandidates();
         const candidate = candidates.find(c => c.id === id);
 
