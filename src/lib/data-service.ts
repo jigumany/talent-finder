@@ -153,17 +153,28 @@ export async function fetchBookings(): Promise<Booking[]> {
     }
 }
 
-export async function createBooking({ candidateId, dates, role }: { candidateId: string; dates: Date[]; role: string; }): Promise<{success: boolean; bookings?: Booking[]}> {
+interface CreateBookingParams {
+    candidateId: string;
+    dates: Date[];
+    role: string;
+    bookingType: 'Day' | 'Hourly';
+    session: 'AllDay' | 'AM' | 'PM';
+}
+
+export async function createBooking({ candidateId, dates, role, bookingType, session }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
     const companyId = '118008'; // Hardcoded as per instructions
     
     try {
         const responses = await Promise.all(dates.map(date => {
+            // Note: The API does not seem to support AM/PM sessions directly.
+            // We are passing 'Day' as the booking_type.
+            // In a real scenario, you might need to send start/end times if the API supported it.
             const bookingData = {
                 candidate_id: parseInt(candidateId),
                 company_id: parseInt(companyId),
                 start_date: date.toISOString().split('T')[0],
                 end_date: date.toISOString().split('T')[0],
-                booking_type: 'Day', // Assuming 'Day' as default
+                booking_type: bookingType,
                 status: 'Confirmed'
             };
             

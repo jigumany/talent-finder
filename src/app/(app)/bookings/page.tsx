@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/ui/combobox";
 import { BookingCalendar } from "@/components/booking-calendar";
 import { fetchBookings, createBooking, cancelBooking, fetchCandidates } from "@/lib/data-service";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onCancelBooking: (id: string) => void }) {
     if (bookings.length === 0) {
@@ -56,7 +57,7 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
                                     'secondary'
                                 }
                                 className={cn({
-                                    'bg-sky-500 text-sky-50': booking.status === 'Confirmed',
+                                    'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected' || booking.status === 'Cancelled',
                                     'bg-purple-600 text-purple-50': booking.status === 'Interview'
@@ -111,6 +112,8 @@ export default function BookingsPage() {
     const [newBookingCandidateId, setNewBookingCandidateId] = useState<string>('');
     const [newBookingDates, setNewBookingDates] = useState<Date[] | undefined>([]);
     const [newBookingRole, setNewBookingRole] = useState('');
+    const [newBookingType, setNewBookingType] = useState<'Day' | 'Hourly'>('Day');
+    const [newBookingSession, setNewBookingSession] = useState<'AllDay' | 'AM' | 'PM'>('AllDay');
 
     useEffect(() => {
         async function loadData() {
@@ -165,7 +168,13 @@ export default function BookingsPage() {
         const candidate = allCandidates.find(c => c.id === newBookingCandidateId);
         if (!candidate) return;
 
-        const result = await createBooking({ candidateId: newBookingCandidateId, dates: newBookingDates, role: newBookingRole });
+        const result = await createBooking({ 
+            candidateId: newBookingCandidateId, 
+            dates: newBookingDates, 
+            role: newBookingRole,
+            bookingType: newBookingType,
+            session: newBookingSession,
+        });
         
         if (result.success && result.bookings) {
              const newBookingsWithDetails = result.bookings.map(b => ({
@@ -184,6 +193,8 @@ export default function BookingsPage() {
             setNewBookingCandidateId('');
             setNewBookingDates([]);
             setNewBookingRole('');
+            setNewBookingType('Day');
+            setNewBookingSession('AllDay');
         } else {
              toast({
                 title: "Booking Failed",
@@ -222,7 +233,7 @@ export default function BookingsPage() {
                                 Add Booking
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
+                        <DialogContent className="sm:max-w-lg">
                             <DialogHeader>
                                 <DialogTitle>Add a New Booking</DialogTitle>
                                 <DialogDescription>
@@ -248,6 +259,38 @@ export default function BookingsPage() {
                                     <Label htmlFor="role">Role</Label>
                                     <Input id="role" placeholder="e.g. History Teacher" value={newBookingRole} onChange={(e) => setNewBookingRole(e.target.value)} />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label>Booking Type</Label>
+                                     <RadioGroup defaultValue="Day" value={newBookingType} onValueChange={(value: 'Day' | 'Hourly') => setNewBookingType(value)} className="flex gap-4">
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="Day" id="day" />
+                                            <Label htmlFor="day">Daily</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="Hourly" id="hourly" />
+                                            <Label htmlFor="hourly">Hourly</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                {newBookingType === 'Day' && (
+                                     <div className="space-y-2 pl-2 border-l-2">
+                                        <Label>Session</Label>
+                                         <RadioGroup defaultValue="AllDay" value={newBookingSession} onValueChange={(value: 'AllDay' | 'AM' | 'PM') => setNewBookingSession(value)} className="flex gap-4">
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="AllDay" id="allDay" />
+                                                <Label htmlFor="allDay">All Day</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="AM" id="am" />
+                                                <Label htmlFor="am">AM</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="PM" id="pm" />
+                                                <Label htmlFor="pm">PM</Label>
+                                            </div>
+                                        </RadioGroup>
+                                    </div>
+                                )}
                                     <div className="space-y-2">
                                     <Label>Booking Dates</Label>
                                     <div className="flex justify-center p-1">
