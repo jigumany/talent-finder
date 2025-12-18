@@ -1,17 +1,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DayPicker } from 'react-day-picker';
-import { isSameDay, format } from 'date-fns';
-import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
+import { isSameDay, format, parseISO } from 'date-fns';
+import { mockClientBookings } from '@/lib/mock-data';
+import type { Candidate, Booking } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from './ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const interviewDays: Date[] = [
-    new Date(2024, 7, 21), 
-];
+const interviewDays: Date[] = mockClientBookings.filter(b => b.status === 'Interview').map(b => parseISO(b.date));
 
 function DayWithIndicator({ date, modifiers }: { date: Date, modifiers: ReturnType<typeof useModifiers> }) {
   const isAvailable = modifiers.available.some(day => isSameDay(day, date));
@@ -38,8 +37,8 @@ function DayWithIndicator({ date, modifiers }: { date: Date, modifiers: ReturnTy
   );
 }
 
-function useModifiers() {
-    const [availableDays] = useState<Date[]>(mockCandidates[2].availability.map(d => new Date(d)));
+function useModifiers(candidate?: Candidate) {
+    const availableDays = useMemo(() => candidate?.availability.map(d => new Date(d)) ?? [], [candidate]);
     const [bookedDays] = useState<Date[]>(mockClientBookings.filter(b => b.status === 'Confirmed').map(b => new Date(b.date)));
 
     return {
@@ -50,8 +49,8 @@ function useModifiers() {
 }
 
 
-export function AvailabilityCalendar() {
-    const modifiers = useModifiers();
+export function AvailabilityCalendar({ candidate }: { candidate?: Candidate }) {
+    const modifiers = useModifiers(candidate);
     
     return (
         <div className="flex flex-col items-center">

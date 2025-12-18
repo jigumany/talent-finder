@@ -1,20 +1,20 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, PoundSterling, Star, MapPin, FileText, CheckCircle, MessageSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, PoundSterling, Star, MapPin, FileText, CheckCircle, MessageSquare, Loader2 } from 'lucide-react';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
-  DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
+  DialogDescription as DialogDescriptionComponent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -26,24 +26,51 @@ import { format } from 'date-fns';
 import images from '@/lib/placeholder-images.json';
 import { cn } from '@/lib/utils';
 import { notFound, useParams } from 'next/navigation';
-import { mockCandidates, mockClientBookings } from '@/lib/mock-data';
+import { mockClientBookings } from '@/lib/mock-data';
+import { fetchCandidateById } from '@/lib/data-service';
 import { BookingCalendar } from '@/components/booking-calendar';
 
 
 export default function CandidatePublicProfilePage() {
   const params = useParams();
   const id = params.id as string;
-  const candidate = mockCandidates.find((c) => c.id === id);
+  
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
   const resumeImage = images['document-resume'];
+  
+  useEffect(() => {
+      if (!id) return;
+      
+      async function loadCandidate() {
+          setIsLoading(true);
+          const fetchedCandidate = await fetchCandidateById(id);
+          if (fetchedCandidate) {
+              setCandidate(fetchedCandidate);
+          }
+          setIsLoading(false);
+      }
+      loadCandidate();
+  }, [id]);
+
+
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    )
+  }
 
   if (!candidate) {
     notFound();
   }
 
   const handleBooking = () => {
+    if (!candidate) return;
     const bookedDates = dates?.map(date => format(date, "PPP")).join(', ') || 'your selected dates';
     toast({
         title: "Booking Request Sent!",
@@ -229,7 +256,7 @@ export default function CandidatePublicProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex justify-center p-1">
-                        <AvailabilityCalendar />
+                        <AvailabilityCalendar candidate={candidate}/>
                       </div>
                     </CardContent>
                 </Card>

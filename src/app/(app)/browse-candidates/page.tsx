@@ -4,21 +4,20 @@ import { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
-import { mockCandidates } from '@/lib/mock-data';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling } from 'lucide-react';
+import { ListFilter, Search, PoundSterling, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { fetchCandidates } from '@/lib/data-service';
 
-const roles = [...new Set(mockCandidates.map(c => c.role))];
-const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS'];
+const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
 interface FiltersProps {
     role: string;
     setRole: (role: string) => void;
+    allRoles: string[];
     subject: string;
     setSubject: (subject: string) => void;
     location: string;
@@ -31,7 +30,7 @@ interface FiltersProps {
     setMaxRate: (rate: string) => void;
 }
 
-function Filters({ role, setRole, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate }: FiltersProps) {
+function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate }: FiltersProps) {
     return (
         <Accordion type="multiple" defaultValue={['item-1', 'item-2']} className="w-full">
             <AccordionItem value="item-1">
@@ -44,7 +43,7 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation, ra
                                 <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Roles</SelectItem>
-                                    {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                    {allRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -123,8 +122,9 @@ function Filters({ role, setRole, subject, setSubject, location, setLocation, ra
 }
 
 export default function BrowseCandidatesPage() {
-    const allCandidates = useMemo(() => mockCandidates, []);
-    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(allCandidates);
+    const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -134,6 +134,20 @@ export default function BrowseCandidatesPage() {
     const [rateTypeFilter, setRateTypeFilter] = useState('all');
     const [minRate, setMinRate] = useState('');
     const [maxRate, setMaxRate] = useState('');
+
+    useEffect(() => {
+        async function loadCandidates() {
+            setIsLoading(true);
+            const candidates = await fetchCandidates();
+            setAllCandidates(candidates);
+            setFilteredCandidates(candidates);
+            setIsLoading(false);
+        }
+        loadCandidates();
+    }, []);
+
+    const allRoles = useMemo(() => [...new Set(allCandidates.map(c => c.role))], [allCandidates]);
+
 
     useEffect(() => {
       try {
@@ -186,6 +200,7 @@ export default function BrowseCandidatesPage() {
     const filterProps = {
         role: roleFilter,
         setRole: setRoleFilter,
+        allRoles,
         subject: subjectFilter,
         setSubject: setSubjectFilter,
         location: locationFilter,
@@ -203,7 +218,7 @@ export default function BrowseCandidatesPage() {
             <aside className="hidden md:block">
                 <div className="sticky top-20">
                     <h2 className="text-lg font-semibold mb-4 px-4">Filters</h2>
-                    <Filters {...filterProps} />
+                    {isLoading ? <p>Loading filters...</p> : <Filters {...filterProps} />}
                 </div>
             </aside>
             
@@ -225,7 +240,7 @@ export default function BrowseCandidatesPage() {
                                     </SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-4">
-                                    <Filters {...filterProps} />
+                                     {isLoading ? <p>Loading filters...</p> : <Filters {...filterProps} />}
                                 </div>
                             </SheetContent>
                         </Sheet>
@@ -242,17 +257,25 @@ export default function BrowseCandidatesPage() {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredCandidates.map(candidate => (
-                        <CandidateCard key={candidate.id} candidate={candidate} />
-                    ))}
-                </div>
-                 {filteredCandidates.length === 0 && (
-                    <div className="text-center text-muted-foreground col-span-full py-12">
-                        <p className="text-lg font-semibold">No candidates found.</p>
-                        <p>Try adjusting your search or filters.</p>
+                {isLoading ? (
+                     <div className="flex justify-center items-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                 )}
+                ) : (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {filteredCandidates.map(candidate => (
+                                <CandidateCard key={candidate.id} candidate={candidate} />
+                            ))}
+                        </div>
+                         {filteredCandidates.length === 0 && (
+                            <div className="text-center text-muted-foreground col-span-full py-12">
+                                <p className="text-lg font-semibold">No candidates found.</p>
+                                <p>Try adjusting your search or filters.</p>
+                            </div>
+                         )}
+                    </>
+                )}
             </div>
         </div>
     );

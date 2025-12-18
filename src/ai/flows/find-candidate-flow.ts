@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { mockCandidates } from '@/lib/mock-data';
+import { fetchCandidates } from '@/lib/data-service';
 
 const FindCandidateInputSchema = z.object({
   role: z.string().describe('The desired role for the candidate (e.g., "Math Teacher", "Teaching Assistant").'),
@@ -83,10 +83,13 @@ const findCandidateFlow = ai.defineFlow(
     outputSchema: FindCandidateOutputSchema,
   },
   async input => {
-    // Pass the mock candidates directly into the prompt's context.
+    // Fetch live candidate data instead of using mocks
+    const candidates = await fetchCandidates();
+    
+    // Pass the live candidates directly into the prompt's context.
     const {output} = await prompt({
         ...input,
-        candidates: JSON.stringify(mockCandidates),
+        candidates: JSON.stringify(candidates),
     });
     return output!;
   }

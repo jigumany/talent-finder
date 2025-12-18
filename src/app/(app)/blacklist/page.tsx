@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRole } from '@/context/role-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Lock, Ban, PlusCircle, UserX } from 'lucide-react';
-import { mockCandidates } from '@/lib/mock-data';
+import { Lock, Ban, PlusCircle, UserX, Loader2 } from 'lucide-react';
+import { fetchCandidates } from '@/lib/data-service';
 import type { Candidate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -25,29 +25,45 @@ interface BlacklistedCandidate {
     date: string;
 }
 
-const initialBlacklist: BlacklistedCandidate[] = [
-    {
-        id: 'bl-1',
-        candidate: mockCandidates.find(c => c.id === '7')!,
-        reason: 'Repeatedly late for assignments without prior notice. Disrupted class schedules.',
-        date: '2024-06-15T10:00:00Z',
-    },
-     {
-        id: 'bl-2',
-        candidate: mockCandidates.find(c => c.id === '8')!,
-        reason: 'Did not follow school policies regarding student interaction. A formal complaint was filed.',
-        date: '2024-05-20T14:30:00Z',
-    },
-];
-
 export default function BlacklistPage() {
     const { role } = useRole();
     const { toast } = useToast();
     const [isClient, setIsClient] = useState(role === 'client');
-    const [blacklist, setBlacklist] = useState<BlacklistedCandidate[]>(initialBlacklist);
+    const [blacklist, setBlacklist] = useState<BlacklistedCandidate[]>([]);
+    const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
     const [reason, setReason] = useState('');
+
+    useEffect(() => {
+        async function loadData() {
+            setIsLoading(true);
+            const candidates = await fetchCandidates();
+            setAllCandidates(candidates);
+
+            // Create a mock blacklist from the first two candidates for demonstration
+            if (candidates.length >= 2) {
+                setBlacklist([
+                    {
+                        id: 'bl-1',
+                        candidate: candidates[6],
+                        reason: 'Repeatedly late for assignments without prior notice. Disrupted class schedules.',
+                        date: '2024-06-15T10:00:00Z',
+                    },
+                    {
+                        id: 'bl-2',
+                        candidate: candidates[7],
+                        reason: 'Did not follow school policies regarding student interaction. A formal complaint was filed.',
+                        date: '2024-05-20T14:30:00Z',
+                    },
+                ]);
+            }
+            setIsLoading(false);
+        }
+        loadData();
+    }, []);
 
     const handleAddToBlacklist = () => {
         if (!selectedCandidateId || !reason) {
@@ -59,7 +75,7 @@ export default function BlacklistPage() {
             return;
         }
 
-        const candidate = mockCandidates.find(c => c.id === selectedCandidateId);
+        const candidate = allCandidates.find(c => c.id === selectedCandidateId);
         if (candidate) {
             if(blacklist.some(item => item.candidate.id === selectedCandidateId)) {
                 toast({
@@ -99,7 +115,6 @@ export default function BlacklistPage() {
         }
     };
 
-
     if (!isClient) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -111,8 +126,16 @@ export default function BlacklistPage() {
             </div>
         );
     }
+    
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
-    const availableCandidates = mockCandidates.filter(c => !blacklist.some(bl => bl.candidate.id === c.id));
+    const availableCandidates = allCandidates.filter(c => !blacklist.some(bl => bl.candidate.id === c.id));
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
