@@ -8,10 +8,13 @@ const FindSomeoneSchema = z.object({
   role: z.string().min(1, { message: 'Role is required.' }),
   subject: z.string().optional(),
   skills: z.string().min(1, { message: 'Please list at least one skill.' }),
+  location: z.string().optional(),
+  maxRate: z.coerce.number().optional(),
+  availability: z.string().optional(),
   notes: z.string().optional(),
 });
 
-export async function findSomeoneAction(values: FindCandidateInput) {
+export async function findSomeoneAction(values: z.infer<typeof FindSomeoneSchema>) {
   const validatedFields = FindSomeoneSchema.safeParse(values);
 
   if (!validatedFields.success) {

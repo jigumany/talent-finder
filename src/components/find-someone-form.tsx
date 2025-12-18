@@ -12,20 +12,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { findSomeoneAction } from '@/app/(app)/find-me-someone/actions';
-import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Search, Frown, Users } from 'lucide-react';
+import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Search, Frown, Users, PoundSterling, MapPin, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { mockCandidates } from '@/lib/mock-data';
+import { fetchCandidates } from '@/lib/data-service';
 import { CandidateCard } from './candidate-card';
 import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { Separator } from './ui/separator';
 import { cn } from '@/lib/utils';
+import type { Candidate } from '@/lib/types';
 
 const findSomeoneFormSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
   subject: z.string().optional(),
   skills: z.string().min(1, 'Please list at least one required skill or qualification.'),
+  location: z.string().optional(),
+  maxRate: z.string().optional(),
+  availability: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -34,7 +38,15 @@ type FindSomeoneFormValues = z.infer<typeof findSomeoneFormSchema>;
 export function FindSomeoneForm() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<FindCandidateOutput | null>(null);
+  const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
   const { toast } = useToast();
+
+  useState(() => {
+    async function load() {
+      setAllCandidates(await fetchCandidates());
+    }
+    load();
+  });
 
   const form = useForm<FindSomeoneFormValues>({
     resolver: zodResolver(findSomeoneFormSchema),
@@ -42,6 +54,9 @@ export function FindSomeoneForm() {
       role: '',
       subject: '',
       skills: '',
+      location: '',
+      maxRate: '',
+      availability: '',
       notes: '',
     },
   });
@@ -49,7 +64,10 @@ export function FindSomeoneForm() {
   const onSubmit = (values: FindSomeoneFormValues) => {
     setResult(null);
     startTransition(async () => {
-      const response = await findSomeoneAction(values);
+      const response = await findSomeoneAction({
+        ...values,
+        maxRate: values.maxRate ? parseFloat(values.maxRate) : undefined,
+      });
       if (response.success) {
         setResult(response.success);
       } else if (response.error) {
@@ -62,8 +80,8 @@ export function FindSomeoneForm() {
     });
   };
   
-  const recommendedCandidate = result ? mockCandidates.find(c => c.id === result.bestMatch.id) : null;
-  const otherCandidates = result?.otherCandidates?.map(other => mockCandidates.find(c => !!c && c.id === other.id)).filter(c => !!c && c.id !== result?.bestMatch.id) as (typeof mockCandidates) || [];
+  const recommendedCandidate = result ? allCandidates.find(c => c.id === result.bestMatch.id) : null;
+  const otherCandidates = result?.otherCandidates?.map(other => allCandidates.find(c => !!c && c.id === other.id)).filter(c => !!c && c.id !== result?.bestMatch.id) as Candidate[] || [];
 
 
   return (
@@ -105,6 +123,43 @@ export function FindSomeoneForm() {
                 )}
               />
             </div>
+             <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location (Optional)</FormLabel>
+                      <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <FormControl>
+                            <Input placeholder="e.g., London" {...field} className="pl-10" />
+                          </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="maxRate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Rate (Optional)</FormLabel>
+                      <div className="relative">
+                          <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <FormControl>
+                            <Input type="number" placeholder="e.g., 500" {...field} className="pl-10" />
+                          </FormControl>
+                      </div>
+                      <FormDescription>
+                        Enter a daily or hourly rate.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+             </div>
             <FormField
               control={form.control}
               name="skills"
@@ -115,16 +170,29 @@ export function FindSomeoneForm() {
                       <ListChecks className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                       <FormControl>
                         <Textarea
-                          placeholder="e.g., 'PhD in History', '5+ Years Experience', 'First Aid certified'"
+                          placeholder="e.g., 'QTS', '5+ Years Experience', 'First Aid certified'"
                           rows={3}
                           {...field}
                           className="pl-10 pt-2.5"
                         />
                       </FormControl>
                   </div>
-                  <FormDescription>
-                    Provide a comma-separated list or a sentence describing the qualifications.
-                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="availability"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Desired Availability (Optional)</FormLabel>
+                  <div className="relative">
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <FormControl>
+                        <Input placeholder="e.g., Available from next Monday" {...field} className="pl-10" />
+                      </FormControl>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -217,7 +285,6 @@ export function FindSomeoneForm() {
             <div className="text-center mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button onClick={() => {
                     setResult(null);
-                    form.reset();
                 }}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Start a New Search
