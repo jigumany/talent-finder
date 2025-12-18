@@ -118,7 +118,6 @@ export default function CandidatePublicProfilePage() {
                             mode="multiple"
                             selected={dates}
                             onSelect={setDates}
-                            className="rounded-md border"
                             candidate={candidate}
                             allBookings={mockClientBookings}
                         />
@@ -187,12 +186,19 @@ export default function CandidatePublicProfilePage() {
                     <CardHeader>
                         <CardTitle>Qualifications & Skills</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-wrap gap-2">
-                        {candidate.qualifications.map(q => (
-                            <Badge key={q} variant="secondary" className="text-base py-1 px-3 flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                {q}
-                            </Badge>
+                    <CardContent className="space-y-4">
+                        {Object.entries(candidate.details).map(([category, values]) => (
+                            <div key={category}>
+                                <h3 className="font-semibold text-md mb-2">{category}</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {values.map(value => (
+                                        <Badge key={value} variant="secondary" className="text-base py-1 px-3">
+                                            {value}
+                                        </Badge>
+                                    ))}
+                                </div>
+                                <Separator className="mt-4" />
+                            </div>
                         ))}
                     </CardContent>
                 </Card>

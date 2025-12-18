@@ -17,6 +17,7 @@ export type Candidate = {
   reviewsData?: Review[];
   location: string;
   qualifications: string[];
+  details: Record<string, string[]>;
   availability: string[]; // as ISO date strings
   imageUrl: string;
   cvUrl: string;
@@ -53,6 +54,7 @@ export type Job = {
   endDate?: string;
   subject?: string;
   notes?: string;
+  payRate?: number;
 };
 
 export type ApplicationStatus = 'Applied' | 'Shortlisted' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';
