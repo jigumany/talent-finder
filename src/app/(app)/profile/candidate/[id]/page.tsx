@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, PoundSterling, Star, MapPin, FileText, CheckCircle, MessageSquare, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText, Star, MapPin, MessageSquare, Loader2 } from 'lucide-react';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -26,8 +26,7 @@ import { format } from 'date-fns';
 import images from '@/lib/placeholder-images.json';
 import { cn } from '@/lib/utils';
 import { notFound, useParams } from 'next/navigation';
-import { mockClientBookings } from '@/lib/mock-data';
-import { fetchCandidateById } from '@/lib/data-service';
+import { fetchCandidateById, createBooking } from '@/lib/data-service';
 import { BookingCalendar } from '@/components/booking-calendar';
 
 
@@ -69,14 +68,24 @@ export default function CandidatePublicProfilePage() {
     notFound();
   }
 
-  const handleBooking = () => {
-    if (!candidate) return;
-    const bookedDates = dates?.map(date => format(date, "PPP")).join(', ') || 'your selected dates';
-    toast({
-        title: "Booking Request Sent!",
-        description: `Your request to book ${candidate.name} for ${bookedDates} has been sent.`,
-    });
-    setBookingDialogOpen(false);
+  const handleBooking = async () => {
+    if (!candidate || !dates || dates.length === 0) return;
+    
+    const result = await createBooking({ candidateId: candidate.id, dates, role: candidate.role });
+
+    if (result.success) {
+      toast({
+          title: "Booking Request Sent!",
+          description: `Your request to book ${candidate.name} has been sent.`,
+      });
+      setBookingDialogOpen(false);
+    } else {
+        toast({
+          title: "Booking Failed",
+          description: "Could not create the booking. The candidate may not be available on the selected dates.",
+          variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -119,7 +128,6 @@ export default function CandidatePublicProfilePage() {
                             selected={dates}
                             onSelect={setDates}
                             candidate={candidate}
-                            allBookings={mockClientBookings}
                         />
                     </div>
                      <DialogFooter className="sm:justify-end gap-2">
@@ -241,15 +249,10 @@ export default function CandidatePublicProfilePage() {
                     <CardHeader>
                         <CardTitle>Rates</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex justify-between items-baseline">
-                             <span className="text-muted-foreground">Daily Rate</span>
-                             <span className="text-2xl font-bold">£{candidate.rateType === 'daily' ? candidate.rate : 'N/A'}</span>
-                        </div>
-                        <Separator/>
-                        <div className="flex justify-between items-baseline">
-                             <span className="text-muted-foreground">Hourly Rate</span>
-                             <span className="text-2xl font-bold">£{candidate.rateType === 'hourly' ? candidate.rate : 'N/A'}</span>
+                    <CardContent>
+                       <div className="text-2xl font-bold text-primary flex items-center">
+                            £{candidate.rate}
+                            <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType}</span>
                         </div>
                     </CardContent>
                 </Card>

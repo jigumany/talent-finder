@@ -1,34 +1,42 @@
 
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DiaryCalendar } from "@/components/diary-calendar";
-import { mockClientBookings } from "@/lib/mock-data";
 import { isSameDay, format, parseISO } from "date-fns";
 import type { Booking } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2 } from "lucide-react";
+import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2, Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
-import { Calendar as CalendarSelector } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
+import { fetchBookings, cancelBooking } from "@/lib/data-service";
+import { BookingCalendar } from "@/components/booking-calendar";
+
 
 export default function DiaryPage() {
-    const [bookings, setBookings] = useState<Booking[]>(mockClientBookings);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
     const { toast } = useToast();
 
     // State for dialogs
     const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
-    const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
-    const [rescheduleDates, setRescheduleDates] = useState<Date[] | undefined>([]);
-    const [isRescheduleConfirmOpen, setRescheduleConfirmOpen] = useState(false);
 
+    useEffect(() => {
+        async function loadData() {
+            setIsLoading(true);
+            const fetchedBookings = await fetchBookings();
+            setBookings(fetchedBookings);
+            setIsLoading(false);
+        }
+        loadData();
+    }, []);
 
     const handleMonthChange = (month: Date) => {
         setDisplayedMonth(month);
@@ -39,45 +47,35 @@ export default function DiaryPage() {
         selectedDate && isSameDay(parseISO(booking.date), selectedDate)
     ), [bookings, selectedDate]);
 
-    const handleCancelBooking = (bookingId: string) => {
+    const handleCancelBooking = async (bookingId: string) => {
         const booking = bookings.find(b => b.id === bookingId);
         if (!booking) return;
-
-        setBookings(prev => prev.filter(b => b.id !== bookingId));
-        toast({
-            title: "Booking Cancelled",
-            description: `The booking with ${booking.candidateName} has been cancelled.`,
-            variant: "destructive"
-        });
+        
+        const result = await cancelBooking(bookingId);
+        if(result.success) {
+            setBookings(prev => prev.map(b => b.id === bookingId ? {...b, status: 'Cancelled'} : b));
+            toast({
+                title: "Booking Cancelled",
+                description: `The booking with ${booking.candidateName} has been cancelled.`,
+                variant: "destructive"
+            });
+        } else {
+             toast({
+                title: "Error",
+                description: `There was a problem cancelling the booking.`,
+                variant: "destructive"
+            });
+        }
         setBookingToCancel(null);
     };
 
-    const handleRescheduleClick = (booking: Booking) => {
-        setBookingToReschedule(booking);
-        setRescheduleDates([]);
-    };
-    
-    const handleConfirmReschedule = () => {
-        if (!bookingToReschedule || !rescheduleDates || rescheduleDates.length === 0) return;
-
-        const newBookings: Booking[] = rescheduleDates.map(date => ({
-            ...bookingToReschedule,
-            id: `b-rebook-${Date.now()}-${Math.random()}`,
-            date: date.toISOString(),
-            status: 'Confirmed'
-        }));
-
-        // Remove old booking and add new ones
-        setBookings(prev => [...prev.filter(b => b.id !== bookingToReschedule.id), ...newBookings]);
-        
-        const bookedDates = rescheduleDates.map(date => format(date, "PPP")).join(', ');
-        toast({
-            title: "Booking Rescheduled!",
-            description: `${bookingToReschedule.candidateName} has been rebooked for ${bookedDates}.`,
-        });
-        setBookingToReschedule(null);
-        setRescheduleConfirmOpen(false);
-    };
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
 
 
     return (
@@ -129,7 +127,7 @@ export default function DiaryPage() {
                                                     className={cn({
                                                         'bg-primary text-primary-foreground border-transparent': booking.status === 'Confirmed',
                                                         'bg-green-600 text-white border-transparent': booking.status === 'Completed',
-                                                        'bg-amber-500 text-white border-transparent': booking.status === 'Interview'
+                                                        'bg-purple-500 text-white border-transparent': booking.status === 'Interview'
                                                     })}
                                                 >
                                                     {booking.status}
@@ -141,12 +139,6 @@ export default function DiaryPage() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                         {(booking.status === 'Confirmed' || booking.status === 'Interview') && (
-                                                            <DropdownMenuItem onClick={() => handleRescheduleClick(booking)}>
-                                                                <CalendarClock className="mr-2 h-4 w-4" />
-                                                                Reschedule
-                                                            </DropdownMenuItem>
-                                                         )}
                                                           {(booking.status === 'Confirmed' || booking.status === 'Interview') && (
                                                             <DropdownMenuItem className="text-destructive" onClick={() => setBookingToCancel(booking)}>
                                                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -194,57 +186,6 @@ export default function DiaryPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            
-            {/* Reschedule Booking Dialog */}
-            <Dialog open={!!bookingToReschedule} onOpenChange={(open) => !open && setBookingToReschedule(null)}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Reschedule {bookingToReschedule?.status}</DialogTitle>
-                  <DialogDescription>
-                    Select one or more new dates to reschedule with {bookingToReschedule?.candidateName}.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex justify-center">
-                     <CalendarSelector
-                        mode="multiple"
-                        selected={rescheduleDates}
-                        onSelect={setRescheduleDates}
-                        className="rounded-md border"
-                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                    />
-                </div>
-                 <DialogFooter className="sm:justify-end gap-2">
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                  <AlertDialog open={isRescheduleConfirmOpen} onOpenChange={setRescheduleConfirmOpen}>
-                    <AlertDialogTrigger asChild>
-                         <Button type="button" disabled={!rescheduleDates || rescheduleDates.length === 0}>
-                            <Calendar className="mr-2 h-4 w-4" />
-                            Confirm Reschedule
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm Reschedule</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Are you sure you want to reschedule this booking for the selected dates? The original booking will be removed.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleConfirmReschedule}>
-                                Yes, Reschedule
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                   </AlertDialog>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
         </div>
     );
 }

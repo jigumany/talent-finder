@@ -24,12 +24,17 @@ export type Candidate = {
   bio: string;
 };
 
+export type BookingStatus = 'Confirmed' | 'Completed' | 'Pending' | 'Interview' | 'Hired' | 'Rejected' | 'Cancelled';
+
 export type Booking = {
   id: string;
+  candidateId?: string;
   candidateName: string;
   candidateRole: string;
   date: string; // as ISO date string
-  status: 'Confirmed' | 'Completed' | 'Pending' | 'Interview' | 'Hired' | 'Rejected';
+  startDate: string; // as ISO date string
+  endDate: string; // as ISO date string
+  status: BookingStatus;
 };
 
 export type Timesheet = {
@@ -92,4 +97,3 @@ export type TeamMember = {
   role: 'Admin' | 'Member';
   avatarUrl: string;
 };
-    

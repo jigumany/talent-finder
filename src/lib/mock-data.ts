@@ -2,6 +2,9 @@
 import type { Candidate, Booking, Timesheet, Job, Application, ClientReview, AuditLog, TeamMember } from './types';
 import images from './placeholder-images.json';
 
+// Note: Most mock data is being replaced by live API calls.
+// Some mock data might remain for features not yet connected to the backend.
+
 export const mockCandidates: Candidate[] = [
   {
     id: '1',
@@ -13,6 +16,7 @@ export const mockCandidates: Candidate[] = [
     reviews: 24,
     location: 'London, UK',
     qualifications: ['PhD in History', 'QTS'],
+    details: { 'Qualifications': ['PhD in History', 'QTS'] },
     availability: ['2024-08-19', '2024-08-20', '2024-08-21', '2025-01-20', '2025-01-21'],
     imageUrl: images['candidate-1'].src,
     cvUrl: '#',
@@ -32,6 +36,7 @@ export const mockCandidates: Candidate[] = [
     reviews: 18,
     location: 'Manchester, UK',
     qualifications: ['M.Sc. in Mathematics', '5+ Years Experience', 'PGCE'],
+    details: { 'Qualifications': ['M.Sc. in Mathematics', '5+ Years Experience', 'PGCE'] },
     availability: ['2024-08-22', '2024-08-23'],
     imageUrl: images['candidate-2'].src,
     cvUrl: '#',
@@ -40,161 +45,12 @@ export const mockCandidates: Candidate[] = [
       { reviewerName: 'Oakfield High', rating: 5, comment: 'Marcus has a fantastic ability to connect with students and make math accessible. Highly recommended.', date: '2024-07-01' },
     ]
   },
-  {
-    id: '3',
-    name: 'Isabella Rossi',
-    role: 'Teaching Assistant',
-    rate: 25,
-    rateType: 'hourly',
-    rating: 5.0,
-    reviews: 32,
-    location: 'Birmingham, UK',
-    qualifications: ['Child Development Cert.', 'First Aid'],
-    availability: ['2024-08-19', '2024-08-26', '2024-08-27'],
-    imageUrl: images['candidate-3'].src,
-    cvUrl: '#',
-    bio: 'A nurturing and patient teaching assistant dedicated to creating a supportive and positive learning environment.',
-     reviewsData: [
-      { reviewerName: 'St. Jude Primary', rating: 5, comment: 'Isabella was an absolute star. The children adored her, and she was incredibly supportive to our staff.', date: '2024-06-15' },
-      { reviewerName: 'Bright Futures Nursery', rating: 5, comment: 'Her calm and patient demeanor was perfect for our early years students.', date: '2024-05-30' },
-    ]
-  },
-    {
-    id: '4',
-    name: 'James Peterson',
-    role: 'Science Teacher',
-    rate: 55,
-    rateType: 'hourly',
-    rating: 4.7,
-    reviews: 21,
-    location: 'London, UK',
-    qualifications: ['M.Ed', 'Chemistry Specialization', 'QTS'],
-    availability: ['2024-08-20', '2024-08-21', '2024-08-28'],
-    imageUrl: images['candidate-4'].src,
-    cvUrl: '#',
-    bio: 'Engaging science teacher who loves sparking curiosity through hands-on experiments and real-world examples.',
-  },
-  {
-    id: '5',
-    name: 'Priya Sharma',
-    role: 'English Teacher',
-    rate: 500,
-    rateType: 'daily',
-    rating: 4.9,
-    reviews: 28,
-    location: 'Bristol, UK',
-    qualifications: ['MA in English Lit', 'TEFL Certified', 'PGCE', 'TESOL'],
-    availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
-    imageUrl: images['candidate-5'].src,
-    cvUrl: '#',
-    bio: 'A literature enthusiast committed to developing strong reading and writing skills in her students.',
-  },
-  {
-    id: '6',
-    name: 'Liam O\'Connell',
-    role: 'PE Teacher',
-    rate: 40,
-    rateType: 'hourly',
-    rating: 4.8,
-    reviews: 15,
-    location: 'Glasgow, UK',
-    qualifications: ['BSc Sports Science', 'First Aid', 'QTS'],
-    availability: ['2024-08-20', '2024-08-21', '2024-08-27', '2024-08-28'],
-    imageUrl: 'https://picsum.photos/seed/106/100/100',
-    cvUrl: '#',
-    bio: 'Dynamic and motivational PE teacher with a focus on promoting teamwork and healthy lifestyles.',
-  },
-  {
-    id: '7',
-    name: 'Chloe Dubois',
-    role: 'Music Teacher',
-    rate: 48,
-    rateType: 'hourly',
-    rating: 4.9,
-    reviews: 22,
-    location: 'Edinburgh, UK',
-    qualifications: ['BMus (Hons)', 'Grade 8 Piano', 'Grade 8 Violin'],
-    availability: ['2024-08-22', '2024-08-23', '2024-08-29'],
-    imageUrl: 'https://picsum.photos/seed/107/100/100',
-    cvUrl: '#',
-    bio: 'Creative music teacher with experience in leading choirs, orchestras, and classroom music lessons.',
-  },
-  {
-    id: '8',
-    name: 'Ben Carter',
-    role: 'IT Technician',
-    rate: 35,
-    rateType: 'hourly',
-    rating: 4.7,
-    reviews: 19,
-    location: 'London, UK',
-    qualifications: ['CompTIA A+', 'Network+', 'DBS Cleared'],
-    availability: ['2024-08-19', '2024-08-20', '2024-08-21'],
-    imageUrl: 'https://picsum.photos/seed/108/100/100',
-    cvUrl: '#',
-    bio: 'Reliable and skilled IT Technician with experience in maintaining school networks and providing technical support.',
-  },
-  {
-    id: '9',
-    name: 'Sofia Reyes',
-    role: 'Spanish Teacher',
-    rate: 52,
-    rateType: 'hourly',
-    rating: 5.0,
-    reviews: 25,
-    location: 'Cardiff, UK',
-    qualifications: ['BA in Hispanic Studies', 'PGCE', 'DELE C2', 'TESOL'],
-    availability: ['2024-08-26', '2024-08-27', '2024-08-28'],
-    imageUrl: 'https://picsum.photos/seed/109/100/100',
-    cvUrl: '#',
-    bio: 'Native Spanish speaker and passionate teacher focused on immersive and communicative language learning.',
-  },
-  {
-    id: '10',
-    name: 'David Chen',
-    role: 'Physics Teacher',
-    rate: 60,
-    rateType: 'hourly',
-    rating: 4.8,
-    reviews: 17,
-    location: 'Manchester, UK',
-    qualifications: ['PhD in Physics', 'QTS', 'IOP Member'],
-    availability: ['2024-08-22', '2024-08-23', '2024-08-29', '2024-08-30'],
-    imageUrl: 'https://picsum.photos/seed/110/100/100',
-    cvUrl: '#',
-    bio: 'Theoretical physicist turned educator, adept at making complex physics principles accessible and exciting.',
-  },
+    // Other mock candidates can remain for reference or for features not yet connected.
 ];
 
-export const mockClientBookings: Booking[] = [
-  { id: 'b1', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2024-07-15', status: 'Completed' },
-  { id: 'b2', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-07-18', status: 'Completed' },
-  { id: 'b3', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-08-26', status: 'Confirmed' },
-  { id: 'b5', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2024-08-28', status: 'Interview' },
-  { id: 'b6', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-07-22', status: 'Completed' },
-  { id: 'b7', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2024-08-12', status: 'Confirmed' },
-  { id: 'b8', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-08-15', status: 'Confirmed' },
-  { id: 'b9', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-08-21', status: 'Interview' },
-  { id: 'b10', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-08-05', status: 'Completed' },
-  { id: 'b11', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2024-08-01', status: 'Completed' },
-  { id: 'b12', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2024-09-02', status: 'Confirmed' },
-  { id: 'b13', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2024-09-05', status: 'Interview' },
-  { id: 'b14', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2024-09-09', status: 'Confirmed' },
-  { id: 'b15', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-07-29', status: 'Completed' },
-  // 2025 Data
-  { id: 'b16', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2025-01-20', status: 'Confirmed' },
-  { id: 'b17', candidateName: 'James Peterson', candidateRole: 'Science Teacher', date: '2025-01-22', status: 'Interview' },
-  { id: 'b18', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2025-02-10', status: 'Confirmed' },
-  { id: 'b19', candidateName: 'Priya Sharma', candidateRole: 'English Teacher', date: '2025-02-14', status: 'Completed' },
-  { id: 'b20', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2025-11-03', status: 'Completed' },
-  { id: 'b21', candidateName: 'Eleanor Vance', candidateRole: 'History Teacher', date: '2025-11-10', status: 'Confirmed' },
-  { id: 'b22', candidateName: 'Marcus Thorne', candidateRole: 'Math Teacher', date: '2025-11-17', status: 'Interview' },
-];
+export const mockClientBookings: Booking[] = [];
+export const mockCandidateBookings: Booking[] = [];
 
-export const mockCandidateBookings: Booking[] = [
-  { id: 'b3', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-08-26', status: 'Confirmed' },
-  { id: 'b4', candidateName: 'Isabella Rossi', candidateRole: 'Teaching Assistant', date: '2024-07-20', status: 'Completed' },
-];
 
 export const mockTimesheets: Timesheet[] = [
     {id: 't1', bookingId: 'b4', candidateName: 'Isabella Rossi', date: '2024-07-20', hours: 8, status: 'Approved' },
@@ -220,116 +76,12 @@ export const mockJobs: Job[] = [
         status: 'Active',
         location: 'Manchester, UK',
     },
-    {
-        id: 'job-3',
-        title: 'Urgent: Substitute Maths Teacher',
-        description: 'Required for immediate start for a two-week cover. Must be qualified to teach GCSE level.',
-        datePosted: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Closed',
-        location: 'Birmingham, UK',
-        subject: 'Mathematics'
-    },
-    {
-        id: 'job-4',
-        title: 'Lead Science Coordinator',
-        description: 'We are looking for a Lead Science Coordinator to oversee the science department and curriculum development.',
-        datePosted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        location: 'London, UK',
-        subject: 'Science'
-    },
-    {
-        id: 'job-5',
-        title: 'Part-Time Art Teacher',
-        description: 'A creative and inspiring art teacher for our after-school program. 2 days a week.',
-        datePosted: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        location: 'Bristol, UK',
-        subject: 'Art'
-    },
-    {
-        id: 'job-6',
-        title: 'Head of English Department',
-        description: 'A leadership role for an experienced English teacher to manage the department and mentor staff.',
-        datePosted: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Closed',
-        location: 'Leeds, UK',
-        subject: 'English'
-    },
-    {
-        id: 'job-7',
-        title: 'Full-Time PE Teacher',
-        description: 'Enthusiastic PE teacher wanted for a secondary school. Must be able to coach football and athletics.',
-        datePosted: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        location: 'Glasgow, UK',
-        subject: 'Physical Education'
-    },
-    {
-        id: 'job-8',
-        title: 'School IT Support Technician',
-        description: 'Entry-level IT support role. Responsibilities include hardware, software, and network troubleshooting.',
-        datePosted: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        location: 'London, UK',
-    },
-     {
-        id: 'job-9',
-        title: 'TESOL Teacher',
-        description: 'Experienced TESOL teacher required for a group of international students. Full-time for 6 weeks.',
-        datePosted: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        location: 'Online / Remote',
-        subject: 'TESOL',
-    },
 ];
 
 export const mockApplications: Application[] = [
     // Job 1: Senior History Teacher
     { id: 'app-1', jobId: 'job-1', candidateId: '1', status: 'Interview', dateApplied: '2024-08-16T10:00:00Z' },
     { id: 'app-2', jobId: 'job-1', candidateId: '5', status: 'Applied', dateApplied: '2024-08-17T11:00:00Z' },
-    { id: 'app-3', jobId: 'job-1', candidateId: '4', status: 'Shortlisted', dateApplied: '2024-08-16T14:00:00Z' },
-    { id: 'app-7', jobId: 'job-1', candidateId: '2', status: 'Applied', dateApplied: '2024-08-18T09:00:00Z' },
-
-
-    // Job 2: Primary School Teaching Assistant
-    { id: 'app-4', jobId: 'job-2', candidateId: '3', status: 'Offer', dateApplied: '2024-08-11T09:00:00Z' },
-    { id: 'app-5', jobId: 'job-2', candidateId: '2', status: 'Applied', dateApplied: '2024-08-12T15:00:00Z' },
-    { id: 'app-8', jobId: 'job-2', candidateId: '1', status: 'Applied', dateApplied: '2024-08-13T16:00:00Z' },
-    { id: 'app-9', jobId: 'job-2', candidateId: '5', status: 'Shortlisted', dateApplied: '2024-08-12T18:00:00Z' },
-    { id: 'app-10', jobId: 'job-2', candidateId: '4', status: 'Interview', dateApplied: '2024-08-14T11:00:00Z' },
-
-
-    // Job 3: Substitute Maths Teacher
-    { id: 'app-6', jobId: 'job-3', candidateId: '2', status: 'Hired', dateApplied: '2024-08-02T09:30:00Z' },
-
-    // Job 4: Lead Science Coordinator
-    { id: 'app-11', jobId: 'job-4', candidateId: '4', status: 'Interview', dateApplied: '2024-08-21T10:00:00Z' },
-    { id: 'app-12', jobId: 'job-4', candidateId: '2', status: 'Shortlisted', dateApplied: '2024-08-21T11:00:00Z' },
-    { id: 'app-13', jobId: 'job-4', candidateId: '1', status: 'Applied', dateApplied: '2024-08-22T14:00:00Z' },
-    { id: 'app-18', jobId: 'job-4', candidateId: '10', status: 'Interview', dateApplied: '2024-08-22T10:00:00Z' },
-
-
-    // Job 5: Part-Time Art Teacher
-    { id: 'app-14', jobId: 'job-5', candidateId: '5', status: 'Shortlisted', dateApplied: '2024-08-19T09:00:00Z' },
-    { id: 'app-15', jobId: 'job-5', candidateId: '3', status: 'Applied', dateApplied: '2024-08-19T13:00:00Z' },
-
-    // Job 6: Head of English Department
-    { id: 'app-16', jobId: 'job-6', candidateId: '5', status: 'Hired', dateApplied: '2024-07-28T10:00:00Z' },
-    { id: 'app-17', jobId: 'job-6', candidateId: '1', status: 'Interview', dateApplied: '2024-07-26T15:00:00Z' },
-
-    // Job 7: Full-Time PE Teacher
-    { id: 'app-19', jobId: 'job-7', candidateId: '6', status: 'Interview', dateApplied: '2024-08-20T11:00:00Z' },
-    { id: 'app-20', jobId: 'job-7', candidateId: '2', status: 'Applied', dateApplied: '2024-08-21T12:00:00Z' },
-
-    // Job 8: School IT Support Technician
-    { id: 'app-21', jobId: 'job-8', candidateId: '8', status: 'Shortlisted', dateApplied: '2024-08-22T13:00:00Z' },
-    { id: 'app-22', jobId: 'job-8', candidateId: '3', status: 'Applied', dateApplied: '2024-08-23T14:00:00Z' },
-
-    // Job 9: TESOL Teacher
-    { id: 'app-23', jobId: 'job-9', candidateId: '5', status: 'Interview', dateApplied: '2024-08-22T15:00:00Z' },
-    { id: 'app-24', jobId: 'job-9', candidateId: '9', status: 'Shortlisted', dateApplied: '2024-08-23T10:00:00Z' },
-    { id: 'app-25', jobId: 'job-9', candidateId: '1', status: 'Applied', dateApplied: '2024-08-23T11:00:00Z' },
 ];
 
 export const mockClientReviews: ClientReview[] = [
@@ -349,56 +101,16 @@ export const mockClientReviews: ClientReview[] = [
         rating: 4,
         reviewText: "Marcus provided solid cover for our Year 10 Maths class. He has a strong command of the subject matter and managed the classroom effectively. While his approach is more traditional, he ensured the curriculum was covered thoroughly. A reliable and knowledgeable teacher."
     },
-    {
-        id: 'cr3',
-        bookingId: 'b6',
-        candidateName: 'Priya Sharma',
-        date: '2024-07-25T09:15:00Z',
-        rating: 5,
-        reviewText: "Priya was a wonderful addition to our English department for a short-term project. Her creativity and passion for literature shone through in her teaching. She was excellent at encouraging students to think critically about texts and express their own ideas. We would be delighted to have her back."
-    }
 ];
 
 const now = new Date();
 const today = now.toISOString();
 const yesterday = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString();
 const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
-const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
-const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString();
-const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString();
-const aWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString();
-
 
 export const mockAuditLogs: AuditLog[] = [
-    // Job 1
-    { id: 'log-1', jobId: 'job-1', date: aWeekAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Senior History Teacher.' },
-    { id: 'log-2', jobId: 'job-1', date: fiveDaysAgo, action: 'Job Edited', user: 'Jane Doe (Admin)', details: 'Updated job description to include A-Level requirement.' },
-    { id: 'log-10', jobId: 'job-1', date: threeDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Priya Sharma moved to Shortlisted' },
-    { id: 'log-11', jobId: 'job-1', date: twoDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Eleanor Vance moved to Interview' },
-
-    // Job 2
-    { id: 'log-3', jobId: 'job-2', date: tenDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Primary School Teaching Assistant.' },
-    { id: 'log-8', jobId: 'job-2', date: aWeekAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Shortlisted' },
-    { id: 'log-9', jobId: 'job-2', date: fiveDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Interview' },
-    { id: 'log-12', jobId: 'job-2', date: yesterday, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Isabella Rossi moved to Offer' },
-    
-    // Job 4
-    { id: 'log-13', jobId: 'job-4', date: twoDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Lead Science Coordinator.' },
-    { id: 'log-14', jobId: 'job-4', date: today, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'James Peterson moved to Shortlisted.' },
-    { id: 'log-18', jobId: 'job-4', date: yesterday, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'David Chen moved to Interview' },
-
-
-    // Job 5
-    { id: 'log-15', jobId: 'job-5', date: fourDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Part-Time Art Teacher.'},
-
-    // Job 3
-    { id: 'log-4', jobId: 'job-3', date: '2024-08-01T09:00:00Z', action: 'Job Created', user: 'Jane Doe (Admin)' },
-    { id: 'log-5', jobId: 'job-3', date: '2024-08-05T17:00:00Z', action: 'Status Changed', user: 'Jane Doe (Admin)', details: 'Job status changed from Active to Closed.' },
-
-    // Job 7
-    { id: 'log-16', jobId: 'job-7', date: fiveDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Full-Time PE Teacher.' },
-    { id: 'log-17', jobId: 'job-7', date: threeDaysAgo, action: 'Applicant Status Changed', user: 'Jane Doe (Admin)', details: 'Liam O\'Connell moved to Interview.' },
+    { id: 'log-1', jobId: 'job-1', date: twoDaysAgo, action: 'Job Created', user: 'Jane Doe (Admin)', details: 'Initial posting for Senior History Teacher.' },
+    { id: 'log-2', jobId: 'job-1', date: yesterday, action: 'Job Edited', user: 'Jane Doe (Admin)', details: 'Updated job description to include A-Level requirement.' },
 ];
 
 export const mockTeamMembers: TeamMember[] = [
@@ -406,4 +118,3 @@ export const mockTeamMembers: TeamMember[] = [
   { id: 'tm-2', name: 'David Lee', email: 'david.lee@oakwoodprimary.org.uk', role: 'Member', avatarUrl: 'https://picsum.photos/seed/202/100/100' },
   { id: 'tm-3', name: 'Laura Brown', email: 'laura.brown@oakwoodprimary.org.uk', role: 'Member', avatarUrl: 'https://picsum.photos/seed/203/100/100' },
 ];
-    

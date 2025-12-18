@@ -1,23 +1,35 @@
 
 'use client';
 import Link from 'next/link';
-import { useMemo } from 'react';
-import { mockClientBookings } from '@/lib/mock-data';
-import { CalendarCheck2, Calendar, Briefcase, FilePlus2, Users } from 'lucide-react';
+import { useMemo, useEffect, useState } from 'react';
+import { fetchBookings } from '@/lib/data-service';
+import type { Booking } from '@/lib/types';
+import { CalendarCheck2, Calendar, Briefcase, FilePlus2, Users, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { format, parseISO } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from './ui/chart';
-import { cn } from '@/lib/utils';
 
 export default function ClientDashboard() {
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadBookings() {
+            setIsLoading(true);
+            const fetchedBookings = await fetchBookings();
+            setBookings(fetchedBookings);
+            setIsLoading(false);
+        }
+        loadBookings();
+    }, []);
     
-    const confirmedBooking = mockClientBookings.find(b => b.status === 'Confirmed');
+    const confirmedBooking = useMemo(() => bookings.find(b => b.status === 'Confirmed'), [bookings]);
 
     const monthlyBookingsChartData = useMemo(() => {
         const counts: {[key: string]: number} = {};
-        mockClientBookings.forEach(booking => {
+        bookings.forEach(booking => {
             const date = parseISO(booking.date);
             const month = format(date, 'MMM');
             counts[month] = (counts[month] || 0) + 1;
@@ -29,7 +41,7 @@ export default function ClientDashboard() {
             month,
             bookings: counts[month] || 0,
         })).filter(d => d.bookings > 0);
-    }, []);
+    }, [bookings]);
 
     const monthlyChartConfig = {
         bookings: {
@@ -45,7 +57,7 @@ export default function ClientDashboard() {
             Interview: 0,
         };
 
-        mockClientBookings.forEach(booking => {
+        bookings.forEach(booking => {
             if (counts.hasOwnProperty(booking.status)) {
                 counts[booking.status]++;
             }
@@ -56,7 +68,7 @@ export default function ClientDashboard() {
             value: counts[status],
             fill: `hsl(var(--chart-${index + 1}))`,
         }));
-    }, []);
+    }, [bookings]);
 
     const statusChartConfig = {
         value: {
@@ -76,6 +88,13 @@ export default function ClientDashboard() {
         },
     } satisfies ChartConfig;
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
 
     return (
       <div className="flex flex-col gap-8">

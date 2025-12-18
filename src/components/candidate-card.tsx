@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, Calendar as CalendarIcon, PoundSterling, BookOpenText } from 'lucide-react';
+import { Star, MapPin, User, BookUser, PoundSterling, BookOpenText } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,9 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { mockClientBookings } from '@/lib/mock-data';
 import { BookingCalendar } from './booking-calendar';
-
+import { createBooking } from '@/lib/data-service';
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -33,13 +32,24 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
 
-  const handleBooking = () => {
-    const bookedDates = dates?.map(date => format(date, "PPP")).join(', ') || 'your selected dates';
-    toast({
-        title: "Booking Request Sent!",
-        description: `Your request to book ${candidate.name} for ${bookedDates} has been sent.`,
-    });
-    setBookingDialogOpen(false);
+  const handleBooking = async () => {
+    if (!dates || dates.length === 0) return;
+
+    const result = await createBooking({ candidateId: candidate.id, dates, role: candidate.role });
+
+    if (result.success) {
+        toast({
+            title: "Booking Request Sent!",
+            description: `Your request to book ${candidate.name} has been sent.`,
+        });
+        setBookingDialogOpen(false);
+    } else {
+         toast({
+            title: "Booking Failed",
+            description: "Could not create the booking. The candidate may not be available on the selected dates.",
+            variant: "destructive",
+        });
+    }
   }
 
   return (
@@ -63,19 +73,19 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         <div className="space-y-3 text-sm">
             <div className="flex items-start gap-2 text-muted-foreground">
                 <BookOpenText className="h-4 w-4 mt-1 flex-shrink-0" />
-                <p className="italic">{candidate.bio}</p>
+                <p className="italic line-clamp-2">{candidate.bio}</p>
             </div>
              <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>{candidate.location}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-                {candidate.qualifications.map(q => (
+                {candidate.qualifications.slice(0, 3).map(q => (
                     <Badge key={q} variant="secondary">{q}</Badge>
                 ))}
             </div>
-            <p className="text-lg font-semibold text-primary flex items-center">
-                <PoundSterling className="h-5 w-5 -ml-1" />{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
+             <p className="text-lg font-semibold text-primary flex items-center">
+                £{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
             </p>
         </div>
       </CardContent>
@@ -101,9 +111,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                     mode="multiple"
                     selected={dates}
                     onSelect={setDates}
-                    className="rounded-md border"
                     candidate={candidate}
-                    allBookings={mockClientBookings}
                 />
             </div>
              <DialogFooter className="sm:justify-end gap-2">

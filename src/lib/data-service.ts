@@ -1,7 +1,7 @@
 
-import type { Candidate } from './types';
+import type { Candidate, Booking } from './types';
 
-const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates';
+const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open';
 
 const detailTypeMap: Record<string, string> = {
     'KS1': 'Key Stage 1',
@@ -59,7 +59,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
 
 export async function fetchCandidates(): Promise<Candidate[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}?with_key_stages_only=1&with_key_stages=1&per_page=20`, {
+        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages_only=1&with_key_stages=1&per_page=20`, {
             next: { revalidate: 3600 } 
         });
 
@@ -79,15 +79,148 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
-        // In a real API, you would fetch a single candidate by ID.
-        // Here, we fetch all and find the one, which is inefficient but works for this mock setup.
-        const candidates = await fetchCandidates();
-        const candidate = candidates.find(c => c.id === id);
+        const response = await fetch(`${API_BASE_URL}/candidates/${id}?with_key_stages_only=1&with_key_stages=1`, {
+             next: { revalidate: 3600 } 
+        });
 
-        return candidate || null;
-
+        if (!response.ok) {
+            throw new Error(`Failed to fetch candidate with id ${id}: ${response.statusText}`);
+        }
+        
+        const jsonResponse = await response.json();
+        if (jsonResponse.data) {
+            return transformCandidateData(jsonResponse.data);
+        }
+        return null;
     } catch (error) {
         console.error(`Error fetching candidate with id ${id}:`, error);
         return null;
+    }
+}
+
+export async function fetchCandidateAvailabilities(candidateId: string): Promise<any[]> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}/availabilities`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch availabilities for candidate ${candidateId}`);
+        }
+        const jsonResponse = await response.json();
+        return jsonResponse.data || [];
+    } catch (error) {
+        console.error(`Error fetching candidate availabilities for ${candidateId}:`, error);
+        return [];
+    }
+}
+
+
+export async function fetchBookings(): Promise<Booking[]> {
+    try {
+        // NOTE: The API for schedulers/bookings wasn't specified, so I'm using the candidates endpoint as a placeholder.
+        // This should be updated to point to the correct schedulers/bookings endpoint.
+        const response = await fetch(`${API_BASE_URL}/schedulers`, {
+             cache: 'no-store'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch bookings: ${response.statusText}`);
+        }
+
+        const jsonResponse = await response.json();
+        
+        // Enrich booking data with candidate details if needed
+        const candidates = await fetchCandidates();
+        const candidateMap = new Map(candidates.map(c => [c.id, c]));
+
+        const bookings: Booking[] = jsonResponse.data.map((booking: any) => {
+            const candidate = candidateMap.get(booking.candidate_id?.toString());
+            return {
+                id: booking.id.toString(),
+                candidateId: booking.candidate_id?.toString(),
+                candidateName: candidate?.name || 'Unknown Candidate',
+                candidateRole: candidate?.role || 'Unknown Role',
+                date: booking.start_date, // Using start_date for the main date
+                startDate: booking.start_date,
+                endDate: booking.end_date,
+                status: booking.status, // Assuming status is a direct mapping
+            };
+        });
+
+        return bookings;
+
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        return [];
+    }
+}
+
+export async function createBooking({ candidateId, dates, role }: { candidateId: string; dates: Date[]; role: string; }): Promise<{success: boolean; bookings?: Booking[]}> {
+    const companyId = '118008'; // Hardcoded as per instructions
+    
+    try {
+        const responses = await Promise.all(dates.map(date => {
+            const bookingData = {
+                candidate_id: parseInt(candidateId),
+                company_id: parseInt(companyId),
+                start_date: date.toISOString().split('T')[0],
+                end_date: date.toISOString().split('T')[0],
+                booking_type: 'Day', // Assuming 'Day' as default
+                status: 'Confirmed'
+            };
+            
+            return fetch(`${API_BASE_URL}/schedulers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(bookingData)
+            });
+        }));
+
+        const results = await Promise.all(responses.map(res => res.json()));
+
+        const failed = results.some(res => !res.data || res.errors);
+        if (failed) {
+            results.forEach(res => {
+                if(res.errors) console.error("Booking creation failed:", res.errors);
+            });
+            throw new Error('One or more bookings failed to be created.');
+        }
+
+        const newBookings = results.map(res => {
+             return {
+                id: res.data.id.toString(),
+                candidateId: res.data.candidate_id?.toString(),
+                candidateName: '', // This would need to be fetched or passed
+                candidateRole: role,
+                date: res.data.start_date,
+                startDate: res.data.start_date,
+                endDate: res.data.end_date,
+                status: res.data.status,
+            };
+        });
+
+        return { success: true, bookings: newBookings };
+
+    } catch (error) {
+        console.error("Error creating booking:", error);
+        return { success: false };
+    }
+}
+
+export async function cancelBooking(bookingId: string): Promise<{success: boolean}> {
+     try {
+        const response = await fetch(`${API_BASE_URL}/schedulers/${bookingId}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to cancel booking: ${response.statusText}`);
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error("Error canceling booking:", error);
+        return { success: false };
     }
 }
