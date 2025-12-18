@@ -1,3 +1,4 @@
+
 # Staffable - Candidate & Booking Management Platform
 
 This is a [Next.js](https://nextjs.org/) application built with Firebase Studio. It serves as a platform to connect educational institutions (Clients) with qualified teaching staff (Candidates).
@@ -51,7 +52,10 @@ The application fetches candidate data from an external Open API endpoint. This 
 
 - **`fetchCandidates()`**: This is the primary function for getting a list of all candidates. It fetches data from the API and transforms it into the `Candidate` type defined in `src/lib/types.ts`.
 - **`fetchCandidateById()`**: This function retrieves a single candidate by their ID.
-- **Data Transformation**: The API response has a different structure than the one used internally. The `transformCandidateData` function maps the fields from the API (e.g., `first_name`, `last_name`, `details`) to the application's `Candidate` type (e.g., `name`, `qualifications`).
+- **Data Transformation**: The API response has a different structure than the one used internally. The `transformCandidateData` function maps the fields from the API to the application's `Candidate` type. For example:
+    - The candidate's `role` is derived from `apiCandidate.candidate_type.name`.
+    - `first_name` and `last_name` are combined into `name`.
+    - The `details` array from the API is mapped to the `qualifications` array in the app.
 
 This approach decouples the application from the specific structure of the external API, making it easier to manage changes in the future.
 

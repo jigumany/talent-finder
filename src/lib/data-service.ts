@@ -7,9 +7,8 @@ const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates'
 const transformCandidateData = (apiCandidate: any): Candidate => {
     const qualifications = apiCandidate.details?.map((detail: any) => detail.detail_type_value) || [];
     
-    // Attempt to find a job title from the details, otherwise use a default
-    const roleDetail = apiCandidate.details?.find((d: any) => d.detail_type === 'Job Title');
-    const role = roleDetail ? roleDetail.detail_type_value : 'Educator';
+    // Use the new candidate_type.name or job_title.name if available
+    const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
 
     return {
         id: apiCandidate.id.toString(),
