@@ -157,8 +157,8 @@ interface CreateBookingParams {
     candidateId: string;
     dates: Date[];
     role: string;
-    bookingType: 'Day' | 'Hourly';
-    session: 'AllDay' | 'AM' | 'PM';
+    bookingType?: 'Day' | 'Hourly';
+    session?: 'AllDay' | 'AM' | 'PM';
 }
 
 export async function createBooking({ candidateId, dates, role, bookingType, session }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
@@ -166,9 +166,6 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
     
     try {
         const responses = await Promise.all(dates.map(date => {
-            // Note: The API does not seem to support AM/PM sessions directly.
-            // We are passing 'Day' as the booking_type.
-            // In a real scenario, you might need to send start/end times if the API supported it.
             const bookingData = {
                 candidate_id: parseInt(candidateId),
                 company_id: parseInt(companyId),
@@ -190,15 +187,19 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
 
         const results = await Promise.all(responses.map(res => res.json()));
 
-        const failed = results.some(res => !res.data || res.errors);
-        if (failed) {
-            results.forEach(res => {
-                if(res.errors) console.error("Booking creation failed:", res.errors);
+        const failedBookings = results.filter(res => res.errors);
+        if (failedBookings.length > 0) {
+            failedBookings.forEach(res => {
+                console.error("Booking creation failed:", res.errors);
             });
-            throw new Error('One or more bookings failed to be created.');
+            // If any booking fails, we'll consider the whole operation a failure for now.
+            // A more advanced implementation might return partial success.
+            return { success: false };
         }
+        
+        const successfulResults = results.filter(res => res.data);
 
-        const newBookings = results.map(res => {
+        const newBookings = successfulResults.map(res => {
              return {
                 id: res.data.id.toString(),
                 candidateId: res.data.candidate_id?.toString(),
@@ -211,7 +212,7 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
             };
         });
 
-        return { success: true, bookings: newBookings };
+        return { success: newBookings.length > 0, bookings: newBookings };
 
     } catch (error) {
         console.error("Error creating booking:", error);
