@@ -33,12 +33,18 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
 
     const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
 
+    // Ensure rateType is either 'hourly' or 'daily'
+    let rateType: 'hourly' | 'daily' = 'daily'; // Default to daily
+    if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
+        rateType = apiCandidate.pay_type.toLowerCase();
+    }
+    
     return {
         id: apiCandidate.id.toString(),
         name: `${apiCandidate.first_name} ${apiCandidate.last_name}`,
         role: role,
-        rate: Math.floor(Math.random() * (60 - 25 + 1)) + 25,
-        rateType: Math.random() > 0.5 ? 'hourly' : 'daily',
+        rate: apiCandidate.pay_rate || 0, // Use pay_rate from API or default to 0
+        rateType: rateType,
         rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
         reviews: Math.floor(Math.random() * 30),
         location: apiCandidate.location?.city || 'Location not specified',
