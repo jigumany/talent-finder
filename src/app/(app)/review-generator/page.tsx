@@ -25,6 +25,9 @@ function ReviewGeneratorContent() {
     
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isReviewDialogOpen, setReviewDialogOpen] = useState(false);
+    
+    // State to track reviews submitted during the session
+    const [sessionReviewedBookingIds, setSessionReviewedBookingIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         async function getBookings() {
@@ -43,12 +46,16 @@ function ReviewGeneratorContent() {
     }, [searchParams]);
 
     const completedBookings = useMemo(() => {
-        return bookings.filter(b => b.status === 'Completed');
+        return bookings.filter(b => b.status === 'Completed' || b.status.startsWith('Finished'));
     }, [bookings]);
-
+    
+    // Combine mock reviews with session reviews
     const reviewedBookingIds = useMemo(() => {
-        return new Set(mockClientReviews.map(r => r.bookingId));
-    }, []);
+        const initialIds = new Set(mockClientReviews.map(r => r.bookingId));
+        sessionReviewedBookingIds.forEach(id => initialIds.add(id));
+        return initialIds;
+    }, [sessionReviewedBookingIds]);
+
 
     const pendingReviews = useMemo(() => {
         return completedBookings
@@ -64,6 +71,11 @@ function ReviewGeneratorContent() {
         setSelectedBooking(booking);
         setReviewDialogOpen(true);
     };
+
+    const handleReviewSubmitted = (bookingId: string) => {
+        setSessionReviewedBookingIds(prev => new Set(prev).add(bookingId));
+        setReviewDialogOpen(false);
+    }
 
     if (role !== 'client') {
         return (
@@ -171,7 +183,8 @@ function ReviewGeneratorContent() {
                     <div className="pt-4">
                          <ReviewGeneratorForm 
                             candidateName={selectedBooking?.candidateName}
-                            onReviewSubmitted={() => setReviewDialogOpen(false)}
+                            bookingId={selectedBooking?.id}
+                            onReviewSubmitted={handleReviewSubmitted}
                          />
                     </div>
                 </DialogContent>

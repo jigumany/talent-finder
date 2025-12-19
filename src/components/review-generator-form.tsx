@@ -30,10 +30,11 @@ type ReviewFormValues = z.infer<typeof reviewFormSchema>;
 
 interface ReviewGeneratorFormProps {
     candidateName?: string;
-    onReviewSubmitted?: () => void;
+    bookingId?: string;
+    onReviewSubmitted?: (bookingId: string) => void;
 }
 
-export function ReviewGeneratorForm({ candidateName, onReviewSubmitted }: ReviewGeneratorFormProps) {
+export function ReviewGeneratorForm({ candidateName, bookingId, onReviewSubmitted }: ReviewGeneratorFormProps) {
   const [isPending, startTransition] = useTransition();
   const [generatedReview, setGeneratedReview] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
@@ -87,8 +88,8 @@ export function ReviewGeneratorForm({ candidateName, onReviewSubmitted }: Review
       title: 'Review Submitted!',
       description: 'Your feedback has been recorded.',
     });
-    if (onReviewSubmitted) {
-      onReviewSubmitted();
+    if (onReviewSubmitted && bookingId) {
+      onReviewSubmitted(bookingId);
     }
   };
 
