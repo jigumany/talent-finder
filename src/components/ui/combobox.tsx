@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Input } from "./input"
 
 export type ComboboxOption = {
   value: string
@@ -41,29 +42,52 @@ export function Combobox({
   emptyMessage = "No option found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [query, setQuery] = React.useState('');
+
+  const selectedLabel = React.useMemo(() => {
+    return options.find((option) => option.value === value)?.label || '';
+  }, [value, options]);
+
+  React.useEffect(() => {
+    setQuery(selectedLabel);
+  }, [selectedLabel]);
+
+  const filteredOptions = React.useMemo(() => {
+    if (!query || query === selectedLabel) {
+      return options;
+    }
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [query, options, selectedLabel]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <div className="relative">
+        <PopoverTrigger asChild>
+          <Input
+            placeholder={placeholder}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (!open) setOpen(true);
+            }}
+            onClick={() => setOpen(true)}
+            role="combobox"
+            aria-expanded={open}
+            className="w-full"
+          />
+        </PopoverTrigger>
+        <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 opacity-50" />
+      </div>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Search..." />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            {filteredOptions.length === 0 && (
+              <CommandEmpty>{emptyMessage}</CommandEmpty>
+            )}
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}

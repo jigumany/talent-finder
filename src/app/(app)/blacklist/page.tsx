@@ -31,7 +31,6 @@ export default function BlacklistPage() {
     const [blacklist, setBlacklist] = useState<BlacklistedCandidate[]>([]);
     const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
     const [reason, setReason] = useState('');
@@ -175,7 +174,7 @@ export default function BlacklistPage() {
                                     options={candidateOptions}
                                     value={selectedCandidateId}
                                     onValueChange={setSelectedCandidateId}
-                                    placeholder="Select a candidate..."
+                                    placeholder="Search for a candidate..."
                                     emptyMessage="No candidate found."
                                 />
                             </div>
