@@ -39,14 +39,14 @@ function LogItem({ log, isLast }: { log: AuditLog, isLast: boolean }) {
     <div className="flex gap-4 relative">
       <div className="flex flex-col items-center">
         <div className={cn("rounded-full bg-muted border p-2", 
-          log.action.includes('Changed') && 'bg-blue-50 border-blue-200',
-          log.action.includes('Created') && 'bg-green-50 border-green-200',
-          log.action.includes('Edited') && 'bg-amber-50 border-amber-200',
+          log.action.includes('Changed') && 'bg-blue-100 dark:bg-blue-900/50 border-blue-200 dark:border-blue-800',
+          log.action.includes('Created') && 'bg-green-100 dark:bg-green-900/50 border-green-200 dark:border-green-800',
+          log.action.includes('Edited') && 'bg-amber-100 dark:bg-amber-900/50 border-amber-200 dark:border-amber-800',
         )}>
           <Icon className={cn("h-5 w-5", 
-             log.action.includes('Changed') && 'text-blue-600',
-             log.action.includes('Created') && 'text-green-600',
-             log.action.includes('Edited') && 'text-amber-600',
+             log.action.includes('Changed') && 'text-blue-600 dark:text-blue-400',
+             log.action.includes('Created') && 'text-green-600 dark:text-green-400',
+             log.action.includes('Edited') && 'text-amber-600 dark:text-amber-400',
              !log.action.includes('Changed') && !log.action.includes('Created') && !log.action.includes('Edited') && 'text-muted-foreground'
           )} />
         </div>

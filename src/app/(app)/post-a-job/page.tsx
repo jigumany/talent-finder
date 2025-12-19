@@ -162,8 +162,8 @@ function JobCard({ job, onManageClick }: JobCardProps) {
                     <CardTitle className="text-xl font-bold font-headline">{job.title}</CardTitle>
                     <div className="flex items-center gap-2">
                         <Badge variant={job.status === 'Active' ? 'default' : 'secondary'} className={cn(
-                            job.status === 'Active' && 'bg-green-600',
-                            job.status === 'Paused' && 'bg-amber-500',
+                            job.status === 'Active' && 'bg-green-600 text-white',
+                            job.status === 'Paused' && 'bg-amber-500 text-white',
                         )}>
                             {job.status}
                         </Badge>
