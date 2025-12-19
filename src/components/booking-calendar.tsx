@@ -2,11 +2,9 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { DayPicker, type DayPickerProps } from 'react-day-picker';
-import { isSameDay, format, parseISO, isWithinInterval, startOfDay } from 'date-fns';
+import type { DayPickerProps } from 'react-day-picker';
+import { isWithinInterval, startOfDay, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { buttonVariants } from './ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { fetchCandidateAvailabilities } from '@/lib/data-service';
 import { Calendar } from './ui/calendar';

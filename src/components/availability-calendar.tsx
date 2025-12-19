@@ -2,13 +2,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { DayPicker } from 'react-day-picker';
 import { isSameDay, format, parseISO } from 'date-fns';
 import { mockClientBookings } from '@/lib/mock-data';
-import type { Candidate, Booking } from '@/lib/types';
+import type { Candidate } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { buttonVariants } from './ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Calendar } from './ui/calendar';
 
 const interviewDays: Date[] = mockClientBookings.filter(b => b.status === 'Interview').map(b => parseISO(b.date));
@@ -57,7 +54,7 @@ export function AvailabilityCalendar({ candidate }: { candidate?: Candidate }) {
         <div className="flex flex-col items-center">
              <Calendar
                 mode="single"
-                className="w-full rounded-md border"
+                className="rounded-md border"
                 components={{
                     DayContent: (props) => <DayWithIndicator date={props.date} modifiers={modifiers} />,
                 }}

@@ -1,19 +1,15 @@
 
 'use client';
 
-import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { isSameDay, format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { Booking } from '@/lib/types';
-import { buttonVariants } from './ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Calendar } from './ui/calendar';
 
 function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] }) {
   const dayBookings = bookings.filter(booking => isSameDay(parseISO(booking.date), date));
   
-  // This logic now supports multiple bookings on the same day by prioritizing the status for display
   const getIndicatorClass = () => {
     if (dayBookings.some(b => b.status === 'Confirmed')) return 'bg-primary';
     if (dayBookings.some(b => b.status === 'Interview')) return 'bg-purple-500';
@@ -56,7 +52,6 @@ export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChan
                 onSelect={onSelect}
                 month={month}
                 onMonthChange={onMonthChange}
-                className="p-3"
                 components={{
                     DayContent: (props) => <DayWithIndicator date={props.date} bookings={bookings} />,
                 }}
