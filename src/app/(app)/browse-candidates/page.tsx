@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useTransition } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
@@ -176,7 +176,7 @@ export default function BrowseCandidatesPage() {
     const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
     const [candidateAvailabilities, setCandidateAvailabilities] = useState<Record<string, any[]>>({});
     const [isLoading, setIsLoading] = useState(true);
-    const [isFiltering, setIsFiltering] = useState(false);
+    const [isFiltering, startFiltering] = useTransition();
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -194,21 +194,34 @@ export default function BrowseCandidatesPage() {
             const candidates = await fetchCandidates();
             setAllCandidates(candidates);
             setIsLoading(false);
-
-            // Fetch all availabilities in the background
-            const availabilities: Record<string, any[]> = {};
-            await Promise.all(candidates.map(async (c) => {
-                availabilities[c.id] = await fetchCandidateAvailabilities(c.id);
-            }));
-            setCandidateAvailabilities(availabilities);
         }
         loadCandidates();
     }, []);
 
+    useEffect(() => {
+        // Fetch availabilities only when a date range is selected
+        if (dateRange?.from && allCandidates.length > 0) {
+            startFiltering(async () => {
+                const availabilitiesToFetch = allCandidates
+                    .filter(c => !candidateAvailabilities[c.id])
+                    .map(c => c.id);
+
+                if (availabilitiesToFetch.length === 0) return;
+
+                const newAvailabilities: Record<string, any[]> = {};
+                await Promise.all(
+                    availabilitiesToFetch.map(async (id) => {
+                        newAvailabilities[id] = await fetchCandidateAvailabilities(id);
+                    })
+                );
+                setCandidateAvailabilities(prev => ({ ...prev, ...newAvailabilities }));
+            });
+        }
+    }, [dateRange, allCandidates, candidateAvailabilities]);
+
     const allRoles = useMemo(() => [...new Set(allCandidates.map(c => c.role))], [allCandidates]);
 
     const filteredCandidates = useMemo(() => {
-        setIsFiltering(true);
         const lowercasedTerm = searchTerm.toLowerCase();
         const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
         const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
@@ -245,27 +258,30 @@ export default function BrowseCandidatesPage() {
                 return false;
             }
 
-            if (dateRange?.from && dateRange?.to) {
-                const availabilities = candidateAvailabilities[candidate.id] || [];
-                const unavailableIntervals = availabilities
-                    .filter((a: any) => a.status === 'Unavailable' && a.start_date && a.end_date)
-                    .map((a: any) => ({
-                        from: startOfDay(parseISO(a.start_date)),
-                        to: startOfDay(parseISO(a.end_date))
-                    }));
-                
-                for (let d = new Date(dateRange.from); d <= dateRange.to; d.setDate(d.getDate() + 1)) {
-                    const dayIsUnavailable = unavailableIntervals.some(interval => isWithinInterval(d, interval));
-                    if (dayIsUnavailable) {
-                        return false; // Candidate is not available for the whole range
-                    }
+            if (dateRange?.from) { // Check availability only if a date range is set
+                const availabilities = candidateAvailabilities[candidate.id];
+                if (!availabilities) { // If availabilities are not loaded yet, assume available
+                    return true;
+                }
+                const start = startOfDay(dateRange.from);
+                const end = dateRange.to ? startOfDay(dateRange.to) : start;
+
+                const isUnavailable = availabilities.some((a: any) => {
+                    if (a.status !== 'Unavailable' || !a.start_date || !a.end_date) return false;
+                    const unavailableStart = startOfDay(parseISO(a.start_date));
+                    const unavailableEnd = startOfDay(parseISO(a.end_date));
+                    // Check for overlap between the desired range and the unavailable interval
+                    return start <= unavailableEnd && end >= unavailableStart;
+                });
+
+                if (isUnavailable) {
+                    return false;
                 }
             }
 
             return true;
         });
         
-        setIsFiltering(false);
         return filtered;
 
     }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates, dateRange, candidateAvailabilities]);
@@ -294,7 +310,7 @@ export default function BrowseCandidatesPage() {
         <div className="grid md:grid-cols-[280px_1fr] gap-8">
             <aside className="hidden md:block">
                 <div className="sticky top-20">
-                    <h2 className="text-lg font-semibold mb-4 px-4">Filters</h2>
+                    <h2 className="text-lg font-semibold mb-4">Filters</h2>
                     {isLoading ? <p>Loading filters...</p> : <Filters {...filterProps} />}
                 </div>
             </aside>

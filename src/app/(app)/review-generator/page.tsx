@@ -7,13 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Lock, PenSquare, Star, Clock, Inbox } from "lucide-react";
 import { mockClientReviews, mockClientBookings, mockCandidates } from "@/lib/mock-data";
-import { Separator } from "@/components/ui/separator";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import type { Booking, Candidate } from '@/lib/types';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import type { Booking } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
@@ -59,9 +58,6 @@ export default function ReviewGeneratorPage() {
             </div>
         )
     }
-
-    const selectedCandidateForForm = selectedBooking ? mockCandidates.find(c => c.name === selectedBooking.candidateName) : undefined;
-
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">

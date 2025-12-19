@@ -4,12 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, MapPin, Search } from "lucide-react";
 import { PostJobForm } from "@/components/post-job-form";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { mockJobs, mockApplications, mockAuditLogs, mockCandidates, mockClientBookings } from '@/lib/mock-data';
+import { mockJobs, mockApplications, mockAuditLogs, mockCandidates } from '@/lib/mock-data';
 import type { Job, AuditLog, Application, Candidate, ApplicationStatus, Booking } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -19,15 +18,12 @@ import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ActivityLog } from '@/components/activity-log';
 import { JobDetails } from '@/components/job-details';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { CandidateCard } from '@/components/candidate-card';
 import {
   Select,
   SelectContent,
@@ -35,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { postJobAction } from '@/app/(app)/actions';
 
 
 interface ApplicantTableProps {
@@ -206,7 +203,6 @@ export default function PostAJobPage() {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [isEditingJob, setIsEditingJob] = useState(false);
     const [activeTab, setActiveTab] = useState('applicants');
-    const isMobile = useIsMobile();
 
     const [isAddCandidateDialogOpen, setIsAddCandidateDialogOpen] = useState(false);
 

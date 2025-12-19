@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { postJobAction } from '@/app/(app)/post-a-job/actions';
+import { postJobAction } from '@/app/(app)/actions';
 import { Sparkles, Briefcase, Book, ListChecks, Pencil, Loader2, PoundSterling, MapPin, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Job } from '@/lib/types';
