@@ -90,13 +90,14 @@ export default function DiaryPage() {
                                Click on a date to see the bookings for that day.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0 md:p-1 flex justify-center">
+                        <CardContent className="flex justify-center">
                             <DiaryCalendar 
                                 bookings={bookings}
                                 selected={selectedDate}
                                 onSelect={setSelectedDate}
                                 month={displayedMonth}
                                 onMonthChange={handleMonthChange}
+                                className="rounded-md border"
                             />
                         </CardContent>
                     </Card>

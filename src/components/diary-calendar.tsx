@@ -1,22 +1,15 @@
 
 'use client';
 
-import { DayPicker } from 'react-day-picker';
-import { isSameDay, format, parseISO } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { isSameDay, parseISO } from 'date-fns';
 import type { Booking } from '@/lib/types';
-import { Calendar } from './ui/calendar';
+import { Calendar, type CalendarProps } from './ui/calendar';
 
-
-interface DiaryCalendarProps {
+interface DiaryCalendarProps extends CalendarProps {
     bookings: Booking[];
-    selected: Date | undefined;
-    onSelect: (date: Date | undefined) => void;
-    month: Date;
-    onMonthChange: (date: Date) => void;
 }
 
-export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChange }: DiaryCalendarProps) {
+export function DiaryCalendar({ bookings, ...props }: DiaryCalendarProps) {
     
     const modifiers = {
         booked: (date: Date) => bookings.some(b => isSameDay(parseISO(b.date), date) && b.status === 'Confirmed'),
@@ -27,17 +20,13 @@ export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChan
     return (
         <div className="flex flex-col items-center">
             <Calendar
-                mode="single"
-                selected={selected}
-                onSelect={onSelect}
-                month={month}
-                onMonthChange={onMonthChange}
                 modifiers={modifiers}
                 modifiersClassNames={{
                     booked: 'bg-primary/20 dark:bg-primary/30 text-primary',
                     completed: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300',
                     interview: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300',
                 }}
+                {...props}
             />
             <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
