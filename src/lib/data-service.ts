@@ -1,5 +1,6 @@
 
 import type { Candidate, Booking } from './types';
+import { format } from 'date-fns';
 
 const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open';
 
@@ -142,6 +143,7 @@ export async function fetchBookings(): Promise<Booking[]> {
                 startDate: booking.start_date,
                 endDate: booking.end_date,
                 status: booking.status, // Assuming status is a direct mapping
+                confirmationStatus: booking.confirmation_status,
             };
         });
 
@@ -164,55 +166,56 @@ interface CreateBookingParams {
 export async function createBooking({ candidateId, dates, role, bookingType, session }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
     const companyId = '118008'; // Hardcoded as per instructions
     
+    if (!dates || dates.length === 0) {
+        return { success: false };
+    }
+
+    // Sort dates to easily find min and max
+    const sortedDates = dates.sort((a, b) => a.getTime() - b.getTime());
+    const startDate = sortedDates[0];
+    const endDate = sortedDates[sortedDates.length - 1];
+
+    const bookingData = {
+        candidate_id: parseInt(candidateId),
+        company_id: parseInt(companyId),
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+        booking_type: bookingType,
+        status: 'Pencilled',
+        confirmation_status: 'Pending',
+        createdby: 'MyTalent Support',
+    };
+    
     try {
-        const responses = await Promise.all(dates.map(date => {
-            const bookingData = {
-                candidate_id: parseInt(candidateId),
-                company_id: parseInt(companyId),
-                start_date: date.toISOString().split('T')[0],
-                end_date: date.toISOString().split('T')[0],
-                booking_type: bookingType,
-                status: 'Confirmed'
-            };
-            
-            return fetch(`${API_BASE_URL}/schedulers`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(bookingData)
-            });
-        }));
+        const response = await fetch(`${API_BASE_URL}/schedulers`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(bookingData)
+        });
 
-        const results = await Promise.all(responses.map(res => res.json()));
+        const result = await response.json();
 
-        const failedBookings = results.filter(res => res.errors);
-        if (failedBookings.length > 0) {
-            failedBookings.forEach(res => {
-                console.error("Booking creation failed:", res.errors);
-            });
-            // If any booking fails, we'll consider the whole operation a failure for now.
-            // A more advanced implementation might return partial success.
+        if (!response.ok || result.errors) {
+            console.error("Booking creation failed:", result.errors);
             return { success: false };
         }
         
-        const successfulResults = results.filter(res => res.data);
+        const newBooking = {
+           id: result.data.id.toString(),
+           candidateId: result.data.candidate_id?.toString(),
+           candidateName: '', // This would need to be fetched or passed
+           candidateRole: role,
+           date: result.data.start_date,
+           startDate: result.data.start_date,
+           endDate: result.data.end_date,
+           status: result.data.status,
+           confirmationStatus: result.data.confirmation_status,
+       };
 
-        const newBookings = successfulResults.map(res => {
-             return {
-                id: res.data.id.toString(),
-                candidateId: res.data.candidate_id?.toString(),
-                candidateName: '', // This would need to be fetched or passed
-                candidateRole: role,
-                date: res.data.start_date,
-                startDate: res.data.start_date,
-                endDate: res.data.end_date,
-                status: res.data.status,
-            };
-        });
-
-        return { success: newBookings.length > 0, bookings: newBookings };
+        return { success: true, bookings: [newBooking] };
 
     } catch (error) {
         console.error("Error creating booking:", error);

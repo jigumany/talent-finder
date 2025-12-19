@@ -24,7 +24,9 @@ export type Candidate = {
   bio: string;
 };
 
-export type BookingStatus = 'Confirmed' | 'Completed' | 'Pending' | 'Interview' | 'Hired' | 'Rejected' | 'Cancelled';
+export type BookingStatus = 'Confirmed' | 'Completed' | 'Pending' | 'Interview' | 'Hired' | 'Rejected' | 'Cancelled' | 'Pencilled';
+export type ConfirmationStatus = 'Pending' | 'Confirmed' | 'Declined';
+
 
 export type Booking = {
   id: string;
@@ -35,6 +37,7 @@ export type Booking = {
   startDate: string; // as ISO date string
   endDate: string; // as ISO date string
   status: BookingStatus;
+  confirmationStatus?: ConfirmationStatus;
 };
 
 export type Timesheet = {

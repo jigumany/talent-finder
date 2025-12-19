@@ -36,8 +36,9 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
             <TableHeader>
                 <TableRow>
                     <TableHead>Candidate</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Dates</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Confirmation</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                 </TableRow>
             </TableHeader>
@@ -48,7 +49,7 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
                             <div>{booking.candidateName}</div>
                             <div className="text-sm text-muted-foreground">{booking.candidateRole}</div>
                         </TableCell>
-                        <TableCell>{format(new Date(booking.date), "PPP")}</TableCell>
+                        <TableCell>{format(new Date(booking.startDate), "PPP")} - {format(new Date(booking.endDate), "PPP")}</TableCell>
                         <TableCell>
                             <Badge
                                 variant={
@@ -60,11 +61,30 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
                                     'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected' || booking.status === 'Cancelled',
-                                    'bg-purple-600 text-purple-50': booking.status === 'Interview'
+                                    'bg-purple-600 text-purple-50': booking.status === 'Interview',
+                                    'bg-amber-500 text-amber-50': booking.status === 'Pencilled'
                                 })}
                             >
                                 {booking.status}
                             </Badge>
+                        </TableCell>
+                         <TableCell>
+                            {booking.confirmationStatus && (
+                                <Badge
+                                    variant={
+                                        booking.confirmationStatus === 'Confirmed' ? 'default' :
+                                        booking.confirmationStatus === 'Declined' ? 'destructive' :
+                                        'secondary'
+                                    }
+                                     className={cn({
+                                        'bg-green-600 text-white': booking.confirmationStatus === 'Confirmed',
+                                        'bg-destructive text-destructive-foreground': booking.confirmationStatus === 'Declined',
+                                        'bg-yellow-500 text-yellow-50': booking.confirmationStatus === 'Pending',
+                                    })}
+                                >
+                                    {booking.confirmationStatus}
+                                </Badge>
+                            )}
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                             {isFuture(parseISO(booking.date)) && booking.status === 'Confirmed' && (
