@@ -28,7 +28,6 @@ interface BlacklistedCandidate {
 export default function BlacklistPage() {
     const { role } = useRole();
     const { toast } = useToast();
-    const [isClient, setIsClient] = useState(role === 'client');
     const [blacklist, setBlacklist] = useState<BlacklistedCandidate[]>([]);
     const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +35,19 @@ export default function BlacklistPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
     const [reason, setReason] = useState('');
+    
+    // Moved hooks before any conditional returns to fix hook order violation
+    const availableCandidates = useMemo(() => 
+        allCandidates.filter(c => !blacklist.some(bl => bl.candidate.id === c.id)),
+        [allCandidates, blacklist]
+    );
+    
+    const candidateOptions = useMemo(() => {
+        return availableCandidates.map(c => ({
+            value: c.id,
+            label: `${c.name} - ${c.role}`
+        }));
+    }, [availableCandidates]);
 
     useEffect(() => {
         async function loadData() {
@@ -115,7 +127,7 @@ export default function BlacklistPage() {
         }
     };
 
-    if (!isClient) {
+    if (role !== 'client') {
         return (
             <div className="flex items-center justify-center h-full">
                 <Alert className="max-w-md">
@@ -134,15 +146,6 @@ export default function BlacklistPage() {
             </div>
         );
     }
-
-    const availableCandidates = allCandidates.filter(c => !blacklist.some(bl => bl.candidate.id === c.id));
-    
-    const candidateOptions = useMemo(() => {
-        return availableCandidates.map(c => ({
-            value: c.id,
-            label: `${c.name} - ${c.role}`
-        }));
-    }, [availableCandidates]);
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
