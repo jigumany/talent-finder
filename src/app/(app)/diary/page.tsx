@@ -90,7 +90,7 @@ export default function DiaryPage() {
                                Click on a date to see the bookings for that day.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-2 md:p-6">
+                        <CardContent className="p-0 md:p-1">
                             <DiaryCalendar 
                                 bookings={bookings}
                                 selected={selectedDate}

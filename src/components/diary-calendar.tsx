@@ -56,7 +56,7 @@ export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChan
                 onSelect={onSelect}
                 month={month}
                 onMonthChange={onMonthChange}
-                className="w-full"
+                className="p-3"
                 components={{
                     DayContent: (props) => <DayWithIndicator date={props.date} bookings={bookings} />,
                 }}
