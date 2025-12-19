@@ -1,4 +1,5 @@
 
+
 export type Review = {
   reviewerName: string;
   rating: number;
@@ -38,6 +39,8 @@ export type Booking = {
   endDate: string; // as ISO date string
   status: BookingStatus;
   confirmationStatus?: ConfirmationStatus;
+  bookingType?: 'Day' | 'Hourly';
+  session?: 'AllDay' | 'AM' | 'PM';
 };
 
 export type Timesheet = {

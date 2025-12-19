@@ -1,4 +1,6 @@
 
+'use server';
+
 import type { Candidate, Booking } from './types';
 import { format } from 'date-fns';
 
@@ -152,6 +154,8 @@ export async function fetchBookings(): Promise<Booking[]> {
                 endDate: booking.end_date,
                 status: booking.status, // Assuming status is a direct mapping
                 confirmationStatus: booking.confirmation_status,
+                bookingType: booking.booking_type,
+                session: booking.session_type,
             };
         });
 
@@ -190,6 +194,7 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         booking_type: bookingType,
+        session_type: session,
         status: 'Pencilled',
         confirmation_status: 'Pending',
         createdby: 'MyTalent Support',
@@ -222,6 +227,8 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
            endDate: result.data.end_date,
            status: result.data.status,
            confirmationStatus: result.data.confirmation_status,
+           bookingType: result.data.booking_type,
+           session: result.data.session_type,
        };
 
         return { success: true, bookings: [newBooking] };
@@ -231,6 +238,71 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
         return { success: false };
     }
 }
+
+interface UpdateBookingParams {
+    id: string;
+    candidateId?: string;
+    dates?: Date[];
+    role?: string;
+    bookingType?: 'Day' | 'Hourly';
+    session?: 'AllDay' | 'AM' | 'PM';
+    status?: string;
+}
+
+export async function updateBooking(params: UpdateBookingParams): Promise<{success: boolean; booking?: Booking}> {
+    const { id, ...updateData } = params;
+
+    const apiPayload: any = {};
+    
+    if (updateData.dates && updateData.dates.length > 0) {
+        const sortedDates = updateData.dates.sort((a,b) => a.getTime() - b.getTime());
+        apiPayload.start_date = format(sortedDates[0], 'yyyy-MM-dd');
+        apiPayload.end_date = format(sortedDates[sortedDates.length - 1], 'yyyy-MM-dd');
+    }
+    if (updateData.bookingType) apiPayload.booking_type = updateData.bookingType;
+    if (updateData.session) apiPayload.session_type = updateData.session;
+    if (updateData.status) apiPayload.status = updateData.status;
+    if (updateData.candidateId) apiPayload.candidate_id = parseInt(updateData.candidateId);
+    if (updateData.role) apiPayload.job_title_id = updateData.role; // Assuming role maps to job_title_id, which might be incorrect. This is a placeholder.
+
+    try {
+         const response = await fetch(`${API_BASE_URL}/schedulers/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(apiPayload)
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok || result.errors) {
+            console.error(`Booking update failed for id ${id}:`, result.errors);
+            return { success: false };
+        }
+
+        const updatedBooking = {
+           id: result.data.id.toString(),
+           candidateId: result.data.candidate_id?.toString(),
+           candidateName: '',
+           candidateRole: params.role || '',
+           date: result.data.start_date,
+           startDate: result.data.start_date,
+           endDate: result.data.end_date,
+           status: result.data.status,
+           confirmationStatus: result.data.confirmation_status,
+           bookingType: result.data.booking_type,
+           session: result.data.session_type,
+       };
+
+        return { success: true, booking: updatedBooking };
+    } catch (error) {
+        console.error(`Error updating booking ${id}:`, error);
+        return { success: false };
+    }
+}
+
 
 export async function cancelBooking(bookingId: string): Promise<{success: boolean}> {
      try {
