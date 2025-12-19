@@ -22,6 +22,9 @@ import { Combobox } from "@/components/ui/combobox";
 import { BookingCalendar } from "@/components/booking-calendar";
 import { fetchBookings, createBooking, cancelBooking, fetchCandidates, updateBooking } from "@/lib/data-service";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+
+const BOOKINGS_PER_PAGE = 8;
 
 function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleBooking }: { bookings: Booking[], onCancelBooking: (id: string) => void, onEditBooking: (booking: Booking) => void, onRescheduleBooking: (booking: Booking) => void }) {
 
@@ -161,6 +164,11 @@ export default function BookingsPage() {
     const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
     const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
 
+    // State for pagination
+    const [upcomingCurrentPage, setUpcomingCurrentPage] = useState(1);
+    const [completedCurrentPage, setCompletedCurrentPage] = useState(1);
+    const [activeTab, setActiveTab] = useState('upcoming');
+
     useEffect(() => {
         async function loadData() {
             setIsLoading(true);
@@ -199,6 +207,24 @@ export default function BookingsPage() {
 
     const upcomingBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Confirmed' && isFuture(parseISO(b.date))), [sortedBookings]);
     const completedBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Completed' || isPast(parseISO(b.date))), [sortedBookings]);
+
+    // Pagination Logic
+    const upcomingTotalPages = Math.ceil(upcomingBookings.length / BOOKINGS_PER_PAGE);
+    const completedTotalPages = Math.ceil(completedBookings.length / BOOKINGS_PER_PAGE);
+
+    const paginatedUpcomingBookings = useMemo(() => {
+        const startIndex = (upcomingCurrentPage - 1) * BOOKINGS_PER_PAGE;
+        return upcomingBookings.slice(startIndex, startIndex + BOOKINGS_PER_PAGE);
+    }, [upcomingBookings, upcomingCurrentPage]);
+
+    const paginatedCompletedBookings = useMemo(() => {
+        const startIndex = (completedCurrentPage - 1) * BOOKINGS_PER_PAGE;
+        return completedBookings.slice(startIndex, startIndex + BOOKINGS_PER_PAGE);
+    }, [completedBookings, completedCurrentPage]);
+
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab);
+    }
     
     const handleCancelBooking = async (bookingId: string) => {
         const result = await cancelBooking(bookingId);
@@ -343,6 +369,27 @@ export default function BookingsPage() {
         )
     }
 
+    const renderPagination = (totalPages: number, currentPage: number, setCurrentPage: (page: number) => void) => {
+        if (totalPages <= 1) return null;
+        return (
+             <Pagination className="mt-6">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious href="#" onClick={(e) => {e.preventDefault(); setCurrentPage(Math.max(1, currentPage - 1))}} className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined}/>
+                    </PaginationItem>
+                    {[...Array(totalPages)].map((_, i) => (
+                         <PaginationItem key={i}>
+                            <PaginationLink href="#" onClick={(e) => {e.preventDefault(); setCurrentPage(i + 1)}} isActive={currentPage === i + 1}>{i + 1}</PaginationLink>
+                        </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                        <PaginationNext href="#" onClick={(e) => {e.preventDefault(); setCurrentPage(Math.min(totalPages, currentPage + 1))}} className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined}/>
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        )
+    }
+
     return (
         <>
             <div className="max-w-4xl mx-auto space-y-6">
@@ -446,7 +493,7 @@ export default function BookingsPage() {
                 
                 
                 <Card>
-                    <Tabs defaultValue="upcoming">
+                    <Tabs defaultValue="upcoming" value={activeTab} onValueChange={handleTabChange}>
                         <CardHeader>
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="upcoming">
@@ -461,10 +508,12 @@ export default function BookingsPage() {
                         </CardHeader>
                         <CardContent>
                             <TabsContent value="upcoming">
-                                <BookingsTable bookings={upcomingBookings} {...tableProps} />
+                                <BookingsTable bookings={paginatedUpcomingBookings} {...tableProps} />
+                                {renderPagination(upcomingTotalPages, upcomingCurrentPage, setUpcomingCurrentPage)}
                             </TabsContent>
                             <TabsContent value="completed">
-                                <BookingsTable bookings={completedBookings} {...tableProps} />
+                                <BookingsTable bookings={paginatedCompletedBookings} {...tableProps} />
+                                {renderPagination(completedTotalPages, completedCurrentPage, setCompletedCurrentPage)}
                             </TabsContent>
                         </CardContent>
                     </Tabs>
