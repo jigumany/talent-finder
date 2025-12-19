@@ -41,7 +41,6 @@ export function Combobox({
   emptyMessage = "No option found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const selectedLabel = options.find((option) => option.value === value)?.label
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,7 +51,9 @@ export function Combobox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {selectedLabel ? selectedLabel : placeholder}
+          {value
+            ? options.find((option) => option.value === value)?.label
+            : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -65,7 +66,7 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label} // Set value to label for searchability
+                  value={option.label}
                   onSelect={() => {
                     onValueChange(option.value === value ? "" : option.value)
                     setOpen(false)
