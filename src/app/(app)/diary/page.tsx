@@ -8,8 +8,8 @@ import { isSameDay, format, parseISO } from "date-fns";
 import type { Booking } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2, Loader2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2, Loader2, CalendarPlus, ArrowRightLeft } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -140,14 +140,30 @@ export default function DiaryPage() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                           {(booking.status === 'Confirmed' || booking.status === 'Interview') && (
-                                                            <DropdownMenuItem className="text-destructive" onClick={() => setBookingToCancel(booking)}>
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                Cancel
-                                                            </DropdownMenuItem>
+                                                            <>
+                                                                <DropdownMenuItem onClick={() => toast({ title: 'Reschedule Clicked', description: 'This would open a rescheduling modal.'})}>
+                                                                    <CalendarPlus className="mr-2 h-4 w-4" />
+                                                                    Reschedule
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem onClick={() => toast({ title: 'Extend Clicked', description: 'This would open a booking extension form.'})}>
+                                                                    <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                                                    Extend
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem className="text-destructive" onClick={() => setBookingToCancel(booking)}>
+                                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                                    Cancel
+                                                                </DropdownMenuItem>
+                                                            </>
                                                          )}
                                                           {booking.status === 'Completed' && (
                                                              <DropdownMenuItem disabled>
                                                                 No actions available
+                                                            </DropdownMenuItem>
+                                                          )}
+                                                          {booking.status === 'Cancelled' && (
+                                                             <DropdownMenuItem disabled>
+                                                                Booking Cancelled
                                                             </DropdownMenuItem>
                                                           )}
                                                     </DropdownMenuContent>
