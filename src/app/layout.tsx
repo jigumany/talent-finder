@@ -2,7 +2,6 @@
 import type { Metadata } from 'next';
 import { PT_Sans } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
-import { TourProvider } from '@/context/tour-context';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { FirebaseClientProvider } from '@/firebase';
@@ -35,9 +34,7 @@ export default function RootLayout({
               enableSystem={false}
               disableTransitionOnChange
             >
-              <TourProvider>
-                {children}
-              </TourProvider>
+              {children}
             </ThemeProvider>
             <Toaster />
         </FirebaseClientProvider>
