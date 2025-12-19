@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, PoundSterling, BookOpenText } from 'lucide-react';
+import { Star, MapPin, User, BookUser, PoundSterling, BookOpenText, UserPlus } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -97,7 +97,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         </Button>
          <Dialog open={isBookingDialogOpen} onOpenChange={setBookingDialogOpen}>
           <DialogTrigger asChild>
-            <Button><BookUser className="mr-2"/>Book Now</Button>
+            <Button><UserPlus className="mr-2 h-4 w-4"/>Book Now</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
