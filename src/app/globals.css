@@ -2,6 +2,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'react-day-picker/dist/style.css';
 
 @layer base {
   :root {
@@ -30,14 +31,17 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 262.1 83.3% 57.8%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 262.1 83.3% 57.8%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5.9% 90%;
-    --sidebar-ring: 262.1 83.3% 57.8%;
+
+    /* React Day Picker Customization */
+    --rdp-cell-size: 40px;
+    --rdp-caption-font-size: 18px;
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-accent-color-dark: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--card));
+    --rdp-background-color-dark: hsl(var(--card));
+    --rdp-outline: 2px solid var(--rdp-accent-color);
+    --rdp-outline-selected: 2px solid var(--rdp-accent-color);
+    --rdp-selected-color: hsl(var(--primary-foreground));
   }
 
   .dark {
@@ -65,14 +69,13 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 262.1 83.3% 57.8%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 262.1 83.3% 57.8%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.9% 83.9%;
+
+    /* React Day Picker Customization */
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-accent-color-dark: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--card));
+    --rdp-background-color-dark: hsl(var(--card));
+    --rdp-selected-color: hsl(var(--primary-foreground));
   }
 }
 
@@ -83,10 +86,46 @@
   body {
     @apply bg-background text-foreground;
   }
-}
 
-@layer components {
-    .badge-yellow {
-        @apply bg-yellow-500 text-yellow-950 border-transparent hover:bg-yellow-500/80;
-    }
+  .rdp {
+    --rdp-caption-font-size: 1rem;
+    --rdp-cell-size: 2.5rem;
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-background-color: transparent;
+  }
+
+  .rdp-day_selected,
+  .rdp-day_selected:focus-visible,
+  .rdp-day_selected:hover {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 50%;
+  }
+
+  .rdp-day_today {
+    font-weight: bold;
+    color: hsl(var(--primary));
+    background-color: transparent;
+  }
+
+  .rdp-day_today:not(.rdp-day_selected) {
+    background-color: transparent;
+    border: 1px solid hsl(var(--primary));
+    border-radius: 50%;
+  }
+
+  .rdp-button:hover:not(.rdp-day_selected) {
+    background-color: hsl(var(--muted));
+    border-radius: 50%;
+  }
+
+  .rdp-button:focus-visible:not([disabled]) {
+    border-radius: 50%;
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  .rdp-nav_button {
+      border-radius: 50%;
+  }
 }
