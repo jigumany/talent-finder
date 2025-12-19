@@ -4,12 +4,13 @@
 import { isSameDay, parseISO } from 'date-fns';
 import type { Booking } from '@/lib/types';
 import { Calendar, type CalendarProps } from './ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface DiaryCalendarProps extends CalendarProps {
     bookings: Booking[];
 }
 
-export function DiaryCalendar({ bookings, ...props }: DiaryCalendarProps) {
+export function DiaryCalendar({ bookings, className, ...props }: DiaryCalendarProps) {
     
     const modifiers = {
         booked: (date: Date) => bookings.some(b => isSameDay(parseISO(b.date), date) && b.status === 'Confirmed'),
@@ -26,6 +27,7 @@ export function DiaryCalendar({ bookings, ...props }: DiaryCalendarProps) {
                     completed: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300',
                     interview: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300',
                 }}
+                className={cn("rounded-md border", className)}
                 {...props}
             />
             <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">

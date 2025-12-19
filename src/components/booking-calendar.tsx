@@ -13,7 +13,7 @@ interface BookingCalendarProps extends DayPickerProps {
     candidate?: Candidate;
 }
 
-export function BookingCalendar({ candidate, ...props }: BookingCalendarProps) {
+export function BookingCalendar({ candidate, className, ...props }: BookingCalendarProps) {
     const [unavailableIntervals, setUnavailableIntervals] = useState<{from: Date; to: Date}[]>([]);
 
     useEffect(() => {
@@ -41,7 +41,7 @@ export function BookingCalendar({ candidate, ...props }: BookingCalendarProps) {
                     (day) => isDayUnavailable(day),
                     { before: new Date() }
                 ]}
-                className={cn("rounded-md border", props.className)}
+                className={cn("rounded-md border", className)}
                 {...props}
             />
             <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
