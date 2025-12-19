@@ -16,7 +16,7 @@ import { Calendar as CalendarIcon, ClipboardEdit, Users, Star, PlusCircle, Loade
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Booking, Candidate } from "@/lib/types";
+import type { Booking, Candidate, ClientReview } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/ui/combobox";
 import { BookingCalendar } from "@/components/booking-calendar";
@@ -24,10 +24,11 @@ import { fetchBookings, createBooking, cancelBooking, fetchCandidates, updateBoo
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import Link from 'next/link';
+import { ReviewGeneratorForm } from "@/components/review-generator-form";
 
 const BOOKINGS_PER_PAGE = 8;
 
-function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleBooking }: { bookings: Booking[], onCancelBooking: (id: string) => void, onEditBooking: (booking: Booking) => void, onRescheduleBooking: (booking: Booking) => void }) {
+function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleBooking, onLeaveReview }: { bookings: Booking[], onCancelBooking: (id: string) => void, onEditBooking: (booking: Booking) => void, onRescheduleBooking: (booking: Booking) => void, onLeaveReview: (booking: Booking) => void }) {
 
     if (bookings.length === 0) {
         return (
@@ -137,11 +138,9 @@ function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleB
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
-                             {(booking.status === 'Completed' || booking.status.startsWith('Finished')) && (
-                                <Button size="sm" asChild>
-                                    <Link href={`/review-generator?bookingId=${booking.id}`}>
-                                        <Star className="mr-2 h-4 w-4" /> Leave a review
-                                    </Link>
+                             {(booking.status === 'Completed' || booking.status.startsWith('Finished')) && !booking.isReviewed && (
+                                <Button size="sm" onClick={() => onLeaveReview(booking)}>
+                                    <Star className="mr-2 h-4 w-4" /> Leave a review
                                 </Button>
                             )}
                         </TableCell>
@@ -171,6 +170,9 @@ export default function BookingsPage() {
     // State for editing and rescheduling
     const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
     const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
+
+    // State for review dialog
+    const [bookingToReview, setBookingToReview] = useState<Booking | null>(null);
 
     // State for pagination
     const [upcomingCurrentPage, setUpcomingCurrentPage] = useState(1);
@@ -358,10 +360,26 @@ export default function BookingsPage() {
         }
     };
 
+    const handleReviewSubmitted = (review: ClientReview) => {
+        if (review.bookingId) {
+            setBookings(prev => 
+                prev.map(b => 
+                    b.id === review.bookingId ? { ...b, isReviewed: true } : b
+                )
+            );
+        }
+        setBookingToReview(null);
+        toast({
+          title: 'Review Submitted!',
+          description: 'Your feedback has been recorded.',
+        });
+    };
+
     const tableProps = {
         onCancelBooking: handleCancelBooking,
         onEditBooking: (booking: Booking) => setBookingToEdit(booking),
         onRescheduleBooking: (booking: Booking) => setBookingToReschedule(booking),
+        onLeaveReview: (booking: Booking) => setBookingToReview(booking),
     };
 
     const candidateOptions = useMemo(() => allCandidates.map(c => ({
@@ -631,6 +649,25 @@ export default function BookingsPage() {
                         <Button type="button" variant="secondary" onClick={() => setBookingToReschedule(null)}>Cancel</Button>
                         <Button type="button" onClick={handleRescheduleBooking}>Confirm Reschedule</Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Review Dialog */}
+            <Dialog open={!!bookingToReview} onOpenChange={(isOpen) => !isOpen && setBookingToReview(null)}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Write a Review for {bookingToReview?.candidateName}</DialogTitle>
+                        <DialogDescription>
+                            Fill in the details below and our AI will help you draft a thoughtful and personalized review.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="pt-4">
+                         <ReviewGeneratorForm 
+                            candidateName={bookingToReview?.candidateName}
+                            bookingId={bookingToReview?.id}
+                            onReviewSubmitted={handleReviewSubmitted}
+                         />
+                    </div>
                 </DialogContent>
             </Dialog>
         </>

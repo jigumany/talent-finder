@@ -41,6 +41,7 @@ export type Booking = {
   confirmationStatus?: ConfirmationStatus;
   bookingType?: 'Day' | 'Hourly';
   session?: 'AllDay' | 'AM' | 'PM';
+  isReviewed?: boolean;
 };
 
 export type Timesheet = {
