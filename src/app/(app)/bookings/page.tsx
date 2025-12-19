@@ -59,13 +59,13 @@ function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleB
                         <TableCell>
                             <Badge
                                 variant={
-                                    booking.status === 'Hired' || booking.status === 'Completed' ? 'default' :
+                                    booking.status === 'Hired' || booking.status === 'Completed' || booking.status.startsWith('Finished') ? 'default' :
                                     booking.status === 'Rejected' || booking.status === 'Cancelled' ? 'destructive' :
                                     'secondary'
                                 }
                                 className={cn({
                                     'bg-primary text-primary-foreground': booking.status === 'Confirmed',
-                                    'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
+                                    'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired' || booking.status.startsWith('Finished'),
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected' || booking.status === 'Cancelled',
                                     'bg-purple-600 text-purple-50': booking.status === 'Interview',
                                     'bg-amber-500 text-yellow-900': booking.status === 'Pencilled'
@@ -137,7 +137,7 @@ function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleB
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
-                             {booking.status === 'Completed' && (
+                             {(booking.status === 'Completed' || booking.status.startsWith('Finished')) && (
                                 <Button size="sm" asChild>
                                     <Link href={`/review-generator?bookingId=${booking.id}`}>
                                         <Star className="mr-2 h-4 w-4" /> Leave a review
@@ -214,7 +214,7 @@ export default function BookingsPage() {
     }, [bookings]);
 
     const upcomingBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Confirmed' && isFuture(parseISO(b.date))), [sortedBookings]);
-    const completedBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Completed' || isPast(parseISO(b.date))), [sortedBookings]);
+    const completedBookings = useMemo(() => sortedBookings.filter(b => b.status === 'Completed' || b.status.startsWith('Finished') || isPast(parseISO(b.date))), [sortedBookings]);
 
     // Pagination Logic
     const upcomingTotalPages = Math.ceil(upcomingBookings.length / BOOKINGS_PER_PAGE);
