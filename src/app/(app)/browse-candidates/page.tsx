@@ -5,12 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling, Loader2 } from 'lucide-react';
+import { ListFilter, Search, PoundSterling, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { fetchCandidates } from '@/lib/data-service';
+import { fetchCandidates, fetchCandidateAvailabilities } from '@/lib/data-service';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format, isWithinInterval, parseISO, startOfDay } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
@@ -28,11 +33,13 @@ interface FiltersProps {
     setMinRate: (rate: string) => void;
     maxRate: string;
     setMaxRate: (rate: string) => void;
+    dateRange: DateRange | undefined;
+    setDateRange: (range: DateRange | undefined) => void;
 }
 
-function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate }: FiltersProps) {
+function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate, dateRange, setDateRange }: FiltersProps) {
     return (
-        <Accordion type="multiple" defaultValue={['item-1', 'item-2']} className="w-full">
+        <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']} className="w-full">
             <AccordionItem value="item-1">
                 <AccordionTrigger className="text-base">Role & Subject</AccordionTrigger>
                 <AccordionContent>
@@ -117,14 +124,59 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                     </div>
                 </AccordionContent>
             </AccordionItem>
+             <AccordionItem value="item-3">
+                <AccordionTrigger className="text-base">Availability</AccordionTrigger>
+                <AccordionContent>
+                    <div className="grid gap-2">
+                        <Label>Date Range</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id="date"
+                                    variant={"outline"}
+                                    className={cn(
+                                        "justify-start text-left font-normal",
+                                        !dateRange && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                                {format(dateRange.to, "LLL dd, y")}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, "LLL dd, y")
+                                        )
+                                    ) : (
+                                        <span>Pick a date range</span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={dateRange?.from}
+                                    selected={dateRange}
+                                    onSelect={setDateRange}
+                                    numberOfMonths={1}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
         </Accordion>
     )
 }
 
 export default function BrowseCandidatesPage() {
     const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
+    const [candidateAvailabilities, setCandidateAvailabilities] = useState<Record<string, any[]>>({});
     const [isLoading, setIsLoading] = useState(true);
-    const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
+    const [isFiltering, setIsFiltering] = useState(false);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -134,23 +186,29 @@ export default function BrowseCandidatesPage() {
     const [rateTypeFilter, setRateTypeFilter] = useState('all');
     const [minRate, setMinRate] = useState('');
     const [maxRate, setMaxRate] = useState('');
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     useEffect(() => {
         async function loadCandidates() {
             setIsLoading(true);
             const candidates = await fetchCandidates();
             setAllCandidates(candidates);
-            setFilteredCandidates(candidates);
             setIsLoading(false);
+
+            // Fetch all availabilities in the background
+            const availabilities: Record<string, any[]> = {};
+            await Promise.all(candidates.map(async (c) => {
+                availabilities[c.id] = await fetchCandidateAvailabilities(c.id);
+            }));
+            setCandidateAvailabilities(availabilities);
         }
         loadCandidates();
     }, []);
 
     const allRoles = useMemo(() => [...new Set(allCandidates.map(c => c.role))], [allCandidates]);
 
-
-    useEffect(() => {
-      try {
+    const filteredCandidates = useMemo(() => {
+        setIsFiltering(true);
         const lowercasedTerm = searchTerm.toLowerCase();
         const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
         const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
@@ -187,15 +245,30 @@ export default function BrowseCandidatesPage() {
                 return false;
             }
 
+            if (dateRange?.from && dateRange?.to) {
+                const availabilities = candidateAvailabilities[candidate.id] || [];
+                const unavailableIntervals = availabilities
+                    .filter((a: any) => a.status === 'Unavailable' && a.start_date && a.end_date)
+                    .map((a: any) => ({
+                        from: startOfDay(parseISO(a.start_date)),
+                        to: startOfDay(parseISO(a.end_date))
+                    }));
+                
+                for (let d = new Date(dateRange.from); d <= dateRange.to; d.setDate(d.getDate() + 1)) {
+                    const dayIsUnavailable = unavailableIntervals.some(interval => isWithinInterval(d, interval));
+                    if (dayIsUnavailable) {
+                        return false; // Candidate is not available for the whole range
+                    }
+                }
+            }
+
             return true;
         });
         
-        setFilteredCandidates(filtered);
-      } catch (error) {
-        console.error("Error filtering candidates:", error);
-        setFilteredCandidates([]);
-      }
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates]);
+        setIsFiltering(false);
+        return filtered;
+
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates, dateRange, candidateAvailabilities]);
     
     const filterProps = {
         role: roleFilter,
@@ -211,7 +284,11 @@ export default function BrowseCandidatesPage() {
         setMinRate,
         maxRate,
         setMaxRate,
+        dateRange,
+        setDateRange,
     };
+
+    const showLoader = isLoading || isFiltering;
 
     return (
         <div className="grid md:grid-cols-[280px_1fr] gap-8">
@@ -257,7 +334,7 @@ export default function BrowseCandidatesPage() {
                     />
                 </div>
 
-                {isLoading ? (
+                {showLoader ? (
                      <div className="flex justify-center items-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
@@ -280,3 +357,5 @@ export default function BrowseCandidatesPage() {
         </div>
     );
 }
+
+    
