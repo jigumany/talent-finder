@@ -1,29 +1,50 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ReviewGeneratorForm } from "@/components/review-generator-form";
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Lock, PenSquare, Star, Clock, Inbox } from "lucide-react";
-import { mockClientReviews, mockClientBookings, mockCandidates } from "@/lib/mock-data";
+import { mockClientReviews } from "@/lib/mock-data";
+import { fetchBookings } from '@/lib/data-service';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import type { Booking } from '@/lib/types';
+import type { Booking, Candidate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
-export default function ReviewGeneratorPage() {
+function ReviewGeneratorContent() {
     const { role } = useRole();
+    const searchParams = useSearchParams();
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isReviewDialogOpen, setReviewDialogOpen] = useState(false);
 
+    useEffect(() => {
+        async function getBookings() {
+            const fetchedBookings = await fetchBookings();
+            setBookings(fetchedBookings);
+
+            const bookingIdFromUrl = searchParams.get('bookingId');
+            if (bookingIdFromUrl) {
+                const bookingToReview = fetchedBookings.find(b => b.id === bookingIdFromUrl);
+                if (bookingToReview) {
+                    handleWriteReviewClick(bookingToReview);
+                }
+            }
+        }
+        getBookings();
+    }, [searchParams]);
+
     const completedBookings = useMemo(() => {
-        return mockClientBookings.filter(b => b.status === 'Completed');
-    }, []);
+        return bookings.filter(b => b.status === 'Completed');
+    }, [bookings]);
 
     const reviewedBookingIds = useMemo(() => {
         return new Set(mockClientReviews.map(r => r.bookingId));
@@ -33,10 +54,9 @@ export default function ReviewGeneratorPage() {
         return completedBookings
             .filter(b => !reviewedBookingIds.has(b.id))
             .map(booking => {
-                const candidate = mockCandidates.find(c => c.name === booking.candidateName);
-                return { booking, candidate };
+                // In a real app with candidates in state, we would get image here
+                return { booking, candidate: { imageUrl: `https://picsum.photos/seed/${booking.candidateId}/100/100`, name: booking.candidateName } };
             })
-            .filter(item => item.candidate);
     }, [completedBookings, reviewedBookingIds]);
 
 
@@ -159,3 +179,14 @@ export default function ReviewGeneratorPage() {
         </div>
     );
 }
+
+
+export default function ReviewGeneratorPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ReviewGeneratorContent />
+        </Suspense>
+    )
+}
+
+    

@@ -23,6 +23,7 @@ import { BookingCalendar } from "@/components/booking-calendar";
 import { fetchBookings, createBooking, cancelBooking, fetchCandidates, updateBooking } from "@/lib/data-service";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import Link from 'next/link';
 
 const BOOKINGS_PER_PAGE = 8;
 
@@ -135,6 +136,13 @@ function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleB
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>
+                            )}
+                             {booking.status === 'Completed' && (
+                                <Button size="sm" asChild>
+                                    <Link href={`/review-generator?bookingId=${booking.id}`}>
+                                        <Star className="mr-2 h-4 w-4" /> Leave a review
+                                    </Link>
+                                </Button>
                             )}
                         </TableCell>
                     </TableRow>
@@ -628,3 +636,5 @@ export default function BookingsPage() {
         </>
     );
 }
+
+    
