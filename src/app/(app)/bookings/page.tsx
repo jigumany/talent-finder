@@ -63,7 +63,7 @@ function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleB
                                     booking.status === 'Rejected' || booking.status === 'Cancelled' ? 'destructive' :
                                     'secondary'
                                 }
-                                className={cn({
+                                className={cn('whitespace-nowrap', {
                                     'bg-primary text-primary-foreground': booking.status === 'Confirmed',
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired' || booking.status.startsWith('Finished'),
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected' || booking.status === 'Cancelled',
@@ -82,7 +82,7 @@ function BookingsTable({ bookings, onCancelBooking, onEditBooking, onRescheduleB
                                         booking.confirmationStatus === 'Declined' ? 'destructive' :
                                         'secondary'
                                     }
-                                     className={cn({
+                                     className={cn('whitespace-nowrap', {
                                         'bg-green-600 text-white': booking.confirmationStatus === 'Confirmed',
                                         'bg-destructive text-destructive-foreground': booking.confirmationStatus === 'Declined',
                                         'bg-yellow-500 text-yellow-900': booking.confirmationStatus === 'Pending',
