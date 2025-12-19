@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { PT_Sans } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
@@ -14,7 +13,7 @@ const ptSans = PT_Sans({
 
 
 export const metadata: Metadata = {
-  title: 'GSL',
+  title: 'Staffable',
   description: 'Connecting schools with qualified staff, seamlessly.',
 };
 
