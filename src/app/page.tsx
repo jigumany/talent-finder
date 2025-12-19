@@ -12,13 +12,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { useTour } from '@/context/tour-context';
 import images from '@/lib/placeholder-images.json';
 
 export default function AuthPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { startTour } = useTour();
 
   const [isResetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
