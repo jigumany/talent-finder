@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRole } from '@/context/role-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -136,6 +136,13 @@ export default function BlacklistPage() {
     }
 
     const availableCandidates = allCandidates.filter(c => !blacklist.some(bl => bl.candidate.id === c.id));
+    
+    const candidateOptions = useMemo(() => {
+        return availableCandidates.map(c => ({
+            value: c.id,
+            label: `${c.name} - ${c.role}`
+        }));
+    }, [availableCandidates]);
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
@@ -161,16 +168,13 @@ export default function BlacklistPage() {
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
                                 <Label htmlFor="candidate-select">Candidate</Label>
-                                <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
-                                    <SelectTrigger id="candidate-select">
-                                        <SelectValue placeholder="Select a candidate..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableCandidates.map(c => (
-                                            <SelectItem key={c.id} value={c.id}>{c.name} - <span className="text-muted-foreground">{c.role}</span></SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Combobox
+                                    options={candidateOptions}
+                                    value={selectedCandidateId}
+                                    onValueChange={setSelectedCandidateId}
+                                    placeholder="Select a candidate..."
+                                    emptyMessage="No candidate found."
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="reason">Reason for Blacklisting</Label>
