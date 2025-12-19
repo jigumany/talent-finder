@@ -80,8 +80,8 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                 <span>{candidate.location}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-                {candidate.qualifications.slice(0, 3).map(q => (
-                    <Badge key={q} variant="secondary">{q}</Badge>
+                {candidate.qualifications.slice(0, 3).map((q, index) => (
+                    <Badge key={`${q}-${index}`} variant="secondary">{q}</Badge>
                 ))}
             </div>
              <p className="text-lg font-semibold text-primary flex items-center">
