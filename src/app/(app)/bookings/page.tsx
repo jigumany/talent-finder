@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isFuture, isPast } from "date-fns";
-import { Calendar as CalendarIcon, ClipboardEdit, Users, Star, PlusCircle, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, ClipboardEdit, Users, Star, PlusCircle, Loader2, MoreVertical, XCircle, CalendarClock, Pencil } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,8 @@ import { fetchBookings, createBooking, cancelBooking, fetchCandidates } from "@/
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onCancelBooking: (id: string) => void }) {
+    const { toast } = useToast();
+
     if (bookings.length === 0) {
         return (
             <div className="text-center text-muted-foreground py-12">
@@ -62,7 +65,7 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
                                     'bg-green-600 text-white': booking.status === 'Completed' || booking.status === 'Hired',
                                     'bg-destructive text-destructive-foreground': booking.status === 'Rejected' || booking.status === 'Cancelled',
                                     'bg-purple-600 text-purple-50': booking.status === 'Interview',
-                                    'bg-amber-500 text-amber-50': booking.status === 'Pencilled'
+                                    'bg-amber-500 text-yellow-900': booking.status === 'Pencilled'
                                 })}
                             >
                                 {booking.status}
@@ -79,7 +82,7 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
                                      className={cn({
                                         'bg-green-600 text-white': booking.confirmationStatus === 'Confirmed',
                                         'bg-destructive text-destructive-foreground': booking.confirmationStatus === 'Declined',
-                                        'bg-yellow-500 text-yellow-50': booking.confirmationStatus === 'Pending',
+                                        'bg-yellow-500 text-yellow-900': booking.confirmationStatus === 'Pending',
                                     })}
                                 >
                                     {booking.confirmationStatus}
@@ -87,6 +90,26 @@ function BookingsTable({ bookings, onCancelBooking }: { bookings: Booking[], onC
                             )}
                         </TableCell>
                         <TableCell className="text-right space-x-2">
+                             {booking.status === 'Pencilled' && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => toast({ title: "Edit Booking Clicked" })}>
+                                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => toast({ title: "Reschedule Booking Clicked" })}>
+                                            <CalendarClock className="mr-2 h-4 w-4" /> Reschedule
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive" onClick={() => onCancelBooking(booking.id)}>
+                                            <XCircle className="mr-2 h-4 w-4" /> Cancel
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
                             {isFuture(parseISO(booking.date)) && booking.status === 'Confirmed' && (
                                  <AlertDialog>
                                     <AlertDialogTrigger asChild>
