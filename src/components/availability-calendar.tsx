@@ -10,39 +10,18 @@ import { Calendar } from './ui/calendar';
 
 const interviewDays: Date[] = mockClientBookings.filter(b => b.status === 'Interview').map(b => parseISO(b.date));
 
-function DayWithIndicator({ date, modifiers }: { date: Date, modifiers: ReturnType<typeof useModifiers> }) {
-  const isAvailable = modifiers.available.some(day => isSameDay(day, date));
-  const isBooked = modifiers.booked.some(day => isSameDay(day, date));
-  const isInterview = modifiers.interview.some(day => isSameDay(day, date));
-
-  let indicatorClass = '';
-  if (isAvailable) indicatorClass = 'bg-green-500';
-  else if (isBooked) indicatorClass = 'bg-primary';
-  else if (isInterview) indicatorClass = 'bg-purple-500';
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full w-full relative">
-      <span>{format(date, "d")}</span>
-      {indicatorClass && (
-        <div
-          className={cn(
-            'h-1.5 w-1.5 rounded-full absolute bottom-1.5',
-            indicatorClass
-          )}
-        />
-      )}
-    </div>
-  );
-}
-
 function useModifiers(candidate?: Candidate) {
     const availableDays = useMemo(() => candidate?.availability.map(d => new Date(d)) ?? [], [candidate]);
     const [bookedDays] = useState<Date[]>(mockClientBookings.filter(b => b.status === 'Confirmed').map(b => new Date(b.date)));
 
+    const availableModifier = (date: Date) => availableDays.some(day => isSameDay(day, date));
+    const bookedModifier = (date: Date) => bookedDays.some(day => isSameDay(day, date));
+    const interviewModifier = (date: Date) => interviewDays.some(day => isSameDay(day, date));
+
     return {
-        available: availableDays,
-        booked: bookedDays,
-        interview: interviewDays,
+        available: availableModifier,
+        booked: bookedModifier,
+        interview: interviewModifier,
     };
 }
 
@@ -55,10 +34,11 @@ export function AvailabilityCalendar({ candidate }: { candidate?: Candidate }) {
              <Calendar
                 mode="single"
                 className="rounded-md border"
-                components={{
-                    DayContent: (props) => <DayWithIndicator date={props.date} modifiers={modifiers} />,
-                }}
+                modifiers={modifiers}
                 modifiersClassNames={{
+                    available: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300',
+                    booked: 'bg-primary/20 dark:bg-primary/30 text-primary',
+                    interview: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300',
                     today: 'font-bold text-accent-foreground bg-accent/20 rounded-md',
                 }}
             />

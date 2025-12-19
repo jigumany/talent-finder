@@ -7,32 +7,6 @@ import { cn } from '@/lib/utils';
 import type { Booking } from '@/lib/types';
 import { Calendar } from './ui/calendar';
 
-function DayWithIndicator({ date, bookings }: { date: Date, bookings: Booking[] }) {
-  const dayBookings = bookings.filter(booking => isSameDay(parseISO(booking.date), date));
-  
-  const getIndicatorClass = () => {
-    if (dayBookings.some(b => b.status === 'Confirmed')) return 'bg-primary';
-    if (dayBookings.some(b => b.status === 'Interview')) return 'bg-purple-500';
-    if (dayBookings.some(b => b.status === 'Completed')) return 'bg-green-500';
-    return '';
-  }
-
-  const indicatorClass = getIndicatorClass();
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full w-full relative">
-      <span>{format(date, "d")}</span>
-      {indicatorClass && (
-        <div
-          className={cn(
-            'h-1.5 w-1.5 rounded-full absolute bottom-1.5',
-            indicatorClass
-          )}
-        />
-      )}
-    </div>
-  );
-}
 
 interface DiaryCalendarProps {
     bookings: Booking[];
@@ -44,6 +18,12 @@ interface DiaryCalendarProps {
 
 export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChange }: DiaryCalendarProps) {
     
+    const modifiers = {
+        booked: (date: Date) => bookings.some(b => isSameDay(parseISO(b.date), date) && b.status === 'Confirmed'),
+        completed: (date: Date) => bookings.some(b => isSameDay(parseISO(b.date), date) && b.status === 'Completed'),
+        interview: (date: Date) => bookings.some(b => isSameDay(parseISO(b.date), date) && b.status === 'Interview'),
+    };
+
     return (
         <div className="flex flex-col items-center">
             <Calendar
@@ -52,8 +32,11 @@ export function DiaryCalendar({ bookings, selected, onSelect, month, onMonthChan
                 onSelect={onSelect}
                 month={month}
                 onMonthChange={onMonthChange}
-                components={{
-                    DayContent: (props) => <DayWithIndicator date={props.date} bookings={bookings} />,
+                modifiers={modifiers}
+                modifiersClassNames={{
+                    booked: 'bg-primary/20 dark:bg-primary/30 text-primary',
+                    completed: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300',
+                    interview: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300',
                 }}
             />
             <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
