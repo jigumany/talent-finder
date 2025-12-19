@@ -15,7 +15,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { fetchBookings, cancelBooking } from "@/lib/data-service";
-import { BookingCalendar } from "@/components/booking-calendar";
 
 
 export default function DiaryPage() {
@@ -90,7 +89,7 @@ export default function DiaryPage() {
                                Click on a date to see the bookings for that day.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="flex justify-center p-0 sm:p-4">
+                        <CardContent className="flex justify-center">
                             <DiaryCalendar 
                                 bookings={bookings}
                                 selected={selectedDate}
@@ -118,8 +117,8 @@ export default function DiaryPage() {
                                     <div key={booking.id} className="p-4 rounded-lg border bg-muted/50">
                                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                                             <div className="flex-1">
-                                                <p className="font-semibold text-primary flex items-center gap-2"><User className="h-4 w-4"/> {booking.candidateName}</p>
-                                                <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase className="h-4 w-4"/> {booking.candidateRole}</p>
+                                                <p className="font-semibold text-primary flex items-center gap-2"><User className="h-4 w-4"/> {booking.candidateName || 'Unknown Candidate'}</p>
+                                                <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase className="h-4 w-4"/> {booking.candidateRole || 'Unknown Role'}</p>
                                             </div>
                                              <div className="flex items-center gap-2 self-start sm:self-center">
                                                  <Badge
