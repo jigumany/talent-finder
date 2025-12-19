@@ -116,8 +116,6 @@ export async function fetchCandidateAvailabilities(candidateId: string): Promise
 
 export async function fetchBookings(): Promise<Booking[]> {
     try {
-        // NOTE: The API for schedulers/bookings wasn't specified, so I'm using the candidates endpoint as a placeholder.
-        // This should be updated to point to the correct schedulers/bookings endpoint.
         const response = await fetch(`${API_BASE_URL}/schedulers`, {
              cache: 'no-store'
         });
@@ -132,11 +130,21 @@ export async function fetchBookings(): Promise<Booking[]> {
         const candidates = await fetchCandidates();
         const candidateMap = new Map(candidates.map(c => [c.id, c]));
 
-        const bookings: Booking[] = jsonResponse.data.map((booking: any) => {
-            const candidate = candidateMap.get(booking.candidate_id?.toString());
+        const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {
+            const candidateId = booking.candidate_id?.toString();
+            let candidate = candidateId ? candidateMap.get(candidateId) : undefined;
+            
+            // If candidate is not in our initial list, fetch them directly
+            if (!candidate && candidateId) {
+                const fetchedCandidate = await fetchCandidateById(candidateId);
+                if (fetchedCandidate) {
+                    candidate = fetchedCandidate;
+                }
+            }
+
             return {
                 id: booking.id.toString(),
-                candidateId: booking.candidate_id?.toString(),
+                candidateId: candidateId,
                 candidateName: candidate?.name || 'Unknown Candidate',
                 candidateRole: candidate?.role || 'Unknown Role',
                 date: booking.start_date, // Using start_date for the main date
@@ -147,6 +155,7 @@ export async function fetchBookings(): Promise<Booking[]> {
             };
         });
 
+        const bookings = await Promise.all(bookingsPromises);
         return bookings;
 
     } catch (error) {
