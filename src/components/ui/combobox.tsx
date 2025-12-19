@@ -19,7 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Input } from "./input"
 
 export type ComboboxOption = {
   value: string
@@ -42,57 +41,33 @@ export function Combobox({
   emptyMessage = "No option found.",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [query, setQuery] = React.useState('');
-
-  const selectedLabel = React.useMemo(() => {
-    return options.find((option) => option.value === value)?.label || '';
-  }, [value, options]);
-
-  React.useEffect(() => {
-    setQuery(selectedLabel);
-  }, [selectedLabel]);
-
-  const filteredOptions = React.useMemo(() => {
-    if (!query || query === selectedLabel) {
-      return options;
-    }
-    return options.filter((option) =>
-      option.label.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query, options, selectedLabel]);
+  const selectedLabel = options.find((option) => option.value === value)?.label
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="relative">
-        <PopoverTrigger asChild>
-          <Input
-            placeholder={placeholder}
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (!open) setOpen(true);
-            }}
-            onClick={() => setOpen(true)}
-            role="combobox"
-            aria-expanded={open}
-            className="w-full"
-          />
-        </PopoverTrigger>
-        <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 opacity-50" />
-      </div>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selectedLabel ? selectedLabel : placeholder}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
+          <CommandInput placeholder="Search..." />
           <CommandList>
-            {filteredOptions.length === 0 && (
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
-            )}
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
-              {filteredOptions.map((option) => (
+              {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onValueChange(currentValue === value ? "" : currentValue)
+                  value={option.label} // Set value to label for searchability
+                  onSelect={() => {
+                    onValueChange(option.value === value ? "" : option.value)
                     setOpen(false)
                   }}
                 >
