@@ -16,7 +16,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Booking, Candidate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
+const REVIEWS_PER_PAGE = 5;
 
 function ReviewGeneratorContent() {
     const { role } = useRole();
@@ -28,6 +30,9 @@ function ReviewGeneratorContent() {
     
     // State to track reviews submitted during the session
     const [sessionReviewedBookingIds, setSessionReviewedBookingIds] = useState<Set<string>>(new Set());
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         async function getBookings() {
@@ -66,6 +71,12 @@ function ReviewGeneratorContent() {
             })
     }, [completedBookings, reviewedBookingIds]);
 
+    const totalPages = Math.ceil(pendingReviews.length / REVIEWS_PER_PAGE);
+    const paginatedPendingReviews = useMemo(() => {
+        const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
+        return pendingReviews.slice(startIndex, startIndex + REVIEWS_PER_PAGE);
+    }, [pendingReviews, currentPage]);
+
 
     const handleWriteReviewClick = (booking: Booking) => {
         setSelectedBooking(booking);
@@ -89,6 +100,27 @@ function ReviewGeneratorContent() {
                 </Alert>
             </div>
         )
+    }
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        return (
+            <Pagination className="mt-6">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(Math.max(1, currentPage - 1)) }} className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined} />
+                    </PaginationItem>
+                    {[...Array(totalPages)].map((_, i) => (
+                        <PaginationItem key={i}>
+                            <PaginationLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1) }} isActive={currentPage === i + 1}>{i + 1}</PaginationLink>
+                        </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                        <PaginationNext href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(Math.min(totalPages, currentPage + 1)) }} className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined} />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
     }
 
     return (
@@ -119,23 +151,28 @@ function ReviewGeneratorContent() {
                     </CardHeader>
                     <CardContent>
                         <TabsContent value="pending" className="space-y-4">
-                            {pendingReviews.length > 0 ? pendingReviews.map(({ booking, candidate }) => (
-                                <div key={booking.id} className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
-                                    <div className="flex items-center gap-4">
-                                        <Avatar className="h-12 w-12 border">
-                                            <AvatarImage src={candidate?.imageUrl} alt={candidate?.name} />
-                                            <AvatarFallback>{candidate?.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold">{booking.candidateName}</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                Completed on {format(new Date(booking.date), 'do MMMM, yyyy')}
-                                            </p>
+                            {paginatedPendingReviews.length > 0 ? (
+                                <>
+                                    {paginatedPendingReviews.map(({ booking, candidate }) => (
+                                        <div key={booking.id} className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
+                                            <div className="flex items-center gap-4">
+                                                <Avatar className="h-12 w-12 border">
+                                                    <AvatarImage src={candidate?.imageUrl} alt={candidate?.name} />
+                                                    <AvatarFallback>{candidate?.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold">{booking.candidateName}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Completed on {format(new Date(booking.date), 'do MMMM, yyyy')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Button onClick={() => handleWriteReviewClick(booking)}>Write Review</Button>
                                         </div>
-                                    </div>
-                                    <Button onClick={() => handleWriteReviewClick(booking)}>Write Review</Button>
-                                </div>
-                            )) : (
+                                    ))}
+                                    {renderPagination()}
+                                </>
+                            ) : (
                                 <div className="text-center text-muted-foreground py-12">
                                     <Inbox className="h-12 w-12 mx-auto text-muted-foreground/50" />
                                     <p className="mt-4 font-semibold">All caught up!</p>
@@ -201,3 +238,5 @@ export default function ReviewGeneratorPage() {
         </Suspense>
     )
 }
+
+    
