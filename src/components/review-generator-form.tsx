@@ -14,8 +14,7 @@ import { generateReview } from '@/app/(app)/actions';
 import { Sparkles, Clipboard, Star, User, Pencil, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { ReviewGeneratorInput } from '@/ai/flows/review-generator';
+import type { ClientReview } from '@/lib/types';
 
 
 const reviewFormSchema = z.object({
@@ -31,7 +30,7 @@ type ReviewFormValues = z.infer<typeof reviewFormSchema>;
 interface ReviewGeneratorFormProps {
     candidateName?: string;
     bookingId?: string;
-    onReviewSubmitted?: (bookingId: string) => void;
+    onReviewSubmitted?: (newReview: ClientReview) => void;
 }
 
 export function ReviewGeneratorForm({ candidateName, bookingId, onReviewSubmitted }: ReviewGeneratorFormProps) {
@@ -88,8 +87,16 @@ export function ReviewGeneratorForm({ candidateName, bookingId, onReviewSubmitte
       title: 'Review Submitted!',
       description: 'Your feedback has been recorded.',
     });
-    if (onReviewSubmitted && bookingId) {
-      onReviewSubmitted(bookingId);
+    if (onReviewSubmitted && candidateName) {
+      const newReview: ClientReview = {
+        id: `review-${Date.now()}`,
+        bookingId: bookingId || '',
+        candidateName: candidateName,
+        date: new Date().toISOString(),
+        rating: form.getValues('rating'),
+        reviewText: generatedReview,
+      };
+      onReviewSubmitted(newReview);
     }
   };
 

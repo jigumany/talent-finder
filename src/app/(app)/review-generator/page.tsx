@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import type { Booking, Candidate } from '@/lib/types';
+import type { Booking, ClientReview } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
@@ -30,6 +30,7 @@ function ReviewGeneratorContent() {
     
     // State to track reviews submitted during the session
     const [sessionReviewedBookingIds, setSessionReviewedBookingIds] = useState<Set<string>>(new Set());
+    const [sessionReviews, setSessionReviews] = useState<ClientReview[]>([]);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -61,6 +62,10 @@ function ReviewGeneratorContent() {
         return initialIds;
     }, [sessionReviewedBookingIds]);
 
+    const allReviews = useMemo(() => {
+        return [...sessionReviews, ...mockClientReviews].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [sessionReviews]);
+
 
     const pendingReviews = useMemo(() => {
         return completedBookings
@@ -83,10 +88,13 @@ function ReviewGeneratorContent() {
         setReviewDialogOpen(true);
     };
 
-    const handleReviewSubmitted = (bookingId: string) => {
-        setSessionReviewedBookingIds(prev => new Set(prev).add(bookingId));
+    const handleReviewSubmitted = (newReview: ClientReview) => {
+        if (newReview.bookingId) {
+            setSessionReviewedBookingIds(prev => new Set(prev).add(newReview.bookingId!));
+        }
+        setSessionReviews(prev => [newReview, ...prev]);
         setReviewDialogOpen(false);
-    }
+    };
 
     if (role !== 'client') {
         return (
@@ -145,7 +153,7 @@ function ReviewGeneratorContent() {
                             </TabsTrigger>
                             <TabsTrigger value="history">
                                 <Star className="mr-2 h-4 w-4" />
-                                Review History ({mockClientReviews.length})
+                                Review History ({allReviews.length})
                             </TabsTrigger>
                         </TabsList>
                     </CardHeader>
@@ -182,7 +190,7 @@ function ReviewGeneratorContent() {
                         </TabsContent>
                         <TabsContent value="history">
                             <div className="space-y-6">
-                                {mockClientReviews.map((review) => (
+                                {allReviews.map((review) => (
                                     <div key={review.id} className="p-4 rounded-lg border">
                                         <div className="flex justify-between items-start gap-4">
                                             <div>
@@ -238,5 +246,3 @@ export default function ReviewGeneratorPage() {
         </Suspense>
     )
 }
-
-    
