@@ -10,11 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { generateReviewAction } from '@/app/(app)/review-generator/actions';
+import { generateReview } from '@/app/(app)/actions';
 import { Sparkles, Clipboard, Star, User, Pencil, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ReviewGeneratorInput } from '@/ai/flows/review-generator';
+
 
 const reviewFormSchema = z.object({
   candidateName: z.string().min(1, 'Candidate name is required.'),
@@ -58,13 +60,13 @@ export function ReviewGeneratorForm({ candidateName, onReviewSubmitted }: Review
   const onSubmit = (values: ReviewFormValues) => {
     setGeneratedReview('');
     startTransition(async () => {
-      const result = await generateReviewAction(values);
-      if (result.success) {
-        setGeneratedReview(result.success);
-      } else if (result.error) {
+      try {
+        const result = await generateReview(values);
+        setGeneratedReview(result.review);
+      } catch (error) {
         toast({
           title: 'Error',
-          description: result.error,
+          description: 'Failed to generate review. Please try again.',
           variant: 'destructive',
         });
       }

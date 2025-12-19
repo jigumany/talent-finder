@@ -45,9 +45,9 @@ export function AIAssistant() {
         setInput('');
 
         startTransition(async () => {
-            const response = await chatWithAssistant({ query: input });
-            if (response.response) {
-                const assistantMessage: Message = { role: 'assistant', text: response.response };
+            const result = await chatWithAssistant({ query: input });
+            if (result.response) {
+                const assistantMessage: Message = { role: 'assistant', text: result.response };
                 setMessages(prev => [...prev, assistantMessage]);
             } else {
                  const errorMessage: Message = { role: 'assistant', text: "I'm sorry, I couldn't process that. Please try again." };

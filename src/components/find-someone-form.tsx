@@ -11,7 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { findSomeoneAction } from '@/app/(app)/find-me-someone/actions';
+import { findCandidate } from '@/app/(app)/actions';
 import { Sparkles, ArrowLeft, Briefcase, Book, ListChecks, Pencil, Search, Frown, Users, PoundSterling, MapPin, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { FindCandidateOutput } from '@/ai/flows/find-candidate-flow';
@@ -64,16 +64,17 @@ export function FindSomeoneForm() {
   const onSubmit = (values: FindSomeoneFormValues) => {
     setResult(null);
     startTransition(async () => {
-      const response = await findSomeoneAction({
-        ...values,
-        maxRate: values.maxRate ? parseFloat(values.maxRate) : undefined,
-      });
-      if (response.success) {
-        setResult(response.success);
-      } else if (response.error) {
+      try {
+        const response = await findCandidate({
+          ...values,
+          maxRate: values.maxRate ? parseFloat(values.maxRate) : undefined,
+        });
+        setResult(response);
+      } catch (error) {
+        console.error("Candidate finding failed:", error);
         toast({
           title: 'Error',
-          description: response.error,
+          description: 'Failed to find a candidate. Please try again.',
           variant: 'destructive',
         });
       }
