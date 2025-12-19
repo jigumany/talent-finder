@@ -135,7 +135,7 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                                     id="date"
                                     variant={"outline"}
                                     className={cn(
-                                        "justify-start text-left font-normal",
+                                        "w-[240px] justify-start text-left font-normal",
                                         !dateRange && "text-muted-foreground"
                                     )}
                                 >
@@ -161,7 +161,7 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                                     defaultMonth={dateRange?.from}
                                     selected={dateRange}
                                     onSelect={setDateRange}
-                                    numberOfMonths={1}
+                                    numberOfMonths={2}
                                 />
                             </PopoverContent>
                         </Popover>
@@ -201,23 +201,27 @@ export default function BrowseCandidatesPage() {
     useEffect(() => {
         // Fetch availabilities only when a date range is selected
         if (dateRange?.from && allCandidates.length > 0) {
-            startFiltering(async () => {
+            startFiltering(() => {
                 const availabilitiesToFetch = allCandidates
-                    .filter(c => !candidateAvailabilities[c.id])
+                    .filter(c => !candidateAvailabilities[c.id]) // Only fetch if not already loaded
                     .map(c => c.id);
 
                 if (availabilitiesToFetch.length === 0) return;
 
-                const newAvailabilities: Record<string, any[]> = {};
-                await Promise.all(
-                    availabilitiesToFetch.map(async (id) => {
-                        newAvailabilities[id] = await fetchCandidateAvailabilities(id);
-                    })
-                );
-                setCandidateAvailabilities(prev => ({ ...prev, ...newAvailabilities }));
+                const fetchAllAvailabilities = async () => {
+                    const newAvailabilities: Record<string, any[]> = {};
+                    await Promise.all(
+                        availabilitiesToFetch.map(async (id) => {
+                            newAvailabilities[id] = await fetchCandidateAvailabilities(id);
+                        })
+                    );
+                     setCandidateAvailabilities(prev => ({ ...prev, ...newAvailabilities }));
+                }
+
+                fetchAllAvailabilities();
             });
         }
-    }, [dateRange, allCandidates, candidateAvailabilities]);
+    }, [dateRange, allCandidates]); // Removed candidateAvailabilities from dependencies
 
     const allRoles = useMemo(() => [...new Set(allCandidates.map(c => c.role))], [allCandidates]);
 
@@ -260,7 +264,7 @@ export default function BrowseCandidatesPage() {
 
             if (dateRange?.from) { // Check availability only if a date range is set
                 const availabilities = candidateAvailabilities[candidate.id];
-                if (!availabilities) { // If availabilities are not loaded yet, assume available
+                if (!availabilities) { // If availabilities are still loading, assume available to prevent flicker
                     return true;
                 }
                 const start = startOfDay(dateRange.from);
