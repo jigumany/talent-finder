@@ -27,10 +27,11 @@ export type ComboboxOption = {
 
 interface ComboboxProps {
   options: ComboboxOption[]
-  value: string
+  value?: string
   onValueChange: (value: string) => void
   placeholder?: string
   emptyMessage?: string
+  className?: string
 }
 
 export function Combobox({
@@ -39,6 +40,7 @@ export function Combobox({
   onValueChange,
   placeholder = "Select an option...",
   emptyMessage = "No option found.",
+  className,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -49,7 +51,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className={cn("w-full justify-between", className)}
         >
           {value
             ? options.find((option) => option.value === value)?.label
