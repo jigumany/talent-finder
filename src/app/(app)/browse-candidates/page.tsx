@@ -39,9 +39,10 @@ interface FiltersProps {
     setDateRange: (range: DateRange | undefined) => void;
     status: string;
     setStatus: (status: string) => void;
+    allStatuses: string[];
 }
 
-function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate, dateRange, setDateRange, status, setStatus }: FiltersProps) {
+function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate, dateRange, setDateRange, status, setStatus, allStatuses }: FiltersProps) {
     return (
         <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
             <AccordionItem value="item-1">
@@ -181,11 +182,7 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                             <SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="Active">Active</SelectItem>
-                                <SelectItem value="Inactive">Inactive</SelectItem>
-                                <SelectItem value="Archived">Archived</SelectItem>
-                                <SelectItem value="On Stop">On Stop</SelectItem>
-                                <SelectItem value="Pending">Pending</SelectItem>
+                                {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -250,8 +247,14 @@ export default function BrowseCandidatesPage() {
 
     const allRoles = useMemo(() => {
         const roles = allCandidates.map(c => c.role);
-        return [...new Set(roles)];
+        return [...new Set(roles)].sort();
     }, [allCandidates]);
+    
+    const allStatuses = useMemo(() => {
+        const statuses = allCandidates.map(c => c.status);
+        return [...new Set(statuses)].sort();
+    }, [allCandidates]);
+
 
     const filteredCandidates = useMemo(() => {
         const lowercasedTerm = searchTerm.toLowerCase();
@@ -352,6 +355,7 @@ export default function BrowseCandidatesPage() {
         setDateRange,
         status: statusFilter,
         setStatus: setStatusFilter,
+        allStatuses,
     };
 
     const showLoader = isLoading || isFiltering;

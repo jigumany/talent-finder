@@ -40,14 +40,12 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     let rateType: 'hourly' | 'daily' = 'daily'; // Default to daily
     if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
         rateType = apiCandidate.pay_type.toLowerCase();
+    } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
+        rateType = apiCandidate.rate_type.toLowerCase();
     }
 
-    let status: Candidate['status'] = 'Inactive';
-    const apiStatus = apiCandidate.status?.name?.toLowerCase();
-    if (apiStatus === 'active') status = 'Active';
-    else if (apiStatus === 'archived') status = 'Archived';
-    else if (apiStatus === 'on stop') status = 'On Stop';
-    else if (apiStatus === 'pending') status = 'Pending';
+
+    const status: Candidate['status'] = apiCandidate.status?.name || 'Inactive';
     
     return {
         id: apiCandidate.id.toString(),
@@ -71,7 +69,6 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
 export async function fetchCandidates(): Promise<{ candidates: Candidate[], totalPages: number }> {
     let allCandidates: Candidate[] = [];
     let currentPage = 1;
-    let totalPages = 1;
     let hasMore = true;
 
     try {
@@ -81,7 +78,9 @@ export async function fetchCandidates(): Promise<{ candidates: Candidate[], tota
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch candidates on page ${currentPage}: ${response.statusText}`);
+                console.error(`Failed to fetch candidates on page ${currentPage}: ${response.statusText}`);
+                hasMore = false; // Stop fetching if there's an error
+                continue;
             }
             
             const jsonResponse = await response.json();
@@ -90,13 +89,12 @@ export async function fetchCandidates(): Promise<{ candidates: Candidate[], tota
 
             if (jsonResponse.next_page_url) {
                 currentPage++;
-                totalPages = jsonResponse.last_page || totalPages;
             } else {
                 hasMore = false;
             }
         }
         
-        return { candidates: allCandidates, totalPages };
+        return { candidates: allCandidates, totalPages: 1 };
     } catch (error) {
         console.error("Error fetching candidates:", error);
         return { candidates: [], totalPages: 0 };
@@ -105,7 +103,7 @@ export async function fetchCandidates(): Promise<{ candidates: Candidate[], tota
 
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates/${id}?with_key_stages_only=1&with_key_stages=1`, {
+        const response = await fetch(`${API_BASE_URL}/candidates/${id}?with_key_stages=1`, {
              next: { revalidate: 3600 } 
         });
 

@@ -53,12 +53,12 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     }
   }
 
-  const statusColor = {
-    'Active': 'bg-green-500',
-    'Inactive': 'bg-gray-400',
-    'Archived': 'bg-red-500',
-    'On Stop': 'bg-yellow-500',
-    'Pending': 'bg-blue-500',
+  const getStatusColor = (status: string) => {
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes('active') || lowerStatus.includes('available')) return 'bg-green-500';
+    if (lowerStatus.includes('stop') || lowerStatus.includes('pending')) return 'bg-yellow-500';
+    if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
+    return 'bg-gray-400';
   };
 
   return (
@@ -72,7 +72,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
            <div
             className={cn(
               'absolute bottom-0 right-0 block h-4 w-4 rounded-full border-2 border-card',
-              statusColor[candidate.status]
+              getStatusColor(candidate.status)
             )}
             title={`Status: ${candidate.status}`}
           />
