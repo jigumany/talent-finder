@@ -1,8 +1,7 @@
-
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ export default function AuthPage() {
 
   const [isResetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Changed to false to prevent layout shift on load
+  const [isLoading, setIsLoading] = useState(false);
 
   const landingImage = images['landing-page'];
 
