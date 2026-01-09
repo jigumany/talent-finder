@@ -214,7 +214,7 @@ export default function BrowseCandidatesPage() {
     useEffect(() => {
         async function loadCandidates() {
             setIsLoading(true);
-            const { candidates } = await fetchCandidates();
+            const candidates = await fetchCandidates();
             setAllCandidates(candidates);
             setIsLoading(false);
         }
@@ -246,14 +246,16 @@ export default function BrowseCandidatesPage() {
     }, [dateRange, allCandidates, candidateAvailabilities]);
 
     const allRoles = useMemo(() => {
+        if (isLoading) return [];
         const roles = allCandidates.map(c => c.role);
         return [...new Set(roles)].sort();
-    }, [allCandidates]);
+    }, [allCandidates, isLoading]);
     
     const allStatuses = useMemo(() => {
+        if (isLoading) return [];
         const statuses = allCandidates.map(c => c.status);
         return [...new Set(statuses)].sort();
-    }, [allCandidates]);
+    }, [allCandidates, isLoading]);
 
 
     const filteredCandidates = useMemo(() => {

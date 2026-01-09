@@ -106,7 +106,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             </div>
              <p className="text-lg font-semibold text-primary flex items-center">
                 £{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
-            </p>
+             </p>
         </div>
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2 mt-auto">

@@ -55,7 +55,6 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         rateType = apiCandidate.rate_type.toLowerCase();
     }
 
-
     const status: string = apiCandidate.status?.name || 'Inactive';
     
     return {
@@ -77,40 +76,42 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     };
 };
 
-export async function fetchCandidates(): Promise<{ candidates: Candidate[], totalPages: number }> {
+export async function fetchCandidates(): Promise<Candidate[]> {
     let allCandidates: Candidate[] = [];
-    let currentPage = 1;
-    let hasMore = true;
+    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1`;
+
+    console.log("Starting to fetch all candidates...");
 
     try {
-        while (hasMore) {
-            const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&page=${currentPage}`, {
+        while (nextPageUrl) {
+            const response = await fetch(nextPageUrl, {
                 next: { revalidate: 3600 } 
             });
 
             if (!response.ok) {
-                console.error(`Failed to fetch candidates on page ${currentPage}: ${response.statusText}`);
-                hasMore = false; // Stop fetching if there's an error
-                continue;
+                console.error(`Failed to fetch candidates from ${nextPageUrl}: ${response.statusText}`);
+                break; // Stop fetching if there's an error
             }
             
             const jsonResponse = await response.json();
             const candidates = jsonResponse.data.map(transformCandidateData);
-            allCandidates = allCandidates.concat(candidates);
+            allCandidates.push(...candidates);
 
-            if (jsonResponse.next_page_url) {
-                currentPage++;
-            } else {
-                hasMore = false;
+            nextPageUrl = jsonResponse.links?.next;
+            
+            if(jsonResponse.meta?.current_page) {
+                console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
             }
         }
         
-        return { candidates: allCandidates, totalPages: 1 };
+        console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
+        return allCandidates;
     } catch (error) {
-        console.error("Error fetching candidates:", error);
-        return { candidates: [], totalPages: 0 };
+        console.error("Error fetching all candidates:", error);
+        return []; // Return whatever was fetched before the error
     }
 }
+
 
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
@@ -169,8 +170,10 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        const { candidates: fetchedCandidates } = await fetchCandidates();
-        const candidateMap = new Map(fetchedCandidates.map(c => [c.id, c]));
+        // Using a limited fetch here to avoid re-fetching all candidates for bookings
+        const candidatesResponse = await fetch(`${API_BASE_URL}/candidates?per_page=100`);
+        const candidatesJson = await candidatesResponse.json();
+        const candidateMap = new Map(candidatesJson.data.map(transformCandidateData).map((c: Candidate) => [c.id, c]));
 
         const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {
             const candidateId = booking.candidate_id?.toString();
