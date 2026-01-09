@@ -1,8 +1,0 @@
-
-{
-  "functions": {
-    "src/app/**/*.ts": {
-      "maxDuration": 120
-    }
-  }
-}
