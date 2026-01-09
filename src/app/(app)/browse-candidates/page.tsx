@@ -302,109 +302,136 @@ export default function BrowseCandidatesPage() {
     useEffect(() => {
         async function loadAllData() {
             setIsLoading(true);
-            try {
-                const allCandidatesData: Candidate[] = [];
-                let nextPageUrl: string | null = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates?with_key_stages=1&per_page=100';
-                let pageCount = 0;
+            const allCandidatesData: Candidate[] = [];
+            let nextPageUrl: string | null = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates?with_key_stages=1&per_page=100';
+            let pageCount = 0;
+            const MAX_PAGES = 600; // Safety limit to prevent infinite loops
 
-                while (nextPageUrl) {
-                    try {
-                        setLoadingProgress(`Loading page ${pageCount + 1}...`);
-                        const response = await fetch(nextPageUrl, {
-                            cache: 'no-store'
-                        });
-
-                        if (!response.ok) {
-                            console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
-                            break;
+            const fetchPageWithTimeout = async (url: string, timeoutMs: number = 15000): Promise<Response | null> => {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+                    
+                    const response = await fetch(url, {
+                        cache: 'no-store',
+                        signal: controller.signal,
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
                         }
+                    });
+                    
+                    clearTimeout(timeout);
+                    return response;
+                } catch (error) {
+                    console.error(`Timeout or error fetching page:`, error);
+                    return null;
+                }
+            };
 
-                        const jsonResponse = await response.json();
-                        const candidatesOnPage = jsonResponse.data.map((apiCandidate: any): Candidate => {
-                            const detailTypeMap: Record<string, string> = {
-                                'KS1': 'Key Stage 1',
-                                'KS2': 'Key Stage 2',
-                                'KS3': 'Key Stage 3',
-                                'KS4': 'Key Stage 4',
-                                'KS5': 'Key Stage 5',
-                                'SEND': 'SEND',
-                                'Add': 'Additional Criteria',
-                                'Langs': 'Languages',
-                                'Quals': 'Qualifications',
-                            };
+            while (nextPageUrl && pageCount < MAX_PAGES) {
+                try {
+                    setLoadingProgress(`Loading page ${pageCount + 1}...`);
+                    const response = await fetchPageWithTimeout(nextPageUrl, 15000);
 
-                            const details: Record<string, string[]> = {};
-                            const qualifications: string[] = [];
-
-                            const allDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
-
-                            if (allDetails) {
-                                for (const detail of allDetails) {
-                                    const value = detail.name || detail.detail_type_value;
-                                    if (!value) continue;
-
-                                    const rawType = detail.key_stage_type || detail.detail_type;
-                                    const mappedType = detailTypeMap[rawType] || rawType || 'General';
-                                    
-                                    if (!details[mappedType]) {
-                                        details[mappedType] = [];
-                                    }
-                                    details[mappedType].push(value);
-                                    qualifications.push(value);
-                                }
-                            }
-
-                            const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
-                            const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
-
-                            let rateType: 'hourly' | 'daily' = 'daily';
-                            if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
-                                rateType = apiCandidate.pay_type.toLowerCase();
-                            } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
-                                rateType = apiCandidate.rate_type.toLowerCase();
-                            }
-
-                            const status: string = apiCandidate.status?.name || 'Inactive';
-                            
-                            return {
-                                id: apiCandidate.id.toString(),
-                                name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
-                                role: role,
-                                rate: apiCandidate.pay_rate || 0,
-                                rateType: rateType,
-                                rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
-                                reviews: Math.floor(Math.random() * 30),
-                                location: location,
-                                qualifications: qualifications,
-                                details: details,
-                                availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
-                                imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
-                                cvUrl: '#',
-                                bio: `An experienced ${role} based in ${location}.`,
-                                status: status,
-                            };
-                        });
-
-                        allCandidatesData.push(...candidatesOnPage);
-                        nextPageUrl = jsonResponse.links.next;
-                        pageCount++;
-
-                        console.log(`Loaded page ${pageCount}. Total candidates: ${allCandidatesData.length}`);
-                    } catch (pageError) {
-                        console.error(`Error loading page ${pageCount}:`, pageError);
+                    if (!response) {
+                        console.warn(`⚠️ Timeout on page ${pageCount + 1}. Saving progress with ${allCandidatesData.length} candidates`);
+                        setLoadingProgress(`Timeout on page ${pageCount + 1}. Loaded ${allCandidatesData.length} candidates so far.`);
                         break;
                     }
-                }
 
-                setAllCandidates(allCandidatesData);
-                console.log(`Finished loading. Total candidates: ${allCandidatesData.length}`);
-                setLoadingProgress(`Loaded ${allCandidatesData.length} candidates`);
-            } catch (error) {
-                console.error('Error loading candidates:', error);
-                setLoadingProgress('Error loading candidates');
-            } finally {
-                setIsLoading(false);
+                    if (!response.ok) {
+                        console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
+                        break;
+                    }
+
+                    const jsonResponse = await response.json();
+                    const candidatesOnPage = jsonResponse.data.map((apiCandidate: any): Candidate => {
+                        const detailTypeMap: Record<string, string> = {
+                            'KS1': 'Key Stage 1',
+                            'KS2': 'Key Stage 2',
+                            'KS3': 'Key Stage 3',
+                            'KS4': 'Key Stage 4',
+                            'KS5': 'Key Stage 5',
+                            'SEND': 'SEND',
+                            'Add': 'Additional Criteria',
+                            'Langs': 'Languages',
+                            'Quals': 'Qualifications',
+                        };
+
+                        const details: Record<string, string[]> = {};
+                        const qualifications: string[] = [];
+
+                        const allDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
+
+                        if (allDetails) {
+                            for (const detail of allDetails) {
+                                const value = detail.name || detail.detail_type_value;
+                                if (!value) continue;
+
+                                const rawType = detail.key_stage_type || detail.detail_type;
+                                const mappedType = detailTypeMap[rawType] || rawType || 'General';
+                                
+                                if (!details[mappedType]) {
+                                    details[mappedType] = [];
+                                }
+                                details[mappedType].push(value);
+                                qualifications.push(value);
+                            }
+                        }
+
+                        const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
+                        const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
+
+                        let rateType: 'hourly' | 'daily' = 'daily';
+                        if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
+                            rateType = apiCandidate.pay_type.toLowerCase();
+                        } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
+                            rateType = apiCandidate.rate_type.toLowerCase();
+                        }
+
+                        const status: string = apiCandidate.status?.name || 'Inactive';
+                        
+                        return {
+                            id: apiCandidate.id.toString(),
+                            name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
+                            role: role,
+                            rate: apiCandidate.pay_rate || 0,
+                            rateType: rateType,
+                            rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
+                            reviews: Math.floor(Math.random() * 30),
+                            location: location,
+                            qualifications: qualifications,
+                            details: details,
+                            availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
+                            imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
+                            cvUrl: '#',
+                            bio: `An experienced ${role} based in ${location}.`,
+                            status: status,
+                        };
+                    });
+
+                    allCandidatesData.push(...candidatesOnPage);
+                    nextPageUrl = jsonResponse.links.next;
+                    pageCount++;
+
+                    console.log(`✅ Loaded page ${pageCount}. Total candidates: ${allCandidatesData.length}`);
+                    
+                    // Small delay to avoid overwhelming the API
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                } catch (pageError) {
+                    console.error(`Error loading page ${pageCount}:`, pageError);
+                    break;
+                }
             }
+
+            setAllCandidates(allCandidatesData);
+            console.log(`✅ Finished loading. Total candidates: ${allCandidatesData.length}`);
+            console.log(`First candidate:`, allCandidatesData[0]);
+            console.log(`Last candidate:`, allCandidatesData[allCandidatesData.length - 1]);
+            setLoadingProgress(`Loaded ${allCandidatesData.length} candidates`);
+            setIsLoading(false);
         }
 
         loadAllData();
@@ -424,6 +451,7 @@ export default function BrowseCandidatesPage() {
 
     // Apply filters to all candidates
     const filteredCandidates = useMemo(() => {
+        console.log(`🔍 Filtering starting with ${allCandidates.length} total candidates`);
         let candidates = allCandidates;
 
         // Search filter
@@ -433,41 +461,49 @@ export default function BrowseCandidatesPage() {
                 c.name.toLowerCase().includes(lowercasedTerm) ||
                 c.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
             );
+            console.log(`  After search filter: ${candidates.length} candidates`);
         }
 
         // Role filter
         if (roleFilter !== 'all') {
             candidates = candidates.filter(c => c.role === roleFilter);
+            console.log(`  After role filter (${roleFilter}): ${candidates.length} candidates`);
         }
 
         // Subject filter
         if (subjectFilter !== 'all') {
             candidates = candidates.filter(c => c.qualifications.some(q => q.toLowerCase().includes(subjectFilter.toLowerCase())));
+            console.log(`  After subject filter (${subjectFilter}): ${candidates.length} candidates`);
         }
 
         // Location filter
         if (debouncedLocationFilter) {
             candidates = candidates.filter(c => c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase()));
+            console.log(`  After location filter (${debouncedLocationFilter}): ${candidates.length} candidates`);
         }
 
         // Rate type filter
         if (rateTypeFilter !== 'all') {
             candidates = candidates.filter(c => c.rateType === rateTypeFilter);
+            console.log(`  After rate type filter (${rateTypeFilter}): ${candidates.length} candidates`);
         }
 
         // Min rate filter
         if (debouncedMinRate) {
             candidates = candidates.filter(c => c.rate >= parseFloat(debouncedMinRate));
+            console.log(`  After min rate filter (${debouncedMinRate}): ${candidates.length} candidates`);
         }
 
         // Max rate filter
         if (debouncedMaxRate) {
             candidates = candidates.filter(c => c.rate <= parseFloat(debouncedMaxRate));
+            console.log(`  After max rate filter (${debouncedMaxRate}): ${candidates.length} candidates`);
         }
 
         // Status filter
         if (statusFilter !== 'all') {
             candidates = candidates.filter(c => c.status === statusFilter);
+            console.log(`  After status filter (${statusFilter}): ${candidates.length} candidates`);
         }
 
         // Date range filter
@@ -478,8 +514,10 @@ export default function BrowseCandidatesPage() {
                 const interval = { start: startOfDay(dateRange.from!), end: startOfDay(to) };
                 return c.availability.some(availDateStr => isWithinInterval(new Date(availDateStr), interval));
             });
+            console.log(`  After date range filter: ${candidates.length} candidates`);
         }
 
+        console.log(`✅ Filter complete: ${candidates.length} candidates`);
         return candidates;
     }, [allCandidates, debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter, dateRange]);
 
@@ -566,9 +604,13 @@ export default function BrowseCandidatesPage() {
                      <div className="flex flex-col items-center justify-center h-64 gap-4">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         <p className="text-sm text-muted-foreground text-center">{loadingProgress}</p>
+                        <p className="text-xs text-muted-foreground">Loaded candidates in state: {allCandidates.length}</p>
                     </div>
                 ) : (
                     <>
+                        <div className="mb-4 text-xs text-muted-foreground">
+                            Total loaded: {allCandidates.length} | Filtered: {filteredCandidates.length}
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {paginatedCandidates.length > 0 ? (
                                 paginatedCandidates.map(candidate => (
@@ -578,6 +620,7 @@ export default function BrowseCandidatesPage() {
                                 <div className="text-center text-muted-foreground col-span-full py-12">
                                     <p className="text-lg font-semibold">No candidates found.</p>
                                     <p>Try adjusting your search or filters.</p>
+                                    {allCandidates.length === 0 && <p className="text-xs mt-2">⚠️ No candidates loaded yet</p>}
                                 </div>
                             )}
                         </div>
