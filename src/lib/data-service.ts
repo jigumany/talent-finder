@@ -41,12 +41,19 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
         rateType = apiCandidate.pay_type.toLowerCase();
     }
+
+    let status: Candidate['status'] = 'Inactive';
+    const apiStatus = apiCandidate.status?.name?.toLowerCase();
+    if (apiStatus === 'active') status = 'Active';
+    else if (apiStatus === 'archived') status = 'Archived';
+    else if (apiStatus === 'on stop') status = 'On Stop';
+    else if (apiStatus === 'pending') status = 'Pending';
     
     return {
         id: apiCandidate.id.toString(),
         name: `${apiCandidate.first_name} ${apiCandidate.last_name}`,
         role: role,
-        rate: apiCandidate.pay_rate || 0, // Use pay_rate from API or default to 0
+        rate: apiCandidate.pay_rate || 0,
         rateType: rateType,
         rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
         reviews: Math.floor(Math.random() * 30),
@@ -57,26 +64,42 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
         cvUrl: '#',
         bio: `An experienced ${role} based in ${apiCandidate.location?.city || 'the UK'}.`,
+        status: status,
     };
 };
 
-export async function fetchCandidates(): Promise<Candidate[]> {
-    try {
-        const response = await fetch(`${API_BASE_URL}/candidates`, {
-            next: { revalidate: 3600 } 
-        });
+export async function fetchCandidates(): Promise<{ candidates: Candidate[], totalPages: number }> {
+    let allCandidates: Candidate[] = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let hasMore = true;
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch candidates: ${response.statusText}`);
+    try {
+        while (hasMore) {
+            const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&page=${currentPage}`, {
+                next: { revalidate: 3600 } 
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch candidates on page ${currentPage}: ${response.statusText}`);
+            }
+            
+            const jsonResponse = await response.json();
+            const candidates = jsonResponse.data.map(transformCandidateData);
+            allCandidates = allCandidates.concat(candidates);
+
+            if (jsonResponse.next_page_url) {
+                currentPage++;
+                totalPages = jsonResponse.last_page || totalPages;
+            } else {
+                hasMore = false;
+            }
         }
         
-        const jsonResponse = await response.json();
-        const candidates = jsonResponse.data.map(transformCandidateData);
-        
-        return candidates;
+        return { candidates: allCandidates, totalPages };
     } catch (error) {
         console.error("Error fetching candidates:", error);
-        return [];
+        return { candidates: [], totalPages: 0 };
     }
 }
 
@@ -137,8 +160,8 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        // Enrich booking data with candidate details if needed
-        const fetchedCandidates = await fetchCandidates();
+        // Use the new fetchCandidates that gets all candidates
+        const { candidates: fetchedCandidates } = await fetchCandidates();
         const candidateMap = new Map(fetchedCandidates.map(c => [c.id, c]));
 
         const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {

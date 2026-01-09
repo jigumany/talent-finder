@@ -23,6 +23,7 @@ export type Candidate = {
   imageUrl: string;
   cvUrl: string;
   bio: string;
+  status: 'Active' | 'Inactive' | 'Archived' | 'On Stop' | 'Pending';
 };
 
 export type BookingStatus = 'Confirmed' | 'Completed' | 'Pending' | 'Interview' | 'Hired' | 'Rejected' | 'Cancelled' | 'Pencilled';

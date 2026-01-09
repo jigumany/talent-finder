@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { ListFilter, Search, PoundSterling, Loader2, Calendar as CalendarIcon, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
@@ -37,11 +37,13 @@ interface FiltersProps {
     setMaxRate: (rate: string) => void;
     dateRange: DateRange | undefined;
     setDateRange: (range: DateRange | undefined) => void;
+    status: string;
+    setStatus: (status: string) => void;
 }
 
-function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate, dateRange, setDateRange }: FiltersProps) {
+function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate, dateRange, setDateRange, status, setStatus }: FiltersProps) {
     return (
-        <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']} className="w-full">
+        <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
             <AccordionItem value="item-1">
                 <AccordionTrigger className="text-base">Role & Subject</AccordionTrigger>
                 <AccordionContent>
@@ -170,6 +172,25 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                     </div>
                 </AccordionContent>
             </AccordionItem>
+            <AccordionItem value="item-4">
+                <AccordionTrigger className="text-base">Status</AccordionTrigger>
+                <AccordionContent>
+                    <div className="grid gap-2">
+                        <Label>Candidate Status</Label>
+                        <Select value={status} onValueChange={setStatus}>
+                            <SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="Active">Active</SelectItem>
+                                <SelectItem value="Inactive">Inactive</SelectItem>
+                                <SelectItem value="Archived">Archived</SelectItem>
+                                <SelectItem value="On Stop">On Stop</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
         </Accordion>
     )
 }
@@ -188,6 +209,7 @@ export default function BrowseCandidatesPage() {
     const [subjectFilter, setSubjectFilter] = useState('all');
     const [locationFilter, setLocationFilter] = useState('');
     const [rateTypeFilter, setRateTypeFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [minRate, setMinRate] = useState('');
     const [maxRate, setMaxRate] = useState('');
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -195,7 +217,7 @@ export default function BrowseCandidatesPage() {
     useEffect(() => {
         async function loadCandidates() {
             setIsLoading(true);
-            const candidates = await fetchCandidates();
+            const { candidates } = await fetchCandidates();
             setAllCandidates(candidates);
             setIsLoading(false);
         }
@@ -249,6 +271,10 @@ export default function BrowseCandidatesPage() {
                 return false;
             }
 
+            if (statusFilter !== 'all' && candidate.status !== statusFilter) {
+                return false;
+            }
+
             if (subjectFilter !== 'all' && !(
                 candidate.qualifications.some(q => q.toLowerCase().includes(subjectFilter)) ||
                 candidate.role.toLowerCase().includes(subjectFilter)
@@ -293,12 +319,12 @@ export default function BrowseCandidatesPage() {
         
         return filtered;
 
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates, dateRange, candidateAvailabilities]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, statusFilter, minRate, maxRate, allCandidates, dateRange, candidateAvailabilities]);
     
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, dateRange]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, statusFilter, minRate, maxRate, dateRange]);
 
     const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
     
@@ -324,6 +350,8 @@ export default function BrowseCandidatesPage() {
         setMaxRate,
         dateRange,
         setDateRange,
+        status: statusFilter,
+        setStatus: setStatusFilter,
     };
 
     const showLoader = isLoading || isFiltering;

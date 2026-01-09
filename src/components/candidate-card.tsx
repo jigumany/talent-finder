@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, PoundSterling, BookOpenText, UserPlus } from 'lucide-react';
+import { Star, MapPin, User, BookUser, PoundSterling, BookOpenText, UserPlus, Circle } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +23,7 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { BookingCalendar } from './booking-calendar';
 import { createBooking } from '@/lib/data-service';
+import { cn } from '@/lib/utils';
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -52,13 +53,30 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     }
   }
 
+  const statusColor = {
+    'Active': 'bg-green-500',
+    'Inactive': 'bg-gray-400',
+    'Archived': 'bg-red-500',
+    'On Stop': 'bg-yellow-500',
+    'Pending': 'bg-blue-500',
+  };
+
   return (
     <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-start gap-4 p-4 bg-card">
-        <Avatar className="h-16 w-16 border-2 border-primary/20">
-          <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
-          <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          <Avatar className="h-16 w-16 border-2 border-primary/20">
+            <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
+            <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          </Avatar>
+           <div
+            className={cn(
+              'absolute bottom-0 right-0 block h-4 w-4 rounded-full border-2 border-card',
+              statusColor[candidate.status]
+            )}
+            title={`Status: ${candidate.status}`}
+          />
+        </div>
         <div className="flex-1">
           <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
           <p className="text-muted-foreground">{candidate.role}</p>
