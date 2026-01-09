@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, PoundSterling, BookOpenText, UserPlus, Circle } from 'lucide-react';
+import { Star, MapPin, User, BookUser, Mail, BookOpenText, UserPlus } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,10 +21,10 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { toast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 import { BookingCalendar } from './booking-calendar';
 import { createBooking } from '@/lib/data-service';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -62,8 +62,14 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     return 'bg-gray-400';
   };
 
+  const keyStages = candidate.details['Key Stages'] || [];
+  const otherQualifications = Object.entries(candidate.details)
+    .filter(([key]) => key !== 'Key Stages')
+    .flatMap(([, values]) => values)
+    .slice(0, 3); // Limit to 3 other qualifications for brevity
+
   return (
-    <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+    <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full">
       <CardHeader className="flex flex-row items-start gap-4 p-4 bg-card">
         <div className="relative">
           <Avatar className="h-16 w-16 border-2 border-primary/20">
@@ -74,7 +80,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
         <div className="flex-1">
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
-            <Badge 
+             <Badge 
               variant="outline" 
               className={cn('text-xs whitespace-nowrap', getStatusColor(candidate.status), 'border-transparent text-white')}
               title={`Status: ${candidate.status}`}
@@ -96,16 +102,36 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                 <BookOpenText className="h-4 w-4 mt-1 flex-shrink-0" />
                 <p className="italic line-clamp-2">{candidate.bio}</p>
             </div>
+            <Separator />
+            <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <a href={`mailto:${candidate.email}`} className="truncate hover:underline">{candidate.email}</a>
+            </div>
              <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>{candidate.location}</span>
             </div>
-            <div className="flex flex-wrap gap-2">
-                {candidate.qualifications.slice(0, 3).map((q, index) => (
-                    <Badge key={`${q}-${index}`} variant="secondary">{q}</Badge>
-                ))}
-            </div>
-             <p className="text-lg font-semibold text-primary flex items-center">
+            
+            {(keyStages.length > 0 || otherQualifications.length > 0) && (
+              <div>
+                {keyStages.length > 0 && (
+                   <div className="flex flex-wrap gap-2">
+                      {keyStages.map((ks, index) => (
+                          <Badge key={`${ks}-${index}`} variant="default">{ks}</Badge>
+                      ))}
+                  </div>
+                )}
+                {otherQualifications.length > 0 && (
+                   <div className="flex flex-wrap gap-2 mt-2">
+                      {otherQualifications.map((q, index) => (
+                          <Badge key={`${q}-${index}`} variant="secondary">{q}</Badge>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+             
+             <p className="text-lg font-semibold text-primary flex items-center pt-2">
                 £{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
              </p>
         </div>

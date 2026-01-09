@@ -10,6 +10,7 @@ export type Review = {
 export type Candidate = {
   id: string;
   name: string;
+  email: string;
   role: string;
   rate: number;
   rateType: 'hourly' | 'daily';

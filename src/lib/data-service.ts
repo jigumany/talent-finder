@@ -57,6 +57,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     return {
         id: apiCandidate.id.toString(),
         name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
+        email: apiCandidate.email,
         role: role,
         rate: apiCandidate.pay_rate || 0,
         rateType: rateType,
