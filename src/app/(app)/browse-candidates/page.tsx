@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
@@ -16,36 +16,49 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
 
 const CANDIDATES_PER_PAGE = 12;
+const API_PAGE_SIZE = 100; // Fetch from API in batches of 100
+const INITIAL_PAGES_TO_LOAD = 3; // Start with 3 pages (300 candidates)
+const MAX_PAGES_TO_LOAD = 100; // Maximum pages to cache (10,000 candidates)
+
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
-interface FiltersProps {
+// Filter state interface for better type safety
+interface FilterState {
+    searchTerm: string;
     role: string;
-    setRole: (role: string) => void;
-    allRoles: string[];
     subject: string;
-    setSubject: (subject: string) => void;
     location: string;
-    setLocation: (location: string) => void;
     rateType: string;
-    setRateType: (rateType: string) => void;
     minRate: string;
-    setMinRate: (rate: string) => void;
     maxRate: string;
-    setMaxRate: (rate: string) => void;
     status: string;
-    setStatus: (status: string) => void;
+}
+
+// Cache management for loaded pages
+interface CandidateCache {
+    data: Candidate[];
+    totalPages: number;
+    total: number;
+    lastFetched: number;
+}
+
+interface FiltersProps {
+    filters: FilterState;
+    setFilters: (filters: FilterState) => void;
+    allRoles: string[];
     allStatuses: string[];
 }
 
 function Filters({ 
-    role, setRole, allRoles, 
-    subject, setSubject, 
-    location, setLocation, 
-    rateType, setRateType, 
-    minRate, setMinRate, 
-    maxRate, setMaxRate, 
-    status, setStatus, allStatuses 
+    filters, 
+    setFilters, 
+    allRoles,
+    allStatuses
 }: FiltersProps) {
+    const updateFilter = useCallback((key: keyof FilterState, value: string) => {
+        setFilters({ ...filters, [key]: value });
+    }, [filters, setFilters]);
+
     return (
         <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']} className="w-full">
             <AccordionItem value="item-1">
@@ -54,7 +67,7 @@ function Filters({
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label>Role</Label>
-                            <Select value={role} onValueChange={setRole}>
+                            <Select value={filters.role} onValueChange={(v) => updateFilter('role', v)}>
                                 <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Roles</SelectItem>
@@ -64,7 +77,7 @@ function Filters({
                         </div>
                         <div className="grid gap-2">
                             <Label>Subject / Qualification</Label>
-                            <Select value={subject} onValueChange={setSubject}>
+                            <Select value={filters.subject} onValueChange={(v) => updateFilter('subject', v)}>
                                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Subjects</SelectItem>
@@ -82,7 +95,7 @@ function Filters({
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label>Rate Type</Label>
-                            <Select value={rateType} onValueChange={setRateType}>
+                            <Select value={filters.rateType} onValueChange={(v) => updateFilter('rateType', v)}>
                                 <SelectTrigger><SelectValue placeholder="Select rate type" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Rate Types</SelectItem>
@@ -102,8 +115,8 @@ function Filters({
                                             type="number"
                                             placeholder="Min"
                                             className="pl-8"
-                                            value={minRate}
-                                            onChange={(e) => setMinRate(e.target.value)}
+                                            value={filters.minRate}
+                                            onChange={(e) => updateFilter('minRate', e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -115,8 +128,8 @@ function Filters({
                                             type="number"
                                             placeholder="Max"
                                             className="pl-8"
-                                            value={maxRate}
-                                            onChange={(e) => setMaxRate(e.target.value)}
+                                            value={filters.maxRate}
+                                            onChange={(e) => updateFilter('maxRate', e.target.value)}
                                         />
                                     </div>
                                 </div>
@@ -127,8 +140,8 @@ function Filters({
                             <Input 
                                 id="location"
                                 placeholder="Search location..."
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
+                                value={filters.location}
+                                onChange={(e) => updateFilter('location', e.target.value)}
                             />
                         </div>
                     </div>
@@ -139,7 +152,7 @@ function Filters({
                 <AccordionTrigger className="text-base">Status</AccordionTrigger>
                 <AccordionContent>
                     <div className="grid gap-2">
-                        <Select value={status} onValueChange={setStatus}>
+                        <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
                             <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Statuses</SelectItem>
@@ -230,35 +243,40 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
 }
 
 export default function BrowseCandidatesPage() {
-    // Pagination state
+    // State management
     const [currentPage, setCurrentPage] = useState(1);
-
-    // Filter states
-    const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
-    const [subjectFilter, setSubjectFilter] = useState('all');
-    const [locationFilter, setLocationFilter] = useState('');
-    const [rateTypeFilter, setRateTypeFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [minRate, setMinRate] = useState('');
-    const [maxRate, setMaxRate] = useState('');
+    const [filters, setFilters] = useState<FilterState>({
+        searchTerm: '',
+        role: 'all',
+        subject: 'all',
+        location: '',
+        rateType: 'all',
+        minRate: '',
+        maxRate: '',
+        status: 'all',
+    });
 
     // Data states
-    const [candidates, setCandidates] = useState<Candidate[]>([]);
-    const [totalPages, setTotalPages] = useState(1);
-    const [total, setTotal] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
+    const [candidateCache, setCandidateCache] = useState<CandidateCache>({
+        data: [],
+        totalPages: 0,
+        total: 0,
+        lastFetched: 0,
+    });
+    const [loadedPages, setLoadedPages] = useState(0);
+    const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
 
     // Metadata states
     const [allRoles, setAllRoles] = useState<string[]>([]);
     const [allStatuses, setAllStatuses] = useState<string[]>([]);
 
-    // Debounce filters to avoid too many API calls
-    const debouncedSearchTerm = useDebounce(searchTerm, 300);
-    const debouncedLocationFilter = useDebounce(locationFilter, 300);
-    const debouncedMinRate = useDebounce(minRate, 500);
-    const debouncedMaxRate = useDebounce(maxRate, 500);
+    // Debounce filters
+    const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
+    const debouncedLocationFilter = useDebounce(filters.location, 300);
+    const debouncedMinRate = useDebounce(filters.minRate, 500);
+    const debouncedMaxRate = useDebounce(filters.maxRate, 500);
 
     // Load metadata on mount
     useEffect(() => {
@@ -272,131 +290,170 @@ export default function BrowseCandidatesPage() {
         loadMetadata();
     }, []);
 
-    // Fetch candidates from API and filter client-side
+    // Load initial pages
     useEffect(() => {
-        async function fetchFilteredCandidates() {
-            setIsLoading(true);
-            
+        async function loadInitialPages() {
+            setIsLoadingInitial(true);
+            const allCandidates: Candidate[] = [];
+            let totalPages = 0;
+            let total = 0;
+
             try {
-                // Fetch a large set of candidates from the API
-                const params = {
-                    page: 1,
-                    perPage: 100, // Fetch 100 at a time
-                };
-
-                const result = await fetchCandidatesFilteredPaginated(params);
-                let allLoadedCandidates = [...result.data];
-                let nextPage = 2;
-                
-                // Load multiple pages to have enough data to filter
-                while (nextPage <= 5 && result.totalPages >= nextPage) {
-                    const nextResult = await fetchCandidatesFilteredPaginated({
-                        page: nextPage,
-                        perPage: 100,
+                for (let page = 1; page <= INITIAL_PAGES_TO_LOAD; page++) {
+                    const result = await fetchCandidatesFilteredPaginated({
+                        page,
+                        perPage: API_PAGE_SIZE,
                     });
-                    allLoadedCandidates.push(...nextResult.data);
-                    nextPage++;
+                    
+                    allCandidates.push(...result.data);
+                    totalPages = result.totalPages;
+                    total = result.total;
+
+                    console.log(`✅ Loaded page ${page}/${INITIAL_PAGES_TO_LOAD}. Total: ${allCandidates.length} candidates`);
                 }
 
-                // Apply client-side filters
-                let filtered = [...allLoadedCandidates];
-
-                // Search filter
-                if (debouncedSearchTerm) {
-                    const term = debouncedSearchTerm.toLowerCase();
-                    filtered = filtered.filter(c =>
-                        c.name.toLowerCase().includes(term) ||
-                        c.qualifications.some(q => q.toLowerCase().includes(term))
-                    );
-                }
-
-                // Role filter
-                if (roleFilter !== 'all') {
-                    filtered = filtered.filter(c => c.role === roleFilter);
-                }
-
-                // Subject/Qualification filter
-                if (subjectFilter !== 'all') {
-                    filtered = filtered.filter(c =>
-                        c.qualifications.some(q => q.toLowerCase().includes(subjectFilter.toLowerCase()))
-                    );
-                }
-
-                // Location filter
-                if (debouncedLocationFilter) {
-                    filtered = filtered.filter(c =>
-                        c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase())
-                    );
-                }
-
-                // Rate type filter
-                if (rateTypeFilter !== 'all') {
-                    filtered = filtered.filter(c => c.rateType === rateTypeFilter);
-                }
-
-                // Min rate filter
-                if (debouncedMinRate) {
-                    const minVal = parseFloat(debouncedMinRate);
-                    filtered = filtered.filter(c => c.rate >= minVal);
-                }
-
-                // Max rate filter
-                if (debouncedMaxRate) {
-                    const maxVal = parseFloat(debouncedMaxRate);
-                    filtered = filtered.filter(c => c.rate <= maxVal);
-                }
-
-                // Status filter
-                if (statusFilter !== 'all') {
-                    filtered = filtered.filter(c => c.status === statusFilter);
-                }
-
-                // Calculate pagination based on filtered results
-                const totalFiltered = filtered.length;
-                const totalPagesCalculated = Math.ceil(totalFiltered / CANDIDATES_PER_PAGE);
-                
-                // Get the current page of filtered results
-                const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
-                const endIndex = startIndex + CANDIDATES_PER_PAGE;
-                const pageResults = filtered.slice(startIndex, endIndex);
-
-                setCandidates(pageResults);
-                setTotalPages(totalPagesCalculated);
-                setTotal(totalFiltered);
-                
-                console.log(`✅ Loaded ${allLoadedCandidates.length} candidates, filtered to ${totalFiltered}, showing ${pageResults.length} on page ${currentPage}`);
+                setCandidateCache({
+                    data: allCandidates,
+                    totalPages,
+                    total,
+                    lastFetched: Date.now(),
+                });
+                setLoadedPages(INITIAL_PAGES_TO_LOAD);
             } catch (error) {
-                console.error('Error fetching filtered candidates:', error);
-                setCandidates([]);
+                console.error('Error loading initial pages:', error);
             } finally {
-                setIsLoading(false);
+                setIsLoadingInitial(false);
             }
         }
 
-        fetchFilteredCandidates();
-    }, [currentPage, debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter]);
+        loadInitialPages();
+    }, []);
 
-    // Reset to page 1 when filters change (except page number itself)
+    // Load more pages on demand
+    const loadMorePages = useCallback(async (additionalPages: number = 3) => {
+        if (loadedPages >= candidateCache.totalPages || isLoadingMore) return;
+
+        setIsLoadingMore(true);
+        try {
+            const startPage = loadedPages + 1;
+            const endPage = Math.min(loadedPages + additionalPages, candidateCache.totalPages);
+
+            for (let page = startPage; page <= endPage; page++) {
+                const result = await fetchCandidatesFilteredPaginated({
+                    page,
+                    perPage: API_PAGE_SIZE,
+                });
+                
+                setCandidateCache(prev => ({
+                    ...prev,
+                    data: [...prev.data, ...result.data],
+                }));
+
+                console.log(`✅ Loaded page ${page}. Total candidates: ${candidateCache.data.length + result.data.length}`);
+            }
+
+            setLoadedPages(endPage);
+        } catch (error) {
+            console.error('Error loading more pages:', error);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [loadedPages, candidateCache.totalPages, isLoadingMore]);
+
+    // Apply filters to cached candidates (memoized for performance)
+    const filteredCandidates = useMemo(() => {
+        let results = [...candidateCache.data];
+
+        // Search filter
+        if (debouncedSearchTerm) {
+            const term = debouncedSearchTerm.toLowerCase();
+            results = results.filter(c =>
+                c.name.toLowerCase().includes(term) ||
+                c.qualifications.some(q => q.toLowerCase().includes(term))
+            );
+        }
+
+        // Role filter
+        if (filters.role !== 'all') {
+            results = results.filter(c => c.role === filters.role);
+        }
+
+        // Subject filter
+        if (filters.subject !== 'all') {
+            results = results.filter(c =>
+                c.qualifications.some(q => q.toLowerCase().includes(filters.subject.toLowerCase()))
+            );
+        }
+
+        // Location filter
+        if (debouncedLocationFilter) {
+            results = results.filter(c =>
+                c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase())
+            );
+        }
+
+        // Rate type filter
+        if (filters.rateType !== 'all') {
+            results = results.filter(c => c.rateType === filters.rateType);
+        }
+
+        // Min rate filter
+        if (debouncedMinRate) {
+            const minVal = parseFloat(debouncedMinRate);
+            results = results.filter(c => c.rate >= minVal);
+        }
+
+        // Max rate filter
+        if (debouncedMaxRate) {
+            const maxVal = parseFloat(debouncedMaxRate);
+            results = results.filter(c => c.rate <= maxVal);
+        }
+
+        // Status filter
+        if (filters.status !== 'all') {
+            results = results.filter(c => c.status === filters.status);
+        }
+
+        return results;
+    }, [
+        candidateCache.data,
+        debouncedSearchTerm,
+        filters.role,
+        filters.subject,
+        debouncedLocationFilter,
+        filters.rateType,
+        debouncedMinRate,
+        debouncedMaxRate,
+        filters.status,
+    ]);
+
+    // Paginate filtered results
+    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
+    const paginatedCandidates = useMemo(() => {
+        const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
+        const endIndex = startIndex + CANDIDATES_PER_PAGE;
+        return filteredCandidates.slice(startIndex, endIndex);
+    }, [filteredCandidates, currentPage]);
+
+    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter]);
+    }, [debouncedSearchTerm, filters.role, filters.subject, debouncedLocationFilter, filters.rateType, debouncedMinRate, debouncedMaxRate, filters.status]);
+
+    // Auto-load more pages when approaching the end of loaded data
+    useEffect(() => {
+        const threshold = 50; // Load more when within 50 candidates of the end
+        if (filteredCandidates.length > 0 && 
+            filteredCandidates.length - (currentPage * CANDIDATES_PER_PAGE) < threshold &&
+            loadedPages < candidateCache.totalPages) {
+            loadMorePages();
+        }
+    }, [currentPage, filteredCandidates.length, loadedPages, candidateCache.totalPages, loadMorePages]);
 
     const filterProps = {
-        role: roleFilter,
-        setRole: setRoleFilter,
+        filters,
+        setFilters,
         allRoles,
-        subject: subjectFilter,
-        setSubject: setSubjectFilter,
-        location: locationFilter,
-        setLocation: setLocationFilter,
-        rateType: rateTypeFilter,
-        setRateType: setRateTypeFilter,
-        minRate,
-        setMinRate,
-        maxRate,
-        setMaxRate,
-        status: statusFilter,
-        setStatus: setStatusFilter,
         allStatuses,
     };
 
@@ -439,24 +496,30 @@ export default function BrowseCandidatesPage() {
                     <Input 
                         placeholder="Search by name or keyword..." 
                         className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={filters.searchTerm}
+                        onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
                     />
                 </div>
 
-                {isLoadingMetadata || (isLoading && currentPage === 1) ? (
+                {isLoadingMetadata || (isLoadingInitial && candidateCache.data.length === 0) ? (
                     <div className="flex flex-col items-center justify-center h-64 gap-4">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         <p className="text-sm text-muted-foreground text-center">Loading candidates...</p>
                     </div>
                 ) : (
                     <>
-                        <div className="mb-4 text-xs text-muted-foreground">
-                            Total results: {total} | Current Page: {currentPage} of {totalPages}
+                        <div className="mb-4 text-xs text-muted-foreground flex justify-between">
+                            <span>Loaded: {candidateCache.data.length} | Filtered: {filteredCandidates.length} | Page: {currentPage}/{totalPages}</span>
+                            {loadedPages < candidateCache.totalPages && (
+                                <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => loadMorePages()}>
+                                    Load more ({candidateCache.totalPages - loadedPages} pages remaining)
+                                </span>
+                            )}
                         </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {candidates.length > 0 ? (
-                                candidates.map(candidate => (
+                            {paginatedCandidates.length > 0 ? (
+                                paginatedCandidates.map(candidate => (
                                     <CandidateCard key={candidate.id} candidate={candidate} />
                                 ))
                             ) : (
@@ -467,10 +530,16 @@ export default function BrowseCandidatesPage() {
                             )}
                         </div>
                         
+                        {isLoadingMore && (
+                            <div className="flex justify-center py-4">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        )}
+                        
                         {totalPages > 1 && (
                             <div className="mt-8">
                                 <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
-                                    Page {currentPage} of {totalPages} — Showing {candidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–{Math.min(currentPage * CANDIDATES_PER_PAGE, total)} of {total} results
+                                    Page {currentPage} of {totalPages} — Showing {paginatedCandidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–{Math.min(currentPage * CANDIDATES_PER_PAGE, filteredCandidates.length)} of {filteredCandidates.length} results
                                 </div>
                                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                             </div>
