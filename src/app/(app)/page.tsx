@@ -1,6 +1,4 @@
-import { redirect } from 'next/navigation';
-
-// This page performs a permanent server-side redirect to the dashboard.
+// This page is necessary for routing, but the redirect is handled by the layout.
 export default function AppPage() {
-  redirect('/dashboard');
+  return null;
 }

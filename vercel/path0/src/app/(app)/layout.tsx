@@ -1,11 +1,9 @@
 'use client';
-import { usePathname } from 'next/navigation';
+import { usePathname, redirect } from 'next/navigation';
 import { RoleProvider } from '@/context/role-context';
 import { AppLayout } from '@/components/app-layout';
 import { AIAssistant } from '@/components/ai-assistant';
 import { useEffect } from 'react';
-import { redirect } from 'next/navigation';
-
 
 export default function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,7 +20,7 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
   if (pathname === '/') {
     return null;
   }
-
+  
   return (
     <RoleProvider>
         <AppLayout>
