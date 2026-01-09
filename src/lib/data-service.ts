@@ -24,27 +24,29 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     const details: Record<string, string[]> = {};
     const qualifications: string[] = [];
 
+    // Combine both details and key_stages arrays for processing
     const allDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
 
-    if (allDetails) {
-        for (const detail of allDetails) {
-            const value = detail.name || detail.detail_type_value;
-            if (!value) continue;
+    for (const detail of allDetails) {
+        const value = detail.detail_type_value;
+        if (!value) continue;
 
-            const rawType = detail.key_stage_type || detail.detail_type;
-            const mappedType = detailTypeMap[rawType] || rawType || 'General';
-            
-            if (!details[mappedType]) {
-                details[mappedType] = [];
-            }
-            // Avoid duplicates
-            if (!details[mappedType].includes(value)) {
-                details[mappedType].push(value);
-            }
+        // Use the raw detail_type from the API object
+        const rawType = detail.detail_type;
+        // Map the raw type to our desired category name
+        const mappedType = detailTypeMap[rawType] || rawType;
+        
+        if (!details[mappedType]) {
+            details[mappedType] = [];
+        }
+        // Avoid duplicates within a category
+        if (!details[mappedType].includes(value)) {
+            details[mappedType].push(value);
+        }
 
-            if (!qualifications.includes(value)) {
-              qualifications.push(value);
-            }
+        // Also add to the flat qualifications list for search/backward compatibility
+        if (!qualifications.includes(value)) {
+            qualifications.push(value);
         }
     }
 
@@ -57,8 +59,9 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
         rateType = apiCandidate.rate_type.toLowerCase();
     }
-
-    const status: string = apiCandidate.status?.name || 'Inactive';
+    
+    // Status can be in status.name or availability_status.name
+    const status = apiCandidate.status?.name || apiCandidate.availability_status?.name || 'Inactive';
     
     return {
         id: apiCandidate.id.toString(),
@@ -70,8 +73,8 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
         reviews: Math.floor(Math.random() * 30),
         location: location,
-        qualifications: qualifications,
-        details: details,
+        qualifications: qualifications, // Flat list for searching
+        details: details, // Structured object for display
         availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
         cvUrl: '#',
@@ -101,15 +104,16 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
             allCandidates.push(...candidatesOnPage);
             
+            // IMPORTANT: Use the 'next' link provided in the response for the next iteration
             nextPageUrl = jsonResponse.links.next;
             
-            // To prevent getting stuck in a loop if the API is misbehaving
-            if (!nextPageUrl || jsonResponse.meta.current_page === jsonResponse.meta.last_page) {
+            console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total so far: ${allCandidates.length}`);
+
+            // Safety break if something goes wrong to prevent infinite loops
+            if (!nextPageUrl || jsonResponse.meta.current_page >= jsonResponse.meta.last_page) {
                 console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
                 break;
             }
-             console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
-
 
         } catch (error) {
             console.error(`Error fetching from ${nextPageUrl}:`, error);
@@ -178,15 +182,8 @@ export async function fetchBookings(): Promise<Booking[]> {
         const jsonResponse = await response.json();
         
         // This is inefficient but necessary for demo without a proper backend search
-        const allCandidates = [];
-        let nextPageUrl: string | null = `${API_BASE_URL}/candidates?per_page=100`;
-        while(nextPageUrl) {
-            const candidatesResponse = await fetch(nextPageUrl);
-            const candidatesJson = await candidatesResponse.json();
-            allCandidates.push(...candidatesJson.data);
-            nextPageUrl = candidatesJson.links.next;
-        }
-        const candidateMap = new Map(allCandidates.map(transformCandidateData).map((c: Candidate) => [c.id, c]));
+        const allCandidates: Candidate[] = await fetchCandidates();
+        const candidateMap = new Map(allCandidates.map((c: Candidate) => [c.id, c]));
 
         const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {
             const candidateId = booking.candidate_id?.toString();
