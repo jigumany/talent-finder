@@ -21,22 +21,9 @@ export default function AuthPage() {
 
   const [isResetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed to false to prevent layout shift on load
 
   const landingImage = images['landing-page'];
-
-  useEffect(() => {
-    // In a real app, you would check for an active Firebase Auth session here.
-    // For this example, we'll simulate an already authenticated user to test the redirect.
-    const isAuthenticated = false; // Change to your actual auth check, e.g., `useAuth()?.currentUser != null`
-
-    if (isAuthenticated) {
-      router.replace('/dashboard');
-    } else {
-      setIsLoading(false);
-    }
-  }, [router]);
-
 
   const handlePasswordReset = () => {
     if (!resetEmail) {
@@ -95,7 +82,7 @@ export default function AuthPage() {
       <div className="flex items-center justify-center py-12 px-4 transition-transform duration-500 ease-in-out">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold font-headline">Welcome to GSL</h1>
+            <h1 className="text-3xl font-bold font-headline">Welcome to Staffable</h1>
             <p className="text-balance text-muted-foreground">
               Enter your credentials to access your account
             </p>
