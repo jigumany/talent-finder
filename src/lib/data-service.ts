@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import type { Candidate, Booking } from './types';
@@ -26,11 +27,9 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
 
     if (allDetails) {
         for (const detail of allDetails) {
-            // Handle both structures: key_stages have `name`, details have `detail_type_value`
             const value = detail.name || detail.detail_type_value;
             if (!value) continue;
 
-            // Group by type for the `details` object
             const rawType = detail.key_stage_type || detail.detail_type;
             const mappedType = detailTypeMap[rawType] || rawType || 'General';
             
@@ -39,7 +38,6 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
             }
             details[mappedType].push(value);
 
-            // Add to flat qualifications list
             qualifications.push(value);
         }
     }
@@ -47,8 +45,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
     const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
 
-    // Ensure rateType is either 'hourly' or 'daily'
-    let rateType: 'hourly' | 'daily' = 'daily'; // Default to daily
+    let rateType: 'hourly' | 'daily' = 'daily';
     if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
         rateType = apiCandidate.pay_type.toLowerCase();
     } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
@@ -76,39 +73,29 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     };
 };
 
-export async function fetchCandidates(): Promise<Candidate[]> {
-    let allCandidates: Candidate[] = [];
-    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1`;
-
-    console.log("Starting to fetch all candidates...");
-
+export async function fetchCandidates({ page = 1, perPage = 9 }: { page?: number, perPage?: number }): Promise<{ candidates: Candidate[], totalPages: number }> {
+    const url = `${API_BASE_URL}/candidates?with_key_stages=1&page=${page}&per_page=${perPage}`;
+    console.log(`Fetching candidates from: ${url}`);
+    
     try {
-        while (nextPageUrl) {
-            const response = await fetch(nextPageUrl, {
-                next: { revalidate: 3600 } 
-            });
+        const response = await fetch(url, {
+            next: { revalidate: 3600 } 
+        });
 
-            if (!response.ok) {
-                console.error(`Failed to fetch candidates from ${nextPageUrl}: ${response.statusText}`);
-                break; // Stop fetching if there's an error
-            }
-            
-            const jsonResponse = await response.json();
-            const candidates = jsonResponse.data.map(transformCandidateData);
-            allCandidates.push(...candidates);
-
-            nextPageUrl = jsonResponse.links?.next;
-            
-            if(jsonResponse.meta?.current_page) {
-                console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
-            }
+        if (!response.ok) {
+            throw new Error(`Failed to fetch candidates from ${url}: ${response.statusText}`);
         }
         
-        console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
-        return allCandidates;
+        const jsonResponse = await response.json();
+        const candidates = jsonResponse.data.map(transformCandidateData);
+        const totalPages = jsonResponse.meta?.last_page || 1;
+        
+        console.log(`Fetched page ${jsonResponse.meta.current_page} of ${totalPages}. Candidates on this page: ${candidates.length}`);
+
+        return { candidates, totalPages };
     } catch (error) {
-        console.error("Error fetching all candidates:", error);
-        return []; // Return whatever was fetched before the error
+        console.error("Error fetching candidates:", error);
+        return { candidates: [], totalPages: 0 };
     }
 }
 
@@ -127,7 +114,6 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         if (jsonResponse.data) {
             const candidate = transformCandidateData(jsonResponse.data);
             
-            // Add mock reviews data if it doesn't exist
             if (!candidate.reviewsData) {
                  candidate.reviewsData = [
                     { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
@@ -170,22 +156,21 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        // Using a limited fetch here to avoid re-fetching all candidates for bookings
-        const candidatesResponse = await fetch(`${API_BASE_URL}/candidates?per_page=100`);
-        const candidatesJson = await candidatesResponse.json();
-        const candidateMap = new Map(candidatesJson.data.map(transformCandidateData).map((c: Candidate) => [c.id, c]));
+        // This is inefficient but necessary for demo without a proper backend search
+        const allCandidates = [];
+        let nextPageUrl: string | null = `${API_BASE_URL}/candidates?per_page=100`;
+        while(nextPageUrl) {
+            const candidatesResponse = await fetch(nextPageUrl);
+            const candidatesJson = await candidatesResponse.json();
+            allCandidates.push(...candidatesJson.data);
+            nextPageUrl = candidatesJson.links.next;
+        }
+        const candidateMap = new Map(allCandidates.map(transformCandidateData).map((c: Candidate) => [c.id, c]));
 
         const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {
             const candidateId = booking.candidate_id?.toString();
-            let candidate = candidateId ? candidateMap.get(candidateId) : undefined;
+            const candidate = candidateId ? candidateMap.get(candidateId) : undefined;
             
-            if (!candidate && candidateId) {
-                const fetchedCandidate = await fetchCandidateById(candidateId);
-                if (fetchedCandidate) {
-                    candidate = fetchedCandidate;
-                }
-            }
-
             return {
                 id: booking.id.toString(),
                 candidateId: candidateId,
@@ -360,4 +345,10 @@ export async function cancelBooking(bookingId: string): Promise<{success: boolea
         console.error("Error canceling booking:", error);
         return { success: false };
     }
+}
+
+// In a real app, this would come from the API
+export async function getUniqueCandidateRoles(): Promise<string[]> {
+    // This is a mock. A real implementation would query the API for distinct roles.
+    return ['Teacher', 'Teaching Assistant', 'Non Class Support', 'Tutor'];
 }
