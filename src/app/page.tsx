@@ -2,7 +2,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import images from '@/lib/placeholder-images.json';
+import { Loader2 } from 'lucide-react';
 
 export default function AuthPage() {
   const { toast } = useToast();
@@ -20,8 +21,21 @@ export default function AuthPage() {
 
   const [isResetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const landingImage = images['landing-page'];
+
+  useEffect(() => {
+    // In a real app, you would check for an active Firebase Auth session here.
+    // For this example, we'll simulate an already authenticated user to test the redirect.
+    const isAuthenticated = false; // Change to your actual auth check, e.g., `useAuth()?.currentUser != null`
+
+    if (isAuthenticated) {
+      router.replace('/dashboard');
+    } else {
+      setIsLoading(false);
+    }
+  }, [router]);
 
 
   const handlePasswordReset = () => {
@@ -40,6 +54,14 @@ export default function AuthPage() {
         description: `If an account exists for ${resetEmail}, a password reset link has been sent.`,
     });
     setResetEmail('');
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (

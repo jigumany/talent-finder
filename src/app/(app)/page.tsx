@@ -1,4 +1,7 @@
-// This page is necessary for routing, but the redirect is handled by the layout.
+import { redirect } from 'next/navigation';
+
+// This page is necessary for routing, but the actual entry point for the authenticated
+// app is /dashboard. Redirecting here is a failsafe.
 export default function AppPage() {
-  return null;
+  redirect('/dashboard');
 }
