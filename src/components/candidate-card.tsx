@@ -56,7 +56,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
 
   const getStatusColor = (status: string) => {
     const lowerStatus = status.toLowerCase();
-    if (lowerStatus.includes('active') || lowerStatus.includes('available')) return 'bg-green-500';
+    if (lowerStatus.includes('active') || lowerStatus.includes('available') || lowerStatus.includes('online')) return 'bg-green-500';
     if (lowerStatus.includes('stop') || lowerStatus.includes('pending') || lowerStatus.includes('pre-screen')) return 'bg-yellow-500';
     if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
     return 'bg-gray-400';
