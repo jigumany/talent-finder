@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 
 const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open';
 
+// This map translates API short codes into human-readable category names.
 const detailTypeMap: Record<string, string> = {
     'EYFS': 'Key Stages',
     'KS1': 'Key Stages',
@@ -20,25 +21,33 @@ const detailTypeMap: Record<string, string> = {
 };
 
 const transformCandidateData = (apiCandidate: any): Candidate => {
+    // This is the structured object we will build.
     const details: Record<string, string[]> = {};
     const qualifications: string[] = [];
-
+    
+    // Combine both 'details' and 'key_stages' from the API into one array to process.
     const allApiDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
     const seenValues = new Set<string>();
 
     for (const detail of allApiDetails) {
+        // Skip if there's no value or if we've already processed this exact value to prevent duplicates.
         if (!detail.detail_type_value || seenValues.has(detail.detail_type_value)) {
             continue;
         }
         seenValues.add(detail.detail_type_value);
 
+        // Use our map to get the proper category name, or fall back to the API's name.
         const category = detailTypeMap[detail.detail_type] || detail.detail_type;
         
+        // If the category doesn't exist on our details object, initialize it.
         if (!details[category]) {
             details[category] = [];
         }
+        
+        // Add the value to the correct category.
         details[category].push(detail.detail_type_value);
 
+        // Also add to the flat 'qualifications' array for backwards compatibility/other uses.
         if (!qualifications.includes(detail.detail_type_value)) {
             qualifications.push(detail.detail_type_value);
         }
@@ -66,7 +75,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         reviews: Math.floor(Math.random() * 30),
         location: location,
         qualifications: qualifications,
-        details: details,
+        details: details, // This is now the correctly structured object.
         availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
         cvUrl: '#',
