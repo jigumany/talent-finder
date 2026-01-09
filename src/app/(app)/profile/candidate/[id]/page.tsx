@@ -55,6 +55,13 @@ export default function CandidatePublicProfilePage() {
       loadCandidate();
   }, [id]);
 
+  const getStatusColor = (status: string) => {
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes('active') || lowerStatus.includes('available')) return 'bg-green-500';
+    if (lowerStatus.includes('stop') || lowerStatus.includes('pending') || lowerStatus.includes('pre-screen')) return 'bg-yellow-500';
+    if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
+    return 'bg-gray-400';
+  };
 
   if (isLoading) {
     return (
@@ -96,7 +103,16 @@ export default function CandidatePublicProfilePage() {
                 <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-                <h1 className="text-3xl font-bold font-headline">{candidate.name}</h1>
+                <div className="flex items-center gap-4">
+                  <h1 className="text-3xl font-bold font-headline">{candidate.name}</h1>
+                  <Badge 
+                    variant="outline" 
+                    className={cn('text-base whitespace-nowrap', getStatusColor(candidate.status), 'border-transparent text-white')}
+                    title={`Status: ${candidate.status}`}
+                  >
+                    {candidate.status}
+                  </Badge>
+                </div>
                 <p className="text-lg text-muted-foreground">{candidate.role}</p>
                  <div className="flex items-center gap-4 mt-2 text-muted-foreground text-sm">
                     <div className="flex items-center gap-1.5">
@@ -195,19 +211,23 @@ export default function CandidatePublicProfilePage() {
                         <CardTitle>Qualifications & Skills</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {Object.entries(candidate.details).map(([category, values]) => (
-                            <div key={category}>
-                                <h3 className="font-semibold text-md mb-2">{category}</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {values.map(value => (
-                                        <Badge key={value} variant="secondary" className="text-base py-1 px-3">
-                                            {value}
-                                        </Badge>
-                                    ))}
+                        {Object.entries(candidate.details).length > 0 ? (
+                            Object.entries(candidate.details).map(([category, values]) => (
+                                <div key={category}>
+                                    <h3 className="font-semibold text-md mb-2">{category}</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {values.map(value => (
+                                            <Badge key={value} variant="secondary" className="text-base py-1 px-3">
+                                                {value}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    <Separator className="mt-4" />
                                 </div>
-                                <Separator className="mt-4" />
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-muted-foreground">No specific qualifications listed.</p>
+                        )}
                     </CardContent>
                 </Card>
 

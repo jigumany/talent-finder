@@ -56,7 +56,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
   const getStatusColor = (status: string) => {
     const lowerStatus = status.toLowerCase();
     if (lowerStatus.includes('active') || lowerStatus.includes('available')) return 'bg-green-500';
-    if (lowerStatus.includes('stop') || lowerStatus.includes('pending')) return 'bg-yellow-500';
+    if (lowerStatus.includes('stop') || lowerStatus.includes('pending') || lowerStatus.includes('pre-screen')) return 'bg-yellow-500';
     if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
     return 'bg-gray-400';
   };
@@ -69,16 +69,18 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
             <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
-           <div
-            className={cn(
-              'absolute bottom-0 right-0 block h-4 w-4 rounded-full border-2 border-card',
-              getStatusColor(candidate.status)
-            )}
-            title={`Status: ${candidate.status}`}
-          />
         </div>
         <div className="flex-1">
-          <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
+            <Badge 
+              variant="outline" 
+              className={cn('text-xs whitespace-nowrap', getStatusColor(candidate.status), 'border-transparent text-white')}
+              title={`Status: ${candidate.status}`}
+            >
+              {candidate.status}
+            </Badge>
+          </div>
           <p className="text-muted-foreground">{candidate.role}</p>
           <div className="flex items-center gap-1 mt-1 text-sm text-amber-500">
             <Star className="w-4 h-4 fill-current" />

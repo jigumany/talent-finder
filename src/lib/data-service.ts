@@ -19,22 +19,33 @@ const detailTypeMap: Record<string, string> = {
 };
 
 const transformCandidateData = (apiCandidate: any): Candidate => {
-    const qualifications = apiCandidate.details?.map((detail: any) => detail.detail_type_value) || [];
-    
     const details: Record<string, string[]> = {};
-    if (apiCandidate.details) {
-        for (const detail of apiCandidate.details) {
-            const rawType = detail.detail_type;
-            const mappedType = detailTypeMap[rawType] || rawType; // Use mapped name or fallback to raw name
-            const value = detail.detail_type_value;
+    const qualifications: string[] = [];
+
+    const allDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
+
+    if (allDetails) {
+        for (const detail of allDetails) {
+            // Handle both structures: key_stages have `name`, details have `detail_type_value`
+            const value = detail.name || detail.detail_type_value;
+            if (!value) continue;
+
+            // Group by type for the `details` object
+            const rawType = detail.key_stage_type || detail.detail_type;
+            const mappedType = detailTypeMap[rawType] || rawType || 'General';
+            
             if (!details[mappedType]) {
                 details[mappedType] = [];
             }
             details[mappedType].push(value);
+
+            // Add to flat qualifications list
+            qualifications.push(value);
         }
     }
 
     const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
+    const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
 
     // Ensure rateType is either 'hourly' or 'daily'
     let rateType: 'hourly' | 'daily' = 'daily'; // Default to daily
@@ -45,23 +56,23 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     }
 
 
-    const status: Candidate['status'] = apiCandidate.status?.name || 'Inactive';
+    const status: string = apiCandidate.status?.name || 'Inactive';
     
     return {
         id: apiCandidate.id.toString(),
-        name: `${apiCandidate.first_name} ${apiCandidate.last_name}`,
+        name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
         role: role,
         rate: apiCandidate.pay_rate || 0,
         rateType: rateType,
         rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
         reviews: Math.floor(Math.random() * 30),
-        location: apiCandidate.location?.city || 'Location not specified',
+        location: location,
         qualifications: qualifications,
         details: details,
         availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
         cvUrl: '#',
-        bio: `An experienced ${role} based in ${apiCandidate.location?.city || 'the UK'}.`,
+        bio: `An experienced ${role} based in ${location}.`,
         status: status,
     };
 };
@@ -158,7 +169,6 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        // Use the new fetchCandidates that gets all candidates
         const { candidates: fetchedCandidates } = await fetchCandidates();
         const candidateMap = new Map(fetchedCandidates.map(c => [c.id, c]));
 
@@ -166,7 +176,6 @@ export async function fetchBookings(): Promise<Booking[]> {
             const candidateId = booking.candidate_id?.toString();
             let candidate = candidateId ? candidateMap.get(candidateId) : undefined;
             
-            // If candidate is not in our initial list, fetch them directly
             if (!candidate && candidateId) {
                 const fetchedCandidate = await fetchCandidateById(candidateId);
                 if (fetchedCandidate) {
@@ -179,10 +188,10 @@ export async function fetchBookings(): Promise<Booking[]> {
                 candidateId: candidateId,
                 candidateName: candidate?.name || 'Unknown Candidate',
                 candidateRole: candidate?.role || 'Unknown Role',
-                date: booking.start_date, // Using start_date for the main date
+                date: booking.start_date,
                 startDate: booking.start_date,
                 endDate: booking.end_date,
-                status: booking.status, // Assuming status is a direct mapping
+                status: booking.status,
                 confirmationStatus: booking.confirmation_status,
                 bookingType: booking.booking_type,
                 session: booking.session_type,
@@ -207,13 +216,12 @@ interface CreateBookingParams {
 }
 
 export async function createBooking({ candidateId, dates, role, bookingType, session }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
-    const companyId = '118008'; // Hardcoded as per instructions
+    const companyId = '118008';
     
     if (!dates || dates.length === 0) {
         return { success: false };
     }
 
-    // Sort dates to easily find min and max
     const sortedDates = dates.sort((a, b) => a.getTime() - b.getTime());
     const startDate = sortedDates[0];
     const endDate = sortedDates[sortedDates.length - 1];
@@ -250,7 +258,7 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
         const newBooking = {
            id: result.data.id.toString(),
            candidateId: result.data.candidate_id?.toString(),
-           candidateName: '', // This would need to be fetched or passed
+           candidateName: '',
            candidateRole: role,
            date: result.data.start_date,
            startDate: result.data.start_date,
@@ -293,7 +301,7 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
     if (updateData.session) apiPayload.session_type = updateData.session;
     if (updateData.status) apiPayload.status = updateData.status;
     if (updateData.candidateId) apiPayload.candidate_id = parseInt(updateData.candidateId);
-    if (updateData.role) apiPayload.job_title_id = updateData.role; // Assuming role maps to job_title_id, which might be incorrect. This is a placeholder.
+    if (updateData.role) apiPayload.job_title_id = updateData.role;
 
     try {
          const response = await fetch(`${API_BASE_URL}/schedulers/${id}`, {
