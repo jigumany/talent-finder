@@ -23,11 +23,11 @@ const detailTypeMap: Record<string, string> = {
 const transformCandidateData = (apiCandidate: any): Candidate => {
     // This is the structured object we will build.
     const details: Record<string, string[]> = {};
-    const qualifications: string[] = [];
-    
+    const flatQualifications: string[] = [];
+    const seenValues = new Set<string>();
+
     // Combine both 'details' and 'key_stages' from the API into one array to process.
     const allApiDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
-    const seenValues = new Set<string>();
 
     for (const detail of allApiDetails) {
         // Skip if there's no value or if we've already processed this exact value to prevent duplicates.
@@ -48,8 +48,8 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         details[category].push(detail.detail_type_value);
 
         // Also add to the flat 'qualifications' array for backwards compatibility/other uses.
-        if (!qualifications.includes(detail.detail_type_value)) {
-            qualifications.push(detail.detail_type_value);
+        if (!flatQualifications.includes(detail.detail_type_value)) {
+            flatQualifications.push(detail.detail_type_value);
         }
     }
 
@@ -74,7 +74,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
         reviews: Math.floor(Math.random() * 30),
         location: location,
-        qualifications: qualifications,
+        qualifications: flatQualifications,
         details: details, // This is now the correctly structured object.
         availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
