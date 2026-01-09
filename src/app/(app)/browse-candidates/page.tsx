@@ -384,47 +384,52 @@ export default function BrowseCandidatesPage() {
                     </div>
                 )}
                 
-                {!showLoader && totalPages > 1 && (
-                    <Pagination className="mt-8">
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious 
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
-                                    className={cn(
-                                        "cursor-pointer",
-                                        currentPage === 1 ? "pointer-events-none opacity-50" : undefined
-                                    )}
-                                />
-                            </PaginationItem>
-                            {[...Array(totalPages)].map((_, i) => (
-                                <PaginationItem key={i}>
-                                    <PaginationLink 
-                                        href="#" 
-                                        isActive={currentPage === i + 1}
-                                        onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
-                                        className="cursor-pointer"
-                                    >
-                                        {i + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-                            <PaginationItem>
-                                <PaginationNext 
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
-                                     className={cn(
-                                        "cursor-pointer",
-                                        currentPage === totalPages ? "pointer-events-none opacity-50" : undefined
-                                    )}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                 )}
+                <div className="mt-8">
+                    {totalPages > 1 && (
+                        <>
+                            <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
+                                Page {currentPage} of {totalPages}
+                            </div>
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious 
+                                            href="#"
+                                            onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                                            className={cn(
+                                                "cursor-pointer",
+                                                currentPage === 1 ? "pointer-events-none opacity-50" : undefined
+                                            )}
+                                        />
+                                    </PaginationItem>
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <PaginationItem key={i}>
+                                            <PaginationLink 
+                                                href="#" 
+                                                isActive={currentPage === i + 1}
+                                                onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                                                className="cursor-pointer"
+                                            >
+                                                {i + 1}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+                                    <PaginationItem>
+                                        <PaginationNext 
+                                            href="#"
+                                            onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                                            className={cn(
+                                                "cursor-pointer",
+                                                currentPage === totalPages ? "pointer-events-none opacity-50" : undefined
+                                            )}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </>
+                    )}
+                </div>
             </main>
         </div>
     );
 }
-
-    
