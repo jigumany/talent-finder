@@ -330,7 +330,7 @@ export default function BrowseCandidatesPage() {
                 </div>
             </aside>
             
-            <div className="flex flex-col gap-6">
+            <main className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold font-headline">Candidate Marketplace</h1>
                     <div className="md:hidden">
@@ -370,59 +370,61 @@ export default function BrowseCandidatesPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : (
-                    <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {filteredCandidates.map(candidate => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {filteredCandidates.length > 0 ? (
+                            filteredCandidates.map(candidate => (
                                 <CandidateCard key={candidate.id} candidate={candidate} />
-                            ))}
-                        </div>
-                         {filteredCandidates.length === 0 && (
+                            ))
+                        ) : (
                             <div className="text-center text-muted-foreground col-span-full py-12">
                                 <p className="text-lg font-semibold">No candidates found.</p>
                                 <p>Try adjusting your search or filters.</p>
                             </div>
-                         )}
-                         {totalPages > 1 && (
-                            <Pagination className="mt-8">
-                                <PaginationContent>
-                                    <PaginationItem>
-                                        <PaginationPrevious 
-                                            href="#"
-                                            onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
-                                            className={cn(
-                                                "cursor-pointer",
-                                                currentPage === 1 ? "pointer-events-none opacity-50" : undefined
-                                            )}
-                                        />
-                                    </PaginationItem>
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <PaginationItem key={i}>
-                                            <PaginationLink 
-                                                href="#" 
-                                                isActive={currentPage === i + 1}
-                                                onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
-                                                className="cursor-pointer"
-                                            >
-                                                {i + 1}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    ))}
-                                    <PaginationItem>
-                                        <PaginationNext 
-                                            href="#"
-                                            onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
-                                             className={cn(
-                                                "cursor-pointer",
-                                                currentPage === totalPages ? "pointer-events-none opacity-50" : undefined
-                                            )}
-                                        />
-                                    </PaginationItem>
-                                </PaginationContent>
-                            </Pagination>
-                         )}
-                    </>
+                        )}
+                    </div>
                 )}
-            </div>
+                
+                {!showLoader && totalPages > 1 && (
+                    <Pagination className="mt-8">
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                                    className={cn(
+                                        "cursor-pointer",
+                                        currentPage === 1 ? "pointer-events-none opacity-50" : undefined
+                                    )}
+                                />
+                            </PaginationItem>
+                            {[...Array(totalPages)].map((_, i) => (
+                                <PaginationItem key={i}>
+                                    <PaginationLink 
+                                        href="#" 
+                                        isActive={currentPage === i + 1}
+                                        onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                                        className="cursor-pointer"
+                                    >
+                                        {i + 1}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            ))}
+                            <PaginationItem>
+                                <PaginationNext 
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                                     className={cn(
+                                        "cursor-pointer",
+                                        currentPage === totalPages ? "pointer-events-none opacity-50" : undefined
+                                    )}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                 )}
+            </main>
         </div>
     );
 }
+
+    
