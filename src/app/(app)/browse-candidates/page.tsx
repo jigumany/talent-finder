@@ -1,26 +1,21 @@
-
-
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling, Loader2, Calendar as CalendarIcon, Activity } from 'lucide-react';
+import { ListFilter, Search, PoundSterling, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { fetchCandidates, getFilterMetadata, getUniqueCandidateRoles } from '@/lib/data-service';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format, isWithinInterval, startOfDay } from 'date-fns';
-import type { DateRange } from 'react-day-picker';
+import { fetchCandidatesFilteredPaginated, getFilterMetadata } from '@/lib/data-service';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import { cn } from '@/lib/utils';
 
-const CANDIDATES_PER_PAGE = 9;
+const CANDIDATES_PER_PAGE = 12;
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
 interface FiltersProps {
@@ -37,16 +32,22 @@ interface FiltersProps {
     setMinRate: (rate: string) => void;
     maxRate: string;
     setMaxRate: (rate: string) => void;
-    dateRange: DateRange | undefined;
-    setDateRange: (range: DateRange | undefined) => void;
     status: string;
     setStatus: (status: string) => void;
     allStatuses: string[];
 }
 
-function Filters({ role, setRole, allRoles, subject, setSubject, location, setLocation, rateType, setRateType, minRate, setMinRate, maxRate, setMaxRate, dateRange, setDateRange, status, setStatus, allStatuses }: FiltersProps) {
+function Filters({ 
+    role, setRole, allRoles, 
+    subject, setSubject, 
+    location, setLocation, 
+    rateType, setRateType, 
+    minRate, setMinRate, 
+    maxRate, setMaxRate, 
+    status, setStatus, allStatuses 
+}: FiltersProps) {
     return (
-        <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
+        <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']} className="w-full">
             <AccordionItem value="item-1">
                 <AccordionTrigger className="text-base">Role & Subject</AccordionTrigger>
                 <AccordionContent>
@@ -63,17 +64,18 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                         </div>
                         <div className="grid gap-2">
                             <Label>Subject / Qualification</Label>
-                             <Select value={subject} onValueChange={setSubject}>
+                            <Select value={subject} onValueChange={setSubject}>
                                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Subjects</SelectItem>
-                                     {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
+                                    {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
                 </AccordionContent>
             </AccordionItem>
+
             <AccordionItem value="item-2">
                 <AccordionTrigger className="text-base">Rate & Location</AccordionTrigger>
                 <AccordionContent>
@@ -89,30 +91,30 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                                 </SelectContent>
                             </Select>
                         </div>
-                         <div className="grid gap-2">
+                        <div className="grid gap-2">
                             <Label>Rate Range</Label>
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="grid gap-1.5">
                                     <div className="relative">
-                                         <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                         <Input 
+                                        <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input 
                                             id="min-rate"
                                             type="number"
-                                            placeholder="Min" 
-                                            className="pl-7"
+                                            placeholder="Min"
+                                            className="pl-8"
                                             value={minRate}
                                             onChange={(e) => setMinRate(e.target.value)}
                                         />
                                     </div>
                                 </div>
-                                 <div className="grid gap-1.5">
-                                     <div className="relative">
+                                <div className="grid gap-1.5">
+                                    <div className="relative">
                                         <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input 
                                             id="max-rate"
                                             type="number"
-                                            placeholder="Max" 
-                                            className="pl-7"
+                                            placeholder="Max"
+                                            className="pl-8"
                                             value={maxRate}
                                             onChange={(e) => setMaxRate(e.target.value)}
                                         />
@@ -123,7 +125,8 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                         <div className="grid gap-2">
                             <Label>Location</Label>
                             <Input 
-                                placeholder="e.g. London, UK" 
+                                id="location"
+                                placeholder="Search location..."
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
                             />
@@ -131,57 +134,13 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                     </div>
                 </AccordionContent>
             </AccordionItem>
-             <AccordionItem value="item-3">
-                <AccordionTrigger className="text-base">Availability</AccordionTrigger>
-                <AccordionContent>
-                    <div className="grid gap-2">
-                        <Label>Date Range</Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date"
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-[240px] justify-start text-left font-normal",
-                                        !dateRange && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateRange?.from ? (
-                                        dateRange.to ? (
-                                            <>
-                                                {format(dateRange.from, "LLL dd, y")} -{" "}
-                                                {format(dateRange.to, "LLL dd, y")}
-                                            </>
-                                        ) : (
-                                            format(dateRange.from, "LLL dd, y")
-                                        )
-                                    ) : (
-                                        <span>Pick a date range</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={dateRange?.from}
-                                    selected={dateRange}
-                                    onSelect={setDateRange}
-                                    numberOfMonths={2}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-4">
+
+            <AccordionItem value="item-3">
                 <AccordionTrigger className="text-base">Status</AccordionTrigger>
                 <AccordionContent>
                     <div className="grid gap-2">
-                        <Label>Candidate Status</Label>
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
+                            <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Statuses</SelectItem>
                                 {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -191,12 +150,12 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
                 </AccordionContent>
             </AccordionItem>
         </Accordion>
-    )
+    );
 }
 
-function PaginationControls({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void}) {
+function PaginationControls({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) {
     const getPageNumbers = () => {
-        const pageNumbers = [];
+        const pageNumbers: (number | string)[] = [];
         const maxPagesToShow = 5;
         const halfPagesToShow = Math.floor(maxPagesToShow / 2);
 
@@ -262,7 +221,7 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
                     <PaginationNext
                         href="#"
                         onClick={(e) => { e.preventDefault(); onPageChange(Math.min(totalPages, currentPage + 1)); }}
-                         className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
+                        className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
                     />
                 </PaginationItem>
             </PaginationContent>
@@ -271,14 +230,9 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
 }
 
 export default function BrowseCandidatesPage() {
-    const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
-    const [loadingProgress, setLoadingProgress] = useState('Loading candidates...');
-    
+    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const CANDIDATES_PER_PAGE = 12;
-    
+
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
@@ -288,156 +242,25 @@ export default function BrowseCandidatesPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [minRate, setMinRate] = useState('');
     const [maxRate, setMaxRate] = useState('');
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
+    // Data states
+    const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
+
+    // Metadata states
     const [allRoles, setAllRoles] = useState<string[]>([]);
     const [allStatuses, setAllStatuses] = useState<string[]>([]);
-    
+
+    // Debounce filters to avoid too many API calls
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const debouncedLocationFilter = useDebounce(locationFilter, 300);
     const debouncedMinRate = useDebounce(minRate, 500);
     const debouncedMaxRate = useDebounce(maxRate, 500);
 
-    // Load all candidates on mount
-    useEffect(() => {
-        async function loadAllData() {
-            setIsLoading(true);
-            const allCandidatesData: Candidate[] = [];
-            let nextPageUrl: string | null = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates?with_key_stages=1&per_page=100';
-            let pageCount = 0;
-            const MAX_PAGES = 600; // Safety limit to prevent infinite loops
-
-            const fetchPageWithTimeout = async (url: string, timeoutMs: number = 15000): Promise<Response | null> => {
-                try {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-                    
-                    const response = await fetch(url, {
-                        cache: 'no-store',
-                        signal: controller.signal,
-                        headers: {
-                            'Cache-Control': 'no-cache, no-store, must-revalidate',
-                            'Pragma': 'no-cache',
-                            'Expires': '0'
-                        }
-                    });
-                    
-                    clearTimeout(timeout);
-                    return response;
-                } catch (error) {
-                    console.error(`Timeout or error fetching page:`, error);
-                    return null;
-                }
-            };
-
-            while (nextPageUrl && pageCount < MAX_PAGES) {
-                try {
-                    setLoadingProgress(`Loading page ${pageCount + 1}...`);
-                    const response = await fetchPageWithTimeout(nextPageUrl, 15000);
-
-                    if (!response) {
-                        console.warn(`⚠️ Timeout on page ${pageCount + 1}. Saving progress with ${allCandidatesData.length} candidates`);
-                        setLoadingProgress(`Timeout on page ${pageCount + 1}. Loaded ${allCandidatesData.length} candidates so far.`);
-                        break;
-                    }
-
-                    if (!response.ok) {
-                        console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
-                        break;
-                    }
-
-                    const jsonResponse = await response.json();
-                    const candidatesOnPage = jsonResponse.data.map((apiCandidate: any): Candidate => {
-                        const detailTypeMap: Record<string, string> = {
-                            'KS1': 'Key Stage 1',
-                            'KS2': 'Key Stage 2',
-                            'KS3': 'Key Stage 3',
-                            'KS4': 'Key Stage 4',
-                            'KS5': 'Key Stage 5',
-                            'SEND': 'SEND',
-                            'Add': 'Additional Criteria',
-                            'Langs': 'Languages',
-                            'Quals': 'Qualifications',
-                        };
-
-                        const details: Record<string, string[]> = {};
-                        const qualifications: string[] = [];
-
-                        const allDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
-
-                        if (allDetails) {
-                            for (const detail of allDetails) {
-                                const value = detail.name || detail.detail_type_value;
-                                if (!value) continue;
-
-                                const rawType = detail.key_stage_type || detail.detail_type;
-                                const mappedType = detailTypeMap[rawType] || rawType || 'General';
-                                
-                                if (!details[mappedType]) {
-                                    details[mappedType] = [];
-                                }
-                                details[mappedType].push(value);
-                                qualifications.push(value);
-                            }
-                        }
-
-                        const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
-                        const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
-
-                        let rateType: 'hourly' | 'daily' = 'daily';
-                        if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
-                            rateType = apiCandidate.pay_type.toLowerCase();
-                        } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
-                            rateType = apiCandidate.rate_type.toLowerCase();
-                        }
-
-                        const status: string = apiCandidate.status?.name || 'Inactive';
-                        
-                        return {
-                            id: apiCandidate.id.toString(),
-                            name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
-                            role: role,
-                            rate: apiCandidate.pay_rate || 0,
-                            rateType: rateType,
-                            rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
-                            reviews: Math.floor(Math.random() * 30),
-                            location: location,
-                            qualifications: qualifications,
-                            details: details,
-                            availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
-                            imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
-                            cvUrl: '#',
-                            bio: `An experienced ${role} based in ${location}.`,
-                            status: status,
-                        };
-                    });
-
-                    allCandidatesData.push(...candidatesOnPage);
-                    nextPageUrl = jsonResponse.links.next;
-                    pageCount++;
-
-                    console.log(`✅ Loaded page ${pageCount}. Total candidates: ${allCandidatesData.length}`);
-                    
-                    // Small delay to avoid overwhelming the API
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                } catch (pageError) {
-                    console.error(`Error loading page ${pageCount}:`, pageError);
-                    break;
-                }
-            }
-
-            setAllCandidates(allCandidatesData);
-            console.log(`✅ Finished loading. Total candidates: ${allCandidatesData.length}`);
-            console.log(`First candidate:`, allCandidatesData[0]);
-            console.log(`Last candidate:`, allCandidatesData[allCandidatesData.length - 1]);
-            setLoadingProgress(`Loaded ${allCandidatesData.length} candidates`);
-            setIsLoading(false);
-        }
-
-        loadAllData();
-    }, []);
-
-    // Load filter metadata on mount
+    // Load metadata on mount
     useEffect(() => {
         async function loadMetadata() {
             setIsLoadingMetadata(true);
@@ -449,91 +272,114 @@ export default function BrowseCandidatesPage() {
         loadMetadata();
     }, []);
 
-    // Apply filters to all candidates
-    const filteredCandidates = useMemo(() => {
-        console.log(`🔍 Filtering starting with ${allCandidates.length} total candidates`);
-        let candidates = allCandidates;
+    // Fetch candidates from API and filter client-side
+    useEffect(() => {
+        async function fetchFilteredCandidates() {
+            setIsLoading(true);
+            
+            try {
+                // Fetch a large set of candidates from the API
+                const params = {
+                    page: 1,
+                    perPage: 100, // Fetch 100 at a time
+                };
 
-        // Search filter
-        if (debouncedSearchTerm) {
-            const lowercasedTerm = debouncedSearchTerm.toLowerCase();
-            candidates = candidates.filter(c =>
-                c.name.toLowerCase().includes(lowercasedTerm) ||
-                c.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
-            );
-            console.log(`  After search filter: ${candidates.length} candidates`);
+                const result = await fetchCandidatesFilteredPaginated(params);
+                let allLoadedCandidates = [...result.data];
+                let nextPage = 2;
+                
+                // Load multiple pages to have enough data to filter
+                while (nextPage <= 5 && result.totalPages >= nextPage) {
+                    const nextResult = await fetchCandidatesFilteredPaginated({
+                        page: nextPage,
+                        perPage: 100,
+                    });
+                    allLoadedCandidates.push(...nextResult.data);
+                    nextPage++;
+                }
+
+                // Apply client-side filters
+                let filtered = [...allLoadedCandidates];
+
+                // Search filter
+                if (debouncedSearchTerm) {
+                    const term = debouncedSearchTerm.toLowerCase();
+                    filtered = filtered.filter(c =>
+                        c.name.toLowerCase().includes(term) ||
+                        c.qualifications.some(q => q.toLowerCase().includes(term))
+                    );
+                }
+
+                // Role filter
+                if (roleFilter !== 'all') {
+                    filtered = filtered.filter(c => c.role === roleFilter);
+                }
+
+                // Subject/Qualification filter
+                if (subjectFilter !== 'all') {
+                    filtered = filtered.filter(c =>
+                        c.qualifications.some(q => q.toLowerCase().includes(subjectFilter.toLowerCase()))
+                    );
+                }
+
+                // Location filter
+                if (debouncedLocationFilter) {
+                    filtered = filtered.filter(c =>
+                        c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase())
+                    );
+                }
+
+                // Rate type filter
+                if (rateTypeFilter !== 'all') {
+                    filtered = filtered.filter(c => c.rateType === rateTypeFilter);
+                }
+
+                // Min rate filter
+                if (debouncedMinRate) {
+                    const minVal = parseFloat(debouncedMinRate);
+                    filtered = filtered.filter(c => c.rate >= minVal);
+                }
+
+                // Max rate filter
+                if (debouncedMaxRate) {
+                    const maxVal = parseFloat(debouncedMaxRate);
+                    filtered = filtered.filter(c => c.rate <= maxVal);
+                }
+
+                // Status filter
+                if (statusFilter !== 'all') {
+                    filtered = filtered.filter(c => c.status === statusFilter);
+                }
+
+                // Calculate pagination based on filtered results
+                const totalFiltered = filtered.length;
+                const totalPagesCalculated = Math.ceil(totalFiltered / CANDIDATES_PER_PAGE);
+                
+                // Get the current page of filtered results
+                const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
+                const endIndex = startIndex + CANDIDATES_PER_PAGE;
+                const pageResults = filtered.slice(startIndex, endIndex);
+
+                setCandidates(pageResults);
+                setTotalPages(totalPagesCalculated);
+                setTotal(totalFiltered);
+                
+                console.log(`✅ Loaded ${allLoadedCandidates.length} candidates, filtered to ${totalFiltered}, showing ${pageResults.length} on page ${currentPage}`);
+            } catch (error) {
+                console.error('Error fetching filtered candidates:', error);
+                setCandidates([]);
+            } finally {
+                setIsLoading(false);
+            }
         }
 
-        // Role filter
-        if (roleFilter !== 'all') {
-            candidates = candidates.filter(c => c.role === roleFilter);
-            console.log(`  After role filter (${roleFilter}): ${candidates.length} candidates`);
-        }
+        fetchFilteredCandidates();
+    }, [currentPage, debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter]);
 
-        // Subject filter
-        if (subjectFilter !== 'all') {
-            candidates = candidates.filter(c => c.qualifications.some(q => q.toLowerCase().includes(subjectFilter.toLowerCase())));
-            console.log(`  After subject filter (${subjectFilter}): ${candidates.length} candidates`);
-        }
-
-        // Location filter
-        if (debouncedLocationFilter) {
-            candidates = candidates.filter(c => c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase()));
-            console.log(`  After location filter (${debouncedLocationFilter}): ${candidates.length} candidates`);
-        }
-
-        // Rate type filter
-        if (rateTypeFilter !== 'all') {
-            candidates = candidates.filter(c => c.rateType === rateTypeFilter);
-            console.log(`  After rate type filter (${rateTypeFilter}): ${candidates.length} candidates`);
-        }
-
-        // Min rate filter
-        if (debouncedMinRate) {
-            candidates = candidates.filter(c => c.rate >= parseFloat(debouncedMinRate));
-            console.log(`  After min rate filter (${debouncedMinRate}): ${candidates.length} candidates`);
-        }
-
-        // Max rate filter
-        if (debouncedMaxRate) {
-            candidates = candidates.filter(c => c.rate <= parseFloat(debouncedMaxRate));
-            console.log(`  After max rate filter (${debouncedMaxRate}): ${candidates.length} candidates`);
-        }
-
-        // Status filter
-        if (statusFilter !== 'all') {
-            candidates = candidates.filter(c => c.status === statusFilter);
-            console.log(`  After status filter (${statusFilter}): ${candidates.length} candidates`);
-        }
-
-        // Date range filter
-        if (dateRange?.from) {
-            candidates = candidates.filter(c => {
-                if (c.availability.length === 0) return false;
-                const to = dateRange.to || dateRange.from;
-                const interval = { start: startOfDay(dateRange.from!), end: startOfDay(to) };
-                return c.availability.some(availDateStr => isWithinInterval(new Date(availDateStr), interval));
-            });
-            console.log(`  After date range filter: ${candidates.length} candidates`);
-        }
-
-        console.log(`✅ Filter complete: ${candidates.length} candidates`);
-        return candidates;
-    }, [allCandidates, debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter, dateRange]);
-
-    // Reset to page 1 when filters change
+    // Reset to page 1 when filters change (except page number itself)
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter, dateRange]);
-
-    // Paginate the filtered results
-    const paginatedCandidates = useMemo(() => {
-        const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
-        return filteredCandidates.slice(startIndex, startIndex + CANDIDATES_PER_PAGE);
-    }, [filteredCandidates, currentPage]);
-
-    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
-
+    }, [debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter]);
 
     const filterProps = {
         role: roleFilter,
@@ -549,8 +395,6 @@ export default function BrowseCandidatesPage() {
         setMinRate,
         maxRate,
         setMaxRate,
-        dateRange,
-        setDateRange,
         status: statusFilter,
         setStatus: setStatusFilter,
         allStatuses,
@@ -583,7 +427,7 @@ export default function BrowseCandidatesPage() {
                                     </SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-4">
-                                     <Filters {...filterProps} />
+                                    <Filters {...filterProps} />
                                 </div>
                             </SheetContent>
                         </Sheet>
@@ -600,27 +444,25 @@ export default function BrowseCandidatesPage() {
                     />
                 </div>
 
-                {isLoadingMetadata || isLoading ? (
-                     <div className="flex flex-col items-center justify-center h-64 gap-4">
+                {isLoadingMetadata || (isLoading && currentPage === 1) ? (
+                    <div className="flex flex-col items-center justify-center h-64 gap-4">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-sm text-muted-foreground text-center">{loadingProgress}</p>
-                        <p className="text-xs text-muted-foreground">Loaded candidates in state: {allCandidates.length}</p>
+                        <p className="text-sm text-muted-foreground text-center">Loading candidates...</p>
                     </div>
                 ) : (
                     <>
                         <div className="mb-4 text-xs text-muted-foreground">
-                            Total loaded: {allCandidates.length} | Filtered: {filteredCandidates.length}
+                            Total results: {total} | Current Page: {currentPage} of {totalPages}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {paginatedCandidates.length > 0 ? (
-                                paginatedCandidates.map(candidate => (
+                            {candidates.length > 0 ? (
+                                candidates.map(candidate => (
                                     <CandidateCard key={candidate.id} candidate={candidate} />
                                 ))
                             ) : (
                                 <div className="text-center text-muted-foreground col-span-full py-12">
                                     <p className="text-lg font-semibold">No candidates found.</p>
                                     <p>Try adjusting your search or filters.</p>
-                                    {allCandidates.length === 0 && <p className="text-xs mt-2">⚠️ No candidates loaded yet</p>}
                                 </div>
                             )}
                         </div>
@@ -628,7 +470,7 @@ export default function BrowseCandidatesPage() {
                         {totalPages > 1 && (
                             <div className="mt-8">
                                 <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
-                                    Showing {paginatedCandidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0} - {Math.min(currentPage * CANDIDATES_PER_PAGE, filteredCandidates.length)} of {filteredCandidates.length} candidates
+                                    Page {currentPage} of {totalPages} — Showing {candidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–{Math.min(currentPage * CANDIDATES_PER_PAGE, total)} of {total} results
                                 </div>
                                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                             </div>

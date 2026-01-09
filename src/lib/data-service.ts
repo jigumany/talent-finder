@@ -130,6 +130,56 @@ export async function fetchCandidatesPaginated(page: number = 1, perPage: number
     }
 }
 
+export interface FilteredPaginationParams {
+    page?: number;
+    perPage?: number;
+}
+
+export async function fetchCandidatesFilteredPaginated(params: FilteredPaginationParams): Promise<{data: Candidate[], currentPage: number, totalPages: number, total: number}> {
+    try {
+        const page = params.page || 1;
+        const perPage = params.perPage || 12;
+        
+        // Build query string
+        const queryParams = new URLSearchParams({
+            with_key_stages: '1',
+            per_page: perPage.toString(),
+            page: page.toString(),
+        });
+
+        const url = `${API_BASE_URL}/candidates?${queryParams.toString()}`;
+        console.log(`📡 Fetching paginated candidates: ${url}`);
+
+        const response = await fetch(url, {
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
+
+        if (!response.ok) {
+            console.error(`Failed to fetch candidates: ${response.statusText}`);
+            return { data: [], currentPage: page, totalPages: 0, total: 0 };
+        }
+
+        const jsonResponse = await response.json();
+        const candidates = jsonResponse.data.map(transformCandidateData);
+
+        console.log(`✅ Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total results: ${jsonResponse.meta.total}`);
+        
+        return {
+            data: candidates,
+            currentPage: jsonResponse.meta.current_page,
+            totalPages: jsonResponse.meta.last_page,
+            total: jsonResponse.meta.total
+        };
+    } catch (error) {
+        console.error(`Error fetching candidates:`, error);
+        return { data: [], currentPage: 1, totalPages: 0, total: 0 };
+    }
+}
+
 export interface FilterOptions {
     searchTerm?: string;
     role?: string;
