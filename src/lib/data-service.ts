@@ -60,24 +60,23 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     };
 };
 
-export async function fetchCandidates(page = 1): Promise<{ candidates: Candidate[]; totalPages: number }> {
+export async function fetchCandidates(): Promise<Candidate[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages_only=1&with_key_stages=1&per_page=20&page=${page}`, {
+        const response = await fetch(`${API_BASE_URL}/candidates`, {
             next: { revalidate: 3600 } 
         });
 
         if (!response.ok) {
             throw new Error(`Failed to fetch candidates: ${response.statusText}`);
         }
-
-        const totalPages = parseInt(response.headers.get('X-Total-Pages') || '1', 10);
+        
         const jsonResponse = await response.json();
         const candidates = jsonResponse.data.map(transformCandidateData);
         
-        return { candidates, totalPages };
+        return candidates;
     } catch (error) {
         console.error("Error fetching candidates:", error);
-        return { candidates: [], totalPages: 1 };
+        return [];
     }
 }
 
@@ -139,7 +138,7 @@ export async function fetchBookings(): Promise<Booking[]> {
         const jsonResponse = await response.json();
         
         // Enrich booking data with candidate details if needed
-        const { candidates: fetchedCandidates } = await fetchCandidates();
+        const fetchedCandidates = await fetchCandidates();
         const candidateMap = new Map(fetchedCandidates.map(c => [c.id, c]));
 
         const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {

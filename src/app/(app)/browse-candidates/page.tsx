@@ -18,7 +18,7 @@ import { format, isWithinInterval, parseISO, startOfDay } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
-
+const CANDIDATES_PER_PAGE = 9;
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
 interface FiltersProps {
@@ -181,7 +181,6 @@ export default function BrowseCandidatesPage() {
     const [isFiltering, startFiltering] = useTransition();
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -194,22 +193,20 @@ export default function BrowseCandidatesPage() {
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     useEffect(() => {
-        async function loadCandidates(page: number) {
+        async function loadCandidates() {
             setIsLoading(true);
-            const { candidates, totalPages: newTotalPages } = await fetchCandidates(page);
+            const candidates = await fetchCandidates();
             setAllCandidates(candidates);
-            setTotalPages(newTotalPages);
             setIsLoading(false);
         }
-        loadCandidates(currentPage);
-    }, [currentPage]);
+        loadCandidates();
+    }, []);
 
     useEffect(() => {
-        // Fetch availabilities only when a date range is selected
         if (dateRange?.from && allCandidates.length > 0) {
             startFiltering(() => {
                 const availabilitiesToFetch = allCandidates
-                    .filter(c => !candidateAvailabilities[c.id]) // Only fetch if not already loaded
+                    .filter(c => !candidateAvailabilities[c.id])
                     .map(c => c.id);
 
                 if (availabilitiesToFetch.length === 0) return;
@@ -239,8 +236,6 @@ export default function BrowseCandidatesPage() {
         const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
         const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
 
-        // Filtering is now performed on the currently loaded page of candidates.
-        // For a more comprehensive search, the API would need to support these filters.
         const filtered = allCandidates.filter(candidate => {
             if (searchTerm && !(
                 candidate.name.toLowerCase().includes(lowercasedTerm) ||
@@ -273,9 +268,9 @@ export default function BrowseCandidatesPage() {
                 return false;
             }
 
-            if (dateRange?.from) { // Check availability only if a date range is set
+            if (dateRange?.from) {
                 const availabilities = candidateAvailabilities[candidate.id];
-                if (!availabilities) { // If availabilities are still loading, assume available to prevent flicker
+                if (!availabilities) {
                     return true;
                 }
                 const start = startOfDay(dateRange.from);
@@ -285,7 +280,6 @@ export default function BrowseCandidatesPage() {
                     if (a.status !== 'Unavailable' || !a.start_date || !a.end_date) return false;
                     const unavailableStart = startOfDay(parseISO(a.start_date));
                     const unavailableEnd = startOfDay(parseISO(a.end_date));
-                    // Check for overlap between the desired range and the unavailable interval
                     return start <= unavailableEnd && end >= unavailableStart;
                 });
 
@@ -301,6 +295,19 @@ export default function BrowseCandidatesPage() {
 
     }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, allCandidates, dateRange, candidateAvailabilities]);
     
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, dateRange]);
+
+    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
+    
+    const paginatedCandidates = useMemo(() => {
+        const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
+        return filteredCandidates.slice(startIndex, startIndex + CANDIDATES_PER_PAGE);
+    }, [filteredCandidates, currentPage]);
+
+
     const filterProps = {
         role: roleFilter,
         setRole: setRoleFilter,
@@ -371,8 +378,8 @@ export default function BrowseCandidatesPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {filteredCandidates.length > 0 ? (
-                            filteredCandidates.map(candidate => (
+                        {paginatedCandidates.length > 0 ? (
+                            paginatedCandidates.map(candidate => (
                                 <CandidateCard key={candidate.id} candidate={candidate} />
                             ))
                         ) : (
@@ -433,5 +440,3 @@ export default function BrowseCandidatesPage() {
         </div>
     );
 }
-
-    
