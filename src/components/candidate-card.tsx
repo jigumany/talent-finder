@@ -3,9 +3,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookOpenText, Mail, UserPlus, BookCopy } from 'lucide-react';
+import { Star, MapPin, User, Mail, UserPlus, BookOpenText } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
   DialogClose,
   DialogFooter
 } from "@/components/ui/dialog";
