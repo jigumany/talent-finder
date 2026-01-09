@@ -60,9 +60,9 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     };
 };
 
-export async function fetchCandidates(): Promise<Candidate[]> {
+export async function fetchCandidates(page = 1): Promise<{ candidates: Candidate[]; totalPages: number }> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages_only=1&with_key_stages=1&per_page=20`, {
+        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages_only=1&with_key_stages=1&per_page=20&page=${page}`, {
             next: { revalidate: 3600 } 
         });
 
@@ -70,13 +70,14 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             throw new Error(`Failed to fetch candidates: ${response.statusText}`);
         }
 
+        const totalPages = parseInt(response.headers.get('X-Total-Pages') || '1', 10);
         const jsonResponse = await response.json();
-        const transformedCandidates = jsonResponse.data.map(transformCandidateData);
+        const candidates = jsonResponse.data.map(transformCandidateData);
         
-        return transformedCandidates;
+        return { candidates, totalPages };
     } catch (error) {
         console.error("Error fetching candidates:", error);
-        return [];
+        return { candidates: [], totalPages: 1 };
     }
 }
 
@@ -92,7 +93,16 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         
         const jsonResponse = await response.json();
         if (jsonResponse.data) {
-            return transformCandidateData(jsonResponse.data);
+            const candidate = transformCandidateData(jsonResponse.data);
+            
+            // Add mock reviews data if it doesn't exist
+            if (!candidate.reviewsData) {
+                 candidate.reviewsData = [
+                    { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
+                    { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
+                ]
+            }
+            return candidate;
         }
         return null;
     } catch (error) {
@@ -129,8 +139,8 @@ export async function fetchBookings(): Promise<Booking[]> {
         const jsonResponse = await response.json();
         
         // Enrich booking data with candidate details if needed
-        const candidates = await fetchCandidates();
-        const candidateMap = new Map(candidates.map(c => [c.id, c]));
+        const { candidates: fetchedCandidates } = await fetchCandidates();
+        const candidateMap = new Map(fetchedCandidates.map(c => [c.id, c]));
 
         const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {
             const candidateId = booking.candidate_id?.toString();

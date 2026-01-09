@@ -16,6 +16,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, isWithinInterval, parseISO, startOfDay } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
 
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
@@ -177,6 +179,9 @@ export default function BrowseCandidatesPage() {
     const [candidateAvailabilities, setCandidateAvailabilities] = useState<Record<string, any[]>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isFiltering, startFiltering] = useTransition();
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -189,14 +194,15 @@ export default function BrowseCandidatesPage() {
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     useEffect(() => {
-        async function loadCandidates() {
+        async function loadCandidates(page: number) {
             setIsLoading(true);
-            const candidates = await fetchCandidates();
+            const { candidates, totalPages: newTotalPages } = await fetchCandidates(page);
             setAllCandidates(candidates);
+            setTotalPages(newTotalPages);
             setIsLoading(false);
         }
-        loadCandidates();
-    }, []);
+        loadCandidates(currentPage);
+    }, [currentPage]);
 
     useEffect(() => {
         // Fetch availabilities only when a date range is selected
@@ -221,15 +227,20 @@ export default function BrowseCandidatesPage() {
                 fetchAllAvailabilities();
             });
         }
-    }, [dateRange, allCandidates]); // Removed candidateAvailabilities from dependencies
+    }, [dateRange, allCandidates, candidateAvailabilities]);
 
-    const allRoles = useMemo(() => [...new Set(allCandidates.map(c => c.role))], [allCandidates]);
+    const allRoles = useMemo(() => {
+        const roles = allCandidates.map(c => c.role);
+        return [...new Set(roles)];
+    }, [allCandidates]);
 
     const filteredCandidates = useMemo(() => {
         const lowercasedTerm = searchTerm.toLowerCase();
         const minRateNum = minRate ? parseFloat(minRate) : -Infinity;
         const maxRateNum = maxRate ? parseFloat(maxRate) : Infinity;
 
+        // Filtering is now performed on the currently loaded page of candidates.
+        // For a more comprehensive search, the API would need to support these filters.
         const filtered = allCandidates.filter(candidate => {
             if (searchTerm && !(
                 candidate.name.toLowerCase().includes(lowercasedTerm) ||
@@ -371,11 +382,40 @@ export default function BrowseCandidatesPage() {
                                 <p>Try adjusting your search or filters.</p>
                             </div>
                          )}
+                         {totalPages > 1 && (
+                            <Pagination className="mt-8">
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious 
+                                            href="#"
+                                            onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                                            className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined}
+                                        />
+                                    </PaginationItem>
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <PaginationItem key={i}>
+                                            <PaginationLink 
+                                                href="#" 
+                                                isActive={currentPage === i + 1}
+                                                onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                                            >
+                                                {i + 1}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+                                    <PaginationItem>
+                                        <PaginationNext 
+                                            href="#"
+                                            onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                         )}
                     </>
                 )}
             </div>
         </div>
     );
 }
-
-    
