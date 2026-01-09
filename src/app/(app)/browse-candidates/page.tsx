@@ -389,7 +389,10 @@ export default function BrowseCandidatesPage() {
                                         <PaginationPrevious 
                                             href="#"
                                             onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
-                                            className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined}
+                                            className={cn(
+                                                "cursor-pointer",
+                                                currentPage === 1 ? "pointer-events-none opacity-50" : undefined
+                                            )}
                                         />
                                     </PaginationItem>
                                     {[...Array(totalPages)].map((_, i) => (
@@ -398,6 +401,7 @@ export default function BrowseCandidatesPage() {
                                                 href="#" 
                                                 isActive={currentPage === i + 1}
                                                 onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                                                className="cursor-pointer"
                                             >
                                                 {i + 1}
                                             </PaginationLink>
@@ -407,7 +411,10 @@ export default function BrowseCandidatesPage() {
                                         <PaginationNext 
                                             href="#"
                                             onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
-                                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined}
+                                             className={cn(
+                                                "cursor-pointer",
+                                                currentPage === totalPages ? "pointer-events-none opacity-50" : undefined
+                                            )}
                                         />
                                     </PaginationItem>
                                 </PaginationContent>
