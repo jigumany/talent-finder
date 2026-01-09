@@ -73,30 +73,39 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     };
 };
 
-export async function fetchCandidates({ page = 1, perPage = 9 }: { page?: number, perPage?: number }): Promise<{ candidates: Candidate[], totalPages: number }> {
-    const url = `${API_BASE_URL}/candidates?with_key_stages=1&page=${page}&per_page=${perPage}`;
-    console.log(`Fetching candidates from: ${url}`);
-    
-    try {
-        const response = await fetch(url, {
-            next: { revalidate: 3600 } 
-        });
+export async function fetchCandidates(): Promise<Candidate[]> {
+    const allCandidates: Candidate[] = [];
+    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1&per_page=100`;
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch candidates from ${url}: ${response.statusText}`);
+    console.log("Starting to fetch all candidates...");
+
+    while (nextPageUrl) {
+        try {
+            const response = await fetch(nextPageUrl, {
+                next: { revalidate: 3600 } // Cache pages for 1 hour
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
+                break; 
+            }
+
+            const jsonResponse = await response.json();
+            const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
+            allCandidates.push(...candidatesOnPage);
+            
+            nextPageUrl = jsonResponse.links.next;
+            
+            console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
+
+        } catch (error) {
+            console.error(`Error fetching from ${nextPageUrl}:`, error);
+            break;
         }
-        
-        const jsonResponse = await response.json();
-        const candidates = jsonResponse.data.map(transformCandidateData);
-        const totalPages = jsonResponse.meta?.last_page || 1;
-        
-        console.log(`Fetched page ${jsonResponse.meta.current_page} of ${totalPages}. Candidates on this page: ${candidates.length}`);
-
-        return { candidates, totalPages };
-    } catch (error) {
-        console.error("Error fetching candidates:", error);
-        return { candidates: [], totalPages: 0 };
     }
+    
+    console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
+    return allCandidates;
 }
 
 

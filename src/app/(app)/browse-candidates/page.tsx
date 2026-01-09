@@ -1,7 +1,7 @@
 
 
 'use client';
-import { useState, useEffect, useMemo, useTransition, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
@@ -15,9 +15,9 @@ import { fetchCandidates, getUniqueCandidateRoles } from '@/lib/data-service';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isWithinInterval, startOfDay } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 
 const CANDIDATES_PER_PAGE = 9;
@@ -194,13 +194,87 @@ function Filters({ role, setRole, allRoles, subject, setSubject, location, setLo
     )
 }
 
-export default function BrowseCandidatesPage() {
-    const [candidates, setCandidates] = useState<Candidate[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isFiltering, startFiltering] = useTransition();
+function PaginationControls({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void}) {
+    const getPageNumbers = () => {
+        const pageNumbers = [];
+        const maxPagesToShow = 5;
+        const halfPagesToShow = Math.floor(maxPagesToShow / 2);
 
+        if (totalPages <= maxPagesToShow + 2) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i);
+            }
+        } else {
+            pageNumbers.push(1);
+            if (currentPage > halfPagesToShow + 2) {
+                pageNumbers.push('...');
+            }
+
+            let start = Math.max(2, currentPage - halfPagesToShow);
+            let end = Math.min(totalPages - 1, currentPage + halfPagesToShow);
+
+            if (currentPage <= halfPagesToShow + 1) {
+                end = maxPagesToShow;
+            }
+
+            if (currentPage >= totalPages - halfPagesToShow) {
+                start = totalPages - maxPagesToShow + 1;
+            }
+
+            for (let i = start; i <= end; i++) {
+                pageNumbers.push(i);
+            }
+
+            if (currentPage < totalPages - halfPagesToShow - 1) {
+                pageNumbers.push('...');
+            }
+            pageNumbers.push(totalPages);
+        }
+        return pageNumbers;
+    };
+    
+    return (
+        <Pagination>
+            <PaginationContent>
+                <PaginationItem>
+                    <PaginationPrevious
+                        href="#"
+                        onClick={(e) => { e.preventDefault(); onPageChange(Math.max(1, currentPage - 1)); }}
+                        className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                    />
+                </PaginationItem>
+                {getPageNumbers().map((page, index) => (
+                    <PaginationItem key={index}>
+                        {typeof page === 'number' ? (
+                            <PaginationLink
+                                href="#"
+                                isActive={currentPage === page}
+                                onClick={(e) => { e.preventDefault(); onPageChange(page); }}
+                            >
+                                {page}
+                            </PaginationLink>
+                        ) : (
+                            <PaginationEllipsis />
+                        )}
+                    </PaginationItem>
+                ))}
+                <PaginationItem>
+                    <PaginationNext
+                        href="#"
+                        onClick={(e) => { e.preventDefault(); onPageChange(Math.min(totalPages, currentPage + 1)); }}
+                         className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
+                    />
+                </PaginationItem>
+            </PaginationContent>
+        </Pagination>
+    );
+}
+
+export default function BrowseCandidatesPage() {
+    const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -214,41 +288,87 @@ export default function BrowseCandidatesPage() {
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     const [allRoles, setAllRoles] = useState<string[]>([]);
-    const allStatuses = ['Active', 'Available', 'Pre-screen', 'Archived', 'Stop', 'Pending Compliance'];
+    const [allStatuses, setAllStatuses] = useState<string[]>([]);
     
-    // This is just a placeholder and won't be used for filtering with server-side pagination.
-    // The server API would need to be updated to handle these filters.
-    const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-    const loadCandidates = useCallback(async (page: number) => {
-        setIsLoading(true);
-        const { candidates: fetchedCandidates, totalPages: fetchedTotalPages } = await fetchCandidates({ page, perPage: CANDIDATES_PER_PAGE });
-        setCandidates(fetchedCandidates);
-        setTotalPages(fetchedTotalPages);
-        setIsLoading(false);
-    }, []);
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const debouncedLocationFilter = useDebounce(locationFilter, 300);
+    const debouncedMinRate = useDebounce(minRate, 500);
+    const debouncedMaxRate = useDebounce(maxRate, 500);
 
     useEffect(() => {
-        loadCandidates(currentPage);
-    }, [currentPage, loadCandidates]);
-    
-    useEffect(() => {
-        // In a real app with a more advanced API, you would pass the filters to `loadCandidates`
-        // and the API would return filtered results. We reset to page 1 on filter changes.
-        setCurrentPage(1);
-    }, [debouncedSearchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, statusFilter, minRate, maxRate, dateRange]);
-    
-    useEffect(() => {
-        async function loadRoles() {
-            setAllRoles(await getUniqueCandidateRoles());
+        async function loadData() {
+            setIsLoading(true);
+            const candidates = await fetchCandidates();
+            setAllCandidates(candidates);
+            setAllRoles([...new Set(candidates.map(c => c.role))].sort());
+            setAllStatuses([...new Set(candidates.map(c => c.status))].sort());
+            setIsLoading(false);
         }
-        loadRoles();
+        loadData();
     }, []);
 
+    const filteredCandidates = useMemo(() => {
+        let candidates = allCandidates;
 
-    // Note: Client-side filtering is removed as we are now paginating from the server.
-    // A production app would pass these filters to the `fetchCandidates` call.
-    const paginatedCandidates = candidates;
+        if (debouncedSearchTerm) {
+            const lowercasedTerm = debouncedSearchTerm.toLowerCase();
+            candidates = candidates.filter(c =>
+                c.name.toLowerCase().includes(lowercasedTerm) ||
+                c.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
+            );
+        }
+
+        if (roleFilter !== 'all') {
+            candidates = candidates.filter(c => c.role === roleFilter);
+        }
+
+        if (subjectFilter !== 'all') {
+            candidates = candidates.filter(c => c.qualifications.some(q => q.toLowerCase().includes(subjectFilter)));
+        }
+
+        if (debouncedLocationFilter) {
+            candidates = candidates.filter(c => c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase()));
+        }
+
+        if (rateTypeFilter !== 'all') {
+            candidates = candidates.filter(c => c.rateType === rateTypeFilter);
+        }
+        
+        if (debouncedMinRate) {
+             candidates = candidates.filter(c => c.rate >= parseFloat(debouncedMinRate));
+        }
+
+        if (debouncedMaxRate) {
+             candidates = candidates.filter(c => c.rate <= parseFloat(debouncedMaxRate));
+        }
+        
+        if (statusFilter !== 'all') {
+            candidates = candidates.filter(c => c.status === statusFilter);
+        }
+        
+        if (dateRange?.from) {
+             candidates = candidates.filter(c => {
+                if (c.availability.length === 0) return false;
+                const to = dateRange.to || dateRange.from;
+                const interval = { start: startOfDay(dateRange.from!), end: startOfDay(to) };
+                return c.availability.some(availDateStr => isWithinInterval(new Date(availDateStr), interval));
+            });
+        }
+        
+        return candidates;
+    }, [allCandidates, debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter, dateRange]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filteredCandidates.length]);
+
+    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
+
+    const paginatedCandidates = useMemo(() => {
+        const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
+        return filteredCandidates.slice(startIndex, startIndex + CANDIDATES_PER_PAGE);
+    }, [filteredCandidates, currentPage]);
+
 
     const filterProps = {
         role: roleFilter,
@@ -313,7 +433,6 @@ export default function BrowseCandidatesPage() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                     <p className="text-xs text-muted-foreground mt-1">Note: Server-side search/filter not implemented in this demo.</p>
                 </div>
 
                 {isLoading ? (
@@ -335,49 +454,17 @@ export default function BrowseCandidatesPage() {
                             )}
                         </div>
                         
-                        <div className="mt-8">
-                            {totalPages > 1 && (
-                                <>
-                                    <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
-                                        Page {currentPage} of {totalPages}
-                                    </div>
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious 
-                                                    href="#"
-                                                    onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
-                                                    className={cn(
-                                                        "cursor-pointer",
-                                                        currentPage === 1 ? "pointer-events-none opacity-50" : undefined
-                                                    )}
-                                                />
-                                            </PaginationItem>
-                                            
-                                            {/* Simplified pagination links for brevity */}
-                                            <PaginationItem>
-                                                <PaginationLink href="#" isActive>{currentPage}</PaginationLink>
-                                            </PaginationItem>
-                                            
-                                            <PaginationItem>
-                                                <PaginationNext 
-                                                    href="#"
-                                                    onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
-                                                    className={cn(
-                                                        "cursor-pointer",
-                                                        currentPage === totalPages ? "pointer-events-none opacity-50" : undefined
-                                                    )}
-                                                />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
-                                </>
-                            )}
-                        </div>
+                        {totalPages > 1 && (
+                            <div className="mt-8">
+                                <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                            </div>
+                        )}
                     </>
                 )}
             </main>
         </div>
     );
 }
-
