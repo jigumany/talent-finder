@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { fetchCandidates, getUniqueCandidateRoles } from '@/lib/data-service';
+import { fetchCandidates, getFilterMetadata, getUniqueCandidateRoles } from '@/lib/data-service';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -273,8 +273,11 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
 export default function BrowseCandidatesPage() {
     const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
+    const [loadingProgress, setLoadingProgress] = useState('Loading candidates...');
     
     const [currentPage, setCurrentPage] = useState(1);
+    const CANDIDATES_PER_PAGE = 12;
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -295,21 +298,135 @@ export default function BrowseCandidatesPage() {
     const debouncedMinRate = useDebounce(minRate, 500);
     const debouncedMaxRate = useDebounce(maxRate, 500);
 
+    // Load all candidates on mount
     useEffect(() => {
-        async function loadData() {
+        async function loadAllData() {
             setIsLoading(true);
-            const candidates = await fetchCandidates();
-            setAllCandidates(candidates);
-            setAllRoles([...new Set(candidates.map(c => c.role))].sort());
-            setAllStatuses([...new Set(candidates.map(c => c.status))].sort());
-            setIsLoading(false);
+            try {
+                const allCandidatesData: Candidate[] = [];
+                let nextPageUrl: string | null = 'https://gslstaging.mytalentcrm.com/api/v2/open/candidates?with_key_stages=1&per_page=100';
+                let pageCount = 0;
+
+                while (nextPageUrl) {
+                    try {
+                        setLoadingProgress(`Loading page ${pageCount + 1}...`);
+                        const response = await fetch(nextPageUrl, {
+                            cache: 'no-store'
+                        });
+
+                        if (!response.ok) {
+                            console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
+                            break;
+                        }
+
+                        const jsonResponse = await response.json();
+                        const candidatesOnPage = jsonResponse.data.map((apiCandidate: any): Candidate => {
+                            const detailTypeMap: Record<string, string> = {
+                                'KS1': 'Key Stage 1',
+                                'KS2': 'Key Stage 2',
+                                'KS3': 'Key Stage 3',
+                                'KS4': 'Key Stage 4',
+                                'KS5': 'Key Stage 5',
+                                'SEND': 'SEND',
+                                'Add': 'Additional Criteria',
+                                'Langs': 'Languages',
+                                'Quals': 'Qualifications',
+                            };
+
+                            const details: Record<string, string[]> = {};
+                            const qualifications: string[] = [];
+
+                            const allDetails = [...(apiCandidate.details || []), ...(apiCandidate.key_stages || [])];
+
+                            if (allDetails) {
+                                for (const detail of allDetails) {
+                                    const value = detail.name || detail.detail_type_value;
+                                    if (!value) continue;
+
+                                    const rawType = detail.key_stage_type || detail.detail_type;
+                                    const mappedType = detailTypeMap[rawType] || rawType || 'General';
+                                    
+                                    if (!details[mappedType]) {
+                                        details[mappedType] = [];
+                                    }
+                                    details[mappedType].push(value);
+                                    qualifications.push(value);
+                                }
+                            }
+
+                            const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
+                            const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
+
+                            let rateType: 'hourly' | 'daily' = 'daily';
+                            if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
+                                rateType = apiCandidate.pay_type.toLowerCase();
+                            } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
+                                rateType = apiCandidate.rate_type.toLowerCase();
+                            }
+
+                            const status: string = apiCandidate.status?.name || 'Inactive';
+                            
+                            return {
+                                id: apiCandidate.id.toString(),
+                                name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
+                                role: role,
+                                rate: apiCandidate.pay_rate || 0,
+                                rateType: rateType,
+                                rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
+                                reviews: Math.floor(Math.random() * 30),
+                                location: location,
+                                qualifications: qualifications,
+                                details: details,
+                                availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
+                                imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
+                                cvUrl: '#',
+                                bio: `An experienced ${role} based in ${location}.`,
+                                status: status,
+                            };
+                        });
+
+                        allCandidatesData.push(...candidatesOnPage);
+                        nextPageUrl = jsonResponse.links.next;
+                        pageCount++;
+
+                        console.log(`Loaded page ${pageCount}. Total candidates: ${allCandidatesData.length}`);
+                    } catch (pageError) {
+                        console.error(`Error loading page ${pageCount}:`, pageError);
+                        break;
+                    }
+                }
+
+                setAllCandidates(allCandidatesData);
+                console.log(`Finished loading. Total candidates: ${allCandidatesData.length}`);
+                setLoadingProgress(`Loaded ${allCandidatesData.length} candidates`);
+            } catch (error) {
+                console.error('Error loading candidates:', error);
+                setLoadingProgress('Error loading candidates');
+            } finally {
+                setIsLoading(false);
+            }
         }
-        loadData();
+
+        loadAllData();
     }, []);
 
+    // Load filter metadata on mount
+    useEffect(() => {
+        async function loadMetadata() {
+            setIsLoadingMetadata(true);
+            const metadata = await getFilterMetadata();
+            setAllRoles(metadata.roles);
+            setAllStatuses(metadata.statuses);
+            setIsLoadingMetadata(false);
+        }
+        loadMetadata();
+    }, []);
+
+    // Apply filters to all candidates
     const filteredCandidates = useMemo(() => {
         let candidates = allCandidates;
 
+        // Search filter
         if (debouncedSearchTerm) {
             const lowercasedTerm = debouncedSearchTerm.toLowerCase();
             candidates = candidates.filter(c =>
@@ -318,56 +435,66 @@ export default function BrowseCandidatesPage() {
             );
         }
 
+        // Role filter
         if (roleFilter !== 'all') {
             candidates = candidates.filter(c => c.role === roleFilter);
         }
 
+        // Subject filter
         if (subjectFilter !== 'all') {
-            candidates = candidates.filter(c => c.qualifications.some(q => q.toLowerCase().includes(subjectFilter)));
+            candidates = candidates.filter(c => c.qualifications.some(q => q.toLowerCase().includes(subjectFilter.toLowerCase())));
         }
 
+        // Location filter
         if (debouncedLocationFilter) {
             candidates = candidates.filter(c => c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase()));
         }
 
+        // Rate type filter
         if (rateTypeFilter !== 'all') {
             candidates = candidates.filter(c => c.rateType === rateTypeFilter);
         }
-        
+
+        // Min rate filter
         if (debouncedMinRate) {
-             candidates = candidates.filter(c => c.rate >= parseFloat(debouncedMinRate));
+            candidates = candidates.filter(c => c.rate >= parseFloat(debouncedMinRate));
         }
 
+        // Max rate filter
         if (debouncedMaxRate) {
-             candidates = candidates.filter(c => c.rate <= parseFloat(debouncedMaxRate));
+            candidates = candidates.filter(c => c.rate <= parseFloat(debouncedMaxRate));
         }
-        
+
+        // Status filter
         if (statusFilter !== 'all') {
             candidates = candidates.filter(c => c.status === statusFilter);
         }
-        
+
+        // Date range filter
         if (dateRange?.from) {
-             candidates = candidates.filter(c => {
+            candidates = candidates.filter(c => {
                 if (c.availability.length === 0) return false;
                 const to = dateRange.to || dateRange.from;
                 const interval = { start: startOfDay(dateRange.from!), end: startOfDay(to) };
                 return c.availability.some(availDateStr => isWithinInterval(new Date(availDateStr), interval));
             });
         }
-        
+
         return candidates;
     }, [allCandidates, debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter, dateRange]);
 
+    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [filteredCandidates.length]);
+    }, [debouncedSearchTerm, roleFilter, subjectFilter, debouncedLocationFilter, rateTypeFilter, debouncedMinRate, debouncedMaxRate, statusFilter, dateRange]);
 
-    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
-
+    // Paginate the filtered results
     const paginatedCandidates = useMemo(() => {
         const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
         return filteredCandidates.slice(startIndex, startIndex + CANDIDATES_PER_PAGE);
     }, [filteredCandidates, currentPage]);
+
+    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
 
 
     const filterProps = {
@@ -435,9 +562,10 @@ export default function BrowseCandidatesPage() {
                     />
                 </div>
 
-                {isLoading ? (
-                     <div className="flex justify-center items-center h-64">
+                {isLoadingMetadata || isLoading ? (
+                     <div className="flex flex-col items-center justify-center h-64 gap-4">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground text-center">{loadingProgress}</p>
                     </div>
                 ) : (
                     <>
@@ -457,7 +585,7 @@ export default function BrowseCandidatesPage() {
                         {totalPages > 1 && (
                             <div className="mt-8">
                                 <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
-                                    Page {currentPage} of {totalPages}
+                                    Showing {paginatedCandidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0} - {Math.min(currentPage * CANDIDATES_PER_PAGE, filteredCandidates.length)} of {filteredCandidates.length} candidates
                                 </div>
                                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                             </div>
