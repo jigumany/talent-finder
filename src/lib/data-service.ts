@@ -8,13 +8,14 @@ import { format } from 'date-fns';
 const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open';
 
 const detailTypeMap: Record<string, string> = {
-    'KS1': 'Key Stage 1',
-    'KS2': 'Key Stage 2',
-    'KS3': 'Key Stage 3',
-    'KS4': 'Key Stage 4',
-    'KS5': 'Key Stage 5',
+    'EYFS': 'Key Stages',
+    'KS1': 'Key Stages',
+    'KS2': 'Key Stages',
+    'KS3': 'Key Stages',
+    'KS4': 'Key Stages',
+    'KS5': 'Key Stages',
     'SEND': 'SEND',
-    'Add': 'Additional Criteria',
+    'Add': 'Additional Qualifications',
     'Langs': 'Languages',
     'Quals': 'Qualifications',
 };
@@ -36,9 +37,14 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
             if (!details[mappedType]) {
                 details[mappedType] = [];
             }
-            details[mappedType].push(value);
+            // Avoid duplicates
+            if (!details[mappedType].includes(value)) {
+                details[mappedType].push(value);
+            }
 
-            qualifications.push(value);
+            if (!qualifications.includes(value)) {
+              qualifications.push(value);
+            }
         }
     }
 
@@ -97,7 +103,13 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             
             nextPageUrl = jsonResponse.links.next;
             
-            console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
+            // To prevent getting stuck in a loop if the API is misbehaving
+            if (!nextPageUrl || jsonResponse.meta.current_page === jsonResponse.meta.last_page) {
+                console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
+                break;
+            }
+             console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
+
 
         } catch (error) {
             console.error(`Error fetching from ${nextPageUrl}:`, error);
@@ -105,7 +117,6 @@ export async function fetchCandidates(): Promise<Candidate[]> {
         }
     }
     
-    console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
     return allCandidates;
 }
 

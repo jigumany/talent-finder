@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, User, BookUser, Mail, BookOpenText, UserPlus } from 'lucide-react';
+import { Star, MapPin, User, BookOpenText, Mail, UserPlus, BookCopy } from 'lucide-react';
 import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,7 +15,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
   DialogFooter
 } from "@/components/ui/dialog";
@@ -60,12 +59,8 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
     return 'bg-gray-400';
   };
-
-  const keyStages = candidate.details['Key Stages'] || [];
-  const otherQualifications = Object.entries(candidate.details)
-    .filter(([key]) => key !== 'Key Stages')
-    .flatMap(([, values]) => values)
-    .slice(0, 3); // Limit to 3 other qualifications for brevity
+  
+  const qualificationOrder = ['Key Stages', 'Qualifications', 'SEND', 'Languages', 'Additional Qualifications'];
 
   return (
     <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full">
@@ -75,18 +70,16 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
             <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
-        </div>
-        <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
-             <Badge 
+           <Badge 
               variant="outline" 
-              className={cn('text-xs whitespace-nowrap', getStatusColor(candidate.status), 'border-transparent text-white')}
+              className={cn('absolute -bottom-1 -right-2 text-[10px] px-1.5 py-0.5 whitespace-nowrap border-2 border-background', getStatusColor(candidate.status), 'text-white')}
               title={`Status: ${candidate.status}`}
             >
               {candidate.status}
             </Badge>
-          </div>
+        </div>
+        <div className="flex-1">
+          <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
           <p className="text-muted-foreground">{candidate.role}</p>
           <div className="flex items-center gap-1 mt-1 text-sm text-amber-500">
             <Star className="w-4 h-4 fill-current" />
@@ -95,45 +88,47 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 flex-grow space-y-4">
-        <div className="space-y-3 text-sm">
-            <div className="flex items-start gap-2 text-muted-foreground">
-                <BookOpenText className="h-4 w-4 mt-1 flex-shrink-0" />
-                <p className="italic line-clamp-2">{candidate.bio}</p>
-            </div>
-            <Separator />
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <a href={`mailto:${candidate.email}`} className="truncate hover:underline">{candidate.email}</a>
-            </div>
-             <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>{candidate.location}</span>
-            </div>
-            
-            {(keyStages.length > 0 || otherQualifications.length > 0) && (
-              <div>
-                {keyStages.length > 0 && (
-                   <div className="flex flex-wrap gap-2">
-                      {keyStages.map((ks, index) => (
-                          <Badge key={`${ks}-${index}`} variant="default">{ks}</Badge>
-                      ))}
-                  </div>
-                )}
-                {otherQualifications.length > 0 && (
-                   <div className="flex flex-wrap gap-2 mt-2">
-                      {otherQualifications.map((q, index) => (
-                          <Badge key={`${q}-${index}`} variant="secondary">{q}</Badge>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )}
-             
-             <p className="text-lg font-semibold text-primary flex items-center pt-2">
-                £{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
-             </p>
+      <CardContent className="p-4 flex-grow space-y-3 text-sm">
+        
+        <div className="flex items-start gap-2 text-muted-foreground">
+            <BookOpenText className="h-4 w-4 mt-1 flex-shrink-0" />
+            <p className="italic line-clamp-2">{candidate.bio}</p>
         </div>
+
+        <Separator />
+
+        <div className="flex items-center gap-2 text-muted-foreground">
+            <Mail className="h-4 w-4" />
+            <a href={`mailto:${candidate.email}`} className="truncate hover:underline">{candidate.email}</a>
+        </div>
+         <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            <span>{candidate.location}</span>
+        </div>
+        
+        {Object.keys(candidate.details).length > 0 && <Separator />}
+
+        <div className="space-y-2">
+            {qualificationOrder.map(category => {
+              if (candidate.details[category] && candidate.details[category].length > 0) {
+                return (
+                  <div key={category}>
+                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">{category}</h4>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {candidate.details[category].map((value, index) => (
+                        <Badge key={`${category}-${value}-${index}`} variant={category === 'Key Stages' ? 'default' : 'secondary'}>{value}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              return null;
+            })}
+        </div>
+             
+        <p className="text-lg font-semibold text-primary flex items-center pt-2">
+            £{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
+        </p>
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2 mt-auto">
         <Button variant="warning" asChild>

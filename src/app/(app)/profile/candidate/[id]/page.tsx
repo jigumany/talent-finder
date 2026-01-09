@@ -75,6 +75,9 @@ export default function CandidatePublicProfilePage() {
   if (!candidate) {
     notFound();
   }
+  
+  const qualificationOrder = ['Key Stages', 'Qualifications', 'SEND', 'Languages', 'Additional Qualifications'];
+
 
   const handleBooking = async () => {
     if (!candidate || !dates || dates.length === 0) return;
@@ -212,20 +215,25 @@ export default function CandidatePublicProfilePage() {
                         <CardTitle>Qualifications & Skills</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {Object.entries(candidate.details).length > 0 ? (
-                            Object.entries(candidate.details).map(([category, values]) => (
-                                <div key={category}>
-                                    <h3 className="font-semibold text-md mb-2">{category}</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {values.map(value => (
-                                            <Badge key={value} variant="secondary" className="text-base py-1 px-3">
-                                                {value}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                    <Separator className="mt-4" />
-                                </div>
-                            ))
+                        {Object.keys(candidate.details).length > 0 ? (
+                             qualificationOrder.map(category => {
+                              if (candidate.details[category] && candidate.details[category].length > 0) {
+                                return (
+                                  <div key={category}>
+                                      <h3 className="font-semibold text-md mb-2">{category}</h3>
+                                      <div className="flex flex-wrap gap-2">
+                                          {candidate.details[category].map((value, index) => (
+                                              <Badge key={`${category}-${value}-${index}`} variant={category === 'Key Stages' ? 'default' : 'secondary'} className="text-base py-1 px-3">
+                                                  {value}
+                                              </Badge>
+                                          ))}
+                                      </div>
+                                      <Separator className="mt-4" />
+                                  </div>
+                                )
+                              }
+                              return null;
+                            })
                         ) : (
                             <p className="text-muted-foreground">No specific qualifications listed.</p>
                         )}
