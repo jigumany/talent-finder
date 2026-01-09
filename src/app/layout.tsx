@@ -13,7 +13,7 @@ const ptSans = PT_Sans({
 
 
 export const metadata: Metadata = {
-  title: 'Staffable',
+  title: 'GSL Talent Finder',
   description: 'Connecting schools with qualified staff, seamlessly.',
 };
 

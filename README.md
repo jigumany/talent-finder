@@ -1,5 +1,5 @@
 
-# Staffable - Candidate & Booking Management Platform
+# GSL Talent Finder - Candidate & Booking Management Platform
 
 This is a [Next.js](https://nextjs.org/) application built with Firebase Studio. It serves as a platform to connect educational institutions (Clients) with qualified teaching staff (Candidates).
 
