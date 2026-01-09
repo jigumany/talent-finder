@@ -107,10 +107,10 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             
             nextPageUrl = jsonResponse.links.next;
             
-            console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total so far: ${allCandidates.length}`);
+            // console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total so far: ${allCandidates.length}`);
 
             if (!nextPageUrl || jsonResponse.meta.current_page >= jsonResponse.meta.last_page) {
-                console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
+                // console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
                 break;
             }
 
