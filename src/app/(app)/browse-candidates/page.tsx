@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling, Loader2 } from 'lucide-react';
+import { ListFilter, Search, PoundSterling, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
@@ -14,15 +14,15 @@ import { fetchCandidatesFilteredPaginated, getFilterMetadata } from '@/lib/data-
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
 const CANDIDATES_PER_PAGE = 12;
-const API_PAGE_SIZE = 100; // Fetch from API in batches of 100
-const INITIAL_PAGES_TO_LOAD = 3; // Start with 3 pages (300 candidates)
-const MAX_PAGES_TO_LOAD = 100; // Maximum pages to cache (10,000 candidates)
+const API_PAGE_SIZE = 100;
+const INITIAL_PAGES_TO_LOAD = 3;
+const MAX_PAGES_TO_LOAD = 100;
 
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
-// Filter state interface for better type safety
 interface FilterState {
     searchTerm: string;
     role: string;
@@ -34,7 +34,6 @@ interface FilterState {
     status: string;
 }
 
-// Cache management for loaded pages
 interface CandidateCache {
     data: Candidate[];
     totalPages: number;
@@ -49,7 +48,118 @@ interface FiltersProps {
     allStatuses: string[];
 }
 
-function Filters({ 
+// Mobile Filter Drawer Component
+function MobileFilters({ 
+    filters, 
+    setFilters, 
+    allRoles,
+    allStatuses
+}: FiltersProps) {
+    const updateFilter = useCallback((key: keyof FilterState, value: string) => {
+        setFilters({ ...filters, [key]: value });
+    }, [filters, setFilters]);
+
+    return (
+        <div className="p-4 space-y-4">
+            <div className="space-y-4">
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Role</Label>
+                    <Select value={filters.role} onValueChange={(v) => updateFilter('role', v)}>
+                        <SelectTrigger className="w-full text-sm">
+                            <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all" className="text-sm">All Roles</SelectItem>
+                            {allRoles.map(r => <SelectItem key={r} value={r} className="text-sm">{r}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Subject / Qualification</Label>
+                    <Select value={filters.subject} onValueChange={(v) => updateFilter('subject', v)}>
+                        <SelectTrigger className="w-full text-sm">
+                            <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all" className="text-sm">All Subjects</SelectItem>
+                            {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()} className="text-sm">{s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Rate Type</Label>
+                    <Select value={filters.rateType} onValueChange={(v) => updateFilter('rateType', v)}>
+                        <SelectTrigger className="w-full text-sm">
+                            <SelectValue placeholder="Select rate type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all" className="text-sm">All Rate Types</SelectItem>
+                            <SelectItem value="daily" className="text-sm">Daily</SelectItem>
+                            <SelectItem value="hourly" className="text-sm">Hourly</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Rate Range</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="relative">
+                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input 
+                                id="min-rate"
+                                type="number"
+                                placeholder="Min"
+                                className="pl-8 text-sm h-10"
+                                value={filters.minRate}
+                                onChange={(e) => updateFilter('minRate', e.target.value)}
+                            />
+                        </div>
+                        <div className="relative">
+                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input 
+                                id="max-rate"
+                                type="number"
+                                placeholder="Max"
+                                className="pl-8 text-sm h-10"
+                                value={filters.maxRate}
+                                onChange={(e) => updateFilter('maxRate', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Location</Label>
+                    <Input 
+                        id="location"
+                        placeholder="Search location..."
+                        className="text-sm h-10"
+                        value={filters.location}
+                        onChange={(e) => updateFilter('location', e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Status</Label>
+                    <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
+                        <SelectTrigger className="w-full text-sm">
+                            <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all" className="text-sm">All Statuses</SelectItem>
+                            {allStatuses.map(s => <SelectItem key={s} value={s} className="text-sm">{s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Desktop Filters Component
+function DesktopFilters({ 
     filters, 
     setFilters, 
     allRoles,
@@ -62,26 +172,30 @@ function Filters({
     return (
         <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']} className="w-full">
             <AccordionItem value="item-1">
-                <AccordionTrigger className="text-base">Role & Subject</AccordionTrigger>
+                <AccordionTrigger className="text-sm sm:text-base">Role & Subject</AccordionTrigger>
                 <AccordionContent>
-                    <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label>Role</Label>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm">Role</Label>
                             <Select value={filters.role} onValueChange={(v) => updateFilter('role', v)}>
-                                <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                <SelectTrigger className="text-xs sm:text-sm">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Roles</SelectItem>
-                                    {allRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                    <SelectItem value="all" className="text-xs sm:text-sm">All Roles</SelectItem>
+                                    {allRoles.map(r => <SelectItem key={r} value={r} className="text-xs sm:text-sm">{r}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Subject / Qualification</Label>
+                        <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm">Subject / Qualification</Label>
                             <Select value={filters.subject} onValueChange={(v) => updateFilter('subject', v)}>
-                                <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
+                                <SelectTrigger className="text-xs sm:text-sm">
+                                    <SelectValue placeholder="Select a subject" />
+                                </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Subjects</SelectItem>
-                                    {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
+                                    <SelectItem value="all" className="text-xs sm:text-sm">All Subjects</SelectItem>
+                                    {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()} className="text-xs sm:text-sm">{s}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -90,56 +204,55 @@ function Filters({
             </AccordionItem>
 
             <AccordionItem value="item-2">
-                <AccordionTrigger className="text-base">Rate & Location</AccordionTrigger>
+                <AccordionTrigger className="text-sm sm:text-base">Rate & Location</AccordionTrigger>
                 <AccordionContent>
-                    <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label>Rate Type</Label>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm">Rate Type</Label>
                             <Select value={filters.rateType} onValueChange={(v) => updateFilter('rateType', v)}>
-                                <SelectTrigger><SelectValue placeholder="Select rate type" /></SelectTrigger>
+                                <SelectTrigger className="text-xs sm:text-sm">
+                                    <SelectValue placeholder="Select rate type" />
+                                </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Rate Types</SelectItem>
-                                    <SelectItem value="daily">Daily</SelectItem>
-                                    <SelectItem value="hourly">Hourly</SelectItem>
+                                    <SelectItem value="all" className="text-xs sm:text-sm">All Rate Types</SelectItem>
+                                    <SelectItem value="daily" className="text-xs sm:text-sm">Daily</SelectItem>
+                                    <SelectItem value="hourly" className="text-xs sm:text-sm">Hourly</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Rate Range</Label>
+                        <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm">Rate Range</Label>
                             <div className="grid grid-cols-2 gap-2">
-                                <div className="grid gap-1.5">
-                                    <div className="relative">
-                                        <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input 
-                                            id="min-rate"
-                                            type="number"
-                                            placeholder="Min"
-                                            className="pl-8"
-                                            value={filters.minRate}
-                                            onChange={(e) => updateFilter('minRate', e.target.value)}
-                                        />
-                                    </div>
+                                <div className="relative">
+                                    <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                                    <Input 
+                                        id="min-rate"
+                                        type="number"
+                                        placeholder="Min"
+                                        className="pl-7 text-xs sm:text-sm h-9"
+                                        value={filters.minRate}
+                                        onChange={(e) => updateFilter('minRate', e.target.value)}
+                                    />
                                 </div>
-                                <div className="grid gap-1.5">
-                                    <div className="relative">
-                                        <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input 
-                                            id="max-rate"
-                                            type="number"
-                                            placeholder="Max"
-                                            className="pl-8"
-                                            value={filters.maxRate}
-                                            onChange={(e) => updateFilter('maxRate', e.target.value)}
-                                        />
-                                    </div>
+                                <div className="relative">
+                                    <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                                    <Input 
+                                        id="max-rate"
+                                        type="number"
+                                        placeholder="Max"
+                                        className="pl-7 text-xs sm:text-sm h-9"
+                                        value={filters.maxRate}
+                                        onChange={(e) => updateFilter('maxRate', e.target.value)}
+                                    />
                                 </div>
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Location</Label>
+                        <div className="space-y-2">
+                            <Label className="text-xs sm:text-sm">Location</Label>
                             <Input 
                                 id="location"
                                 placeholder="Search location..."
+                                className="text-xs sm:text-sm h-9"
                                 value={filters.location}
                                 onChange={(e) => updateFilter('location', e.target.value)}
                             />
@@ -149,14 +262,16 @@ function Filters({
             </AccordionItem>
 
             <AccordionItem value="item-3">
-                <AccordionTrigger className="text-base">Status</AccordionTrigger>
+                <AccordionTrigger className="text-sm sm:text-base">Status</AccordionTrigger>
                 <AccordionContent>
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                         <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
-                            <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                            <SelectTrigger className="text-xs sm:text-sm">
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Statuses</SelectItem>
-                                {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                <SelectItem value="all" className="text-xs sm:text-sm">All Statuses</SelectItem>
+                                {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs sm:text-sm">{s}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -169,7 +284,7 @@ function Filters({
 function PaginationControls({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) {
     const getPageNumbers = () => {
         const pageNumbers: (number | string)[] = [];
-        const maxPagesToShow = 5;
+        const maxPagesToShow = window.innerWidth < 640 ? 3 : 5;
         const halfPagesToShow = Math.floor(maxPagesToShow / 2);
 
         if (totalPages <= maxPagesToShow + 2) {
@@ -212,7 +327,8 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
                     <PaginationPrevious
                         href="#"
                         onClick={(e) => { e.preventDefault(); onPageChange(Math.max(1, currentPage - 1)); }}
-                        className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                        className={cn(currentPage === 1 && "pointer-events-none opacity-50", "text-xs sm:text-sm")}
+                        size="sm"
                     />
                 </PaginationItem>
                 {getPageNumbers().map((page, index) => (
@@ -222,11 +338,13 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
                                 href="#"
                                 isActive={currentPage === page}
                                 onClick={(e) => { e.preventDefault(); onPageChange(page); }}
+                                className="text-xs sm:text-sm"
+                                size="sm"
                             >
                                 {page}
                             </PaginationLink>
                         ) : (
-                            <PaginationEllipsis />
+                            <PaginationEllipsis className="text-xs sm:text-sm" />
                         )}
                     </PaginationItem>
                 ))}
@@ -234,7 +352,8 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
                     <PaginationNext
                         href="#"
                         onClick={(e) => { e.preventDefault(); onPageChange(Math.min(totalPages, currentPage + 1)); }}
-                        className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
+                        className={cn(currentPage === totalPages && "pointer-events-none opacity-50", "text-xs sm:text-sm")}
+                        size="sm"
                     />
                 </PaginationItem>
             </PaginationContent>
@@ -243,7 +362,6 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
 }
 
 export default function BrowseCandidatesPage() {
-    // State management
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState<FilterState>({
         searchTerm: '',
@@ -256,7 +374,6 @@ export default function BrowseCandidatesPage() {
         status: 'all',
     });
 
-    // Data states
     const [candidateCache, setCandidateCache] = useState<CandidateCache>({
         data: [],
         totalPages: 0,
@@ -267,18 +384,15 @@ export default function BrowseCandidatesPage() {
     const [isLoadingInitial, setIsLoadingInitial] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
-
-    // Metadata states
     const [allRoles, setAllRoles] = useState<string[]>([]);
     const [allStatuses, setAllStatuses] = useState<string[]>([]);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-    // Debounce filters
     const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
     const debouncedLocationFilter = useDebounce(filters.location, 300);
     const debouncedMinRate = useDebounce(filters.minRate, 500);
     const debouncedMaxRate = useDebounce(filters.maxRate, 500);
 
-    // Load metadata on mount
     useEffect(() => {
         async function loadMetadata() {
             setIsLoadingMetadata(true);
@@ -290,7 +404,6 @@ export default function BrowseCandidatesPage() {
         loadMetadata();
     }, []);
 
-    // Load initial pages
     useEffect(() => {
         async function loadInitialPages() {
             setIsLoadingInitial(true);
@@ -308,8 +421,6 @@ export default function BrowseCandidatesPage() {
                     allCandidates.push(...result.data);
                     totalPages = result.totalPages;
                     total = result.total;
-
-                    console.log(`✅ Loaded page ${page}/${INITIAL_PAGES_TO_LOAD}. Total: ${allCandidates.length} candidates`);
                 }
 
                 setCandidateCache({
@@ -329,7 +440,6 @@ export default function BrowseCandidatesPage() {
         loadInitialPages();
     }, []);
 
-    // Load more pages on demand
     const loadMorePages = useCallback(async (additionalPages: number = 3) => {
         if (loadedPages >= candidateCache.totalPages || isLoadingMore) return;
 
@@ -348,8 +458,6 @@ export default function BrowseCandidatesPage() {
                     ...prev,
                     data: [...prev.data, ...result.data],
                 }));
-
-                console.log(`✅ Loaded page ${page}. Total candidates: ${candidateCache.data.length + result.data.length}`);
             }
 
             setLoadedPages(endPage);
@@ -360,11 +468,9 @@ export default function BrowseCandidatesPage() {
         }
     }, [loadedPages, candidateCache.totalPages, isLoadingMore]);
 
-    // Apply filters to cached candidates (memoized for performance)
     const filteredCandidates = useMemo(() => {
         let results = [...candidateCache.data];
 
-        // Search filter
         if (debouncedSearchTerm) {
             const term = debouncedSearchTerm.toLowerCase();
             results = results.filter(c =>
@@ -373,43 +479,36 @@ export default function BrowseCandidatesPage() {
             );
         }
 
-        // Role filter
         if (filters.role !== 'all') {
             results = results.filter(c => c.role === filters.role);
         }
 
-        // Subject filter
         if (filters.subject !== 'all') {
             results = results.filter(c =>
                 c.qualifications.some(q => q.toLowerCase().includes(filters.subject.toLowerCase()))
             );
         }
 
-        // Location filter
         if (debouncedLocationFilter) {
             results = results.filter(c =>
                 c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase())
             );
         }
 
-        // Rate type filter
         if (filters.rateType !== 'all') {
             results = results.filter(c => c.rateType === filters.rateType);
         }
 
-        // Min rate filter
         if (debouncedMinRate) {
             const minVal = parseFloat(debouncedMinRate);
             results = results.filter(c => c.rate >= minVal);
         }
 
-        // Max rate filter
         if (debouncedMaxRate) {
             const maxVal = parseFloat(debouncedMaxRate);
             results = results.filter(c => c.rate <= maxVal);
         }
 
-        // Status filter
         if (filters.status !== 'all') {
             results = results.filter(c => c.status === filters.status);
         }
@@ -427,7 +526,6 @@ export default function BrowseCandidatesPage() {
         filters.status,
     ]);
 
-    // Paginate filtered results
     const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
     const paginatedCandidates = useMemo(() => {
         const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
@@ -435,14 +533,12 @@ export default function BrowseCandidatesPage() {
         return filteredCandidates.slice(startIndex, endIndex);
     }, [filteredCandidates, currentPage]);
 
-    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [debouncedSearchTerm, filters.role, filters.subject, debouncedLocationFilter, filters.rateType, debouncedMinRate, debouncedMaxRate, filters.status]);
 
-    // Auto-load more pages when approaching the end of loaded data
     useEffect(() => {
-        const threshold = 50; // Load more when within 50 candidates of the end
+        const threshold = 50;
         if (filteredCandidates.length > 0 && 
             filteredCandidates.length - (currentPage * CANDIDATES_PER_PAGE) < threshold &&
             loadedPages < candidateCache.totalPages) {
@@ -458,95 +554,154 @@ export default function BrowseCandidatesPage() {
     };
 
     return (
-        <div className="grid md:grid-cols-[280px_1fr] gap-8">
-            <aside className="hidden md:block">
-                <div className="sticky top-20">
-                    <h2 className="text-lg font-semibold mb-4">Filters</h2>
-                    <Filters {...filterProps} />
-                </div>
-            </aside>
-            
-            <main className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold font-headline">Candidate Marketplace</h1>
-                    <div className="md:hidden">
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="icon">
-                                    <ListFilter className="h-4 w-4" />
+        <div className="min-h-screen bg-background">
+            <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
+                <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                    {/* Mobile Filter Toggle */}
+                    <div className="lg:hidden col-span-full">
+                        <Card>
+                            <CardContent className="p-3 sm:p-4">
+                                <Button 
+                                    variant="outline" 
+                                    className="w-full justify-between"
+                                    onClick={() => setShowMobileFilters(!showMobileFilters)}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <ListFilter className="h-4 w-4" />
+                                        Filters
+                                    </span>
+                                    {showMobileFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                 </Button>
-                            </SheetTrigger>
-                            <SheetContent className="w-[300px] sm:w-[400px]">
-                                <SheetHeader>
-                                    <SheetTitle>Filters</SheetTitle>
-                                    <SheetDescription>
-                                        Refine your search for the perfect candidate.
-                                    </SheetDescription>
-                                </SheetHeader>
-                                <div className="mt-4">
-                                    <Filters {...filterProps} />
-                                </div>
-                            </SheetContent>
-                        </Sheet>
+                                {showMobileFilters && (
+                                    <div className="mt-4">
+                                        <MobileFilters {...filterProps} />
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
-                </div>
 
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search by name or keyword..." 
-                        className="pl-10"
-                        value={filters.searchTerm}
-                        onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
-                    />
-                </div>
-
-                {isLoadingMetadata || (isLoadingInitial && candidateCache.data.length === 0) ? (
-                    <div className="flex flex-col items-center justify-center h-64 gap-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-sm text-muted-foreground text-center">Loading candidates...</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="mb-4 text-xs text-muted-foreground flex justify-between">
-                            <span>Loaded: {candidateCache.data.length} | Filtered: {filteredCandidates.length} | Page: {currentPage}/{totalPages}</span>
-                            {loadedPages < candidateCache.totalPages && (
-                                <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => loadMorePages()}>
-                                    Load more ({candidateCache.totalPages - loadedPages} pages remaining)
-                                </span>
-                            )}
+                    {/* Desktop Sidebar */}
+                    <aside className="hidden lg:block lg:col-span-1">
+                        <div className="sticky top-24">
+                            <Card>
+                                <CardContent className="p-4 sm:p-6">
+                                    <h2 className="text-lg font-semibold mb-4">Filters</h2>
+                                    <DesktopFilters {...filterProps} />
+                                </CardContent>
+                            </Card>
                         </div>
+                    </aside>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {paginatedCandidates.length > 0 ? (
-                                paginatedCandidates.map(candidate => (
-                                    <CandidateCard key={candidate.id} candidate={candidate} />
-                                ))
+                    {/* Main Content */}
+                    <main className="lg:col-span-3">
+                        <div className="flex flex-col gap-4 sm:gap-6">
+                            {/* Header */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-headline">
+                                    Candidate Marketplace
+                                </h1>
+                                
+                                {/* Mobile Filters Sheet for larger mobile screens */}
+                                <div className="block lg:hidden">
+                                    <Sheet>
+                                        <SheetTrigger asChild>
+                                            <Button variant="outline" size="sm" className="sm:flex hidden items-center gap-2">
+                                                <ListFilter className="h-4 w-4" />
+                                                <span className="text-sm">Advanced Filters</span>
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="left" className="w-[85vw] sm:w-[400px]">
+                                            <SheetHeader>
+                                                <SheetTitle>Filters</SheetTitle>
+                                                <SheetDescription className="text-sm">
+                                                    Refine your search for the perfect candidate.
+                                                </SheetDescription>
+                                            </SheetHeader>
+                                            <div className="mt-4">
+                                                <MobileFilters {...filterProps} />
+                                            </div>
+                                        </SheetContent>
+                                    </Sheet>
+                                </div>
+                            </div>
+
+                            {/* Search Bar */}
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search by name or keyword..." 
+                                    className="pl-10 pr-4 h-11 sm:h-12 text-sm sm:text-base"
+                                    value={filters.searchTerm}
+                                    onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+                                />
+                            </div>
+
+                            {/* Loading State */}
+                            {isLoadingMetadata || (isLoadingInitial && candidateCache.data.length === 0) ? (
+                                <div className="flex flex-col items-center justify-center h-48 sm:h-64 gap-4">
+                                    <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-primary" />
+                                    <p className="text-sm sm:text-base text-muted-foreground text-center">
+                                        Loading candidates...
+                                    </p>
+                                </div>
                             ) : (
-                                <div className="text-center text-muted-foreground col-span-full py-12">
-                                    <p className="text-lg font-semibold">No candidates found.</p>
-                                    <p>Try adjusting your search or filters.</p>
-                                </div>
+                                <>
+                                    {/* Results Info */}
+                                    <div className="text-xs sm:text-sm text-muted-foreground flex flex-wrap justify-between items-center gap-2">
+                                        <span className="flex-1 min-w-0">
+                                            Showing {paginatedCandidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–
+                                            {Math.min(currentPage * CANDIDATES_PER_PAGE, filteredCandidates.length)} of {filteredCandidates.length} results
+                                        </span>
+                                        {loadedPages < candidateCache.totalPages && (
+                                            <Button 
+                                                variant="link" 
+                                                size="sm" 
+                                                className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm p-0 h-auto"
+                                                onClick={() => loadMorePages()}
+                                                disabled={isLoadingMore}
+                                            >
+                                                {isLoadingMore ? 'Loading...' : `Load more (${candidateCache.totalPages - loadedPages} pages)`}
+                                            </Button>
+                                        )}
+                                    </div>
+
+                                    {/* Candidates Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                                        {paginatedCandidates.length > 0 ? (
+                                            paginatedCandidates.map(candidate => (
+                                                <CandidateCard key={candidate.id} candidate={candidate} />
+                                            ))
+                                        ) : (
+                                            <div className="text-center text-muted-foreground col-span-full py-8 sm:py-12">
+                                                <p className="text-base sm:text-lg font-semibold mb-2">No candidates found.</p>
+                                                <p className="text-sm sm:text-base">Try adjusting your search or filters.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Loading More Indicator */}
+                                    {isLoadingMore && (
+                                        <div className="flex justify-center py-4">
+                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                        </div>
+                                    )}
+                                    
+                                    {/* Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="mt-6 sm:mt-8">
+                                            <div className="flex justify-center items-center mb-3 sm:mb-4 text-xs sm:text-sm text-muted-foreground">
+                                                Page {currentPage} of {totalPages}
+                                            </div>
+                                            <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
-                        
-                        {isLoadingMore && (
-                            <div className="flex justify-center py-4">
-                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                            </div>
-                        )}
-                        
-                        {totalPages > 1 && (
-                            <div className="mt-8">
-                                <div className="flex justify-center items-center mb-4 text-sm text-muted-foreground">
-                                    Page {currentPage} of {totalPages} — Showing {paginatedCandidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–{Math.min(currentPage * CANDIDATES_PER_PAGE, filteredCandidates.length)} of {filteredCandidates.length} results
-                                </div>
-                                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-                            </div>
-                        )}
-                    </>
-                )}
-            </main>
+                    </main>
+                </div>
+            </div>
         </div>
     );
 }

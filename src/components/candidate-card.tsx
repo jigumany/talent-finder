@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -64,107 +63,173 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
   const qualificationOrder = ['Key Stages', 'Qualifications', 'SEND', 'Languages', 'Additional Qualifications'];
 
   return (
-    <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full">
-      <CardHeader className="flex flex-row items-start gap-4 p-4 bg-card">
-        <div className="relative">
-          <Avatar className="h-16 w-16 border-2 border-primary/20">
+    <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full w-full max-w-full">
+      <CardHeader className="flex flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-card">
+        <div className="relative flex-shrink-0">
+          <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20">
             <AvatarImage src={candidate.imageUrl} alt={candidate.name} data-ai-hint="professional headshot" />
-            <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+            <AvatarFallback className="text-sm sm:text-base">
+              {candidate.name.split(' ').map(n => n[0]).join('')}
+            </AvatarFallback>
           </Avatar>
            <Badge 
               variant="outline" 
-              className={cn('absolute -bottom-1 -right-2 text-[10px] px-1.5 py-0.5 whitespace-nowrap border-2 border-background', getStatusColor(candidate.status), 'text-white')}
+              className={cn(
+                'absolute -bottom-1 -right-2 text-[8px] xs:text-[9px] sm:text-[10px] px-1 xs:px-1.5 py-0 sm:py-0.5 whitespace-nowrap border-2 border-background', 
+                getStatusColor(candidate.status), 
+                'text-white'
+              )}
               title={`Status: ${candidate.status}`}
             >
-              {candidate.status}
+              <span className="truncate max-w-[50px] xs:max-w-[60px] sm:max-w-none">{candidate.status}</span>
             </Badge>
         </div>
-        <div className="flex-1">
-          <CardTitle className="text-xl font-headline">{candidate.name}</CardTitle>
-          <p className="text-muted-foreground">{candidate.role}</p>
-          <div className="flex items-center gap-1 mt-1 text-sm text-amber-500">
-            <Star className="w-4 h-4 fill-current" />
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <CardTitle className="text-base sm:text-lg lg:text-xl font-headline truncate">
+            {candidate.name}
+          </CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+            {candidate.role}
+          </p>
+          <div className="flex flex-wrap items-center gap-1 mt-1 text-xs sm:text-sm text-amber-500">
+            <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current flex-shrink-0" />
             <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-            <span className="text-muted-foreground/80">({candidate.reviews} reviews)</span>
+            <span className="text-muted-foreground/80 text-xs">
+              ({candidate.reviews} reviews)
+            </span>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 flex-grow space-y-3 text-sm">
-        
+      
+      <CardContent className="p-3 sm:p-4 flex-grow space-y-2 sm:space-y-3 text-xs sm:text-sm">
+        {/* Bio section */}
         <div className="flex items-start gap-2 text-muted-foreground">
-            <BookOpenText className="h-4 w-4 mt-1 flex-shrink-0" />
-            <p className="italic line-clamp-2">{candidate.bio}</p>
+            <BookOpenText className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 sm:mt-1 flex-shrink-0" />
+            <p className="italic line-clamp-2 text-xs sm:text-sm leading-relaxed">
+              {candidate.bio}
+            </p>
         </div>
 
-        <Separator />
+        <Separator className="my-1 sm:my-2" />
 
-        <div className="flex items-center gap-2 text-muted-foreground">
-            <Mail className="h-4 w-4" />
-            <a href={`mailto:${candidate.email}`} className="truncate hover:underline">{candidate.email}</a>
-        </div>
-         <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="h-4 w-4" />
-            <span>{candidate.location}</span>
+        {/* Contact info */}
+        <div className="space-y-1.5 sm:space-y-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <a 
+              href={`mailto:${candidate.email}`} 
+              className="truncate hover:underline text-xs sm:text-sm"
+            >
+              {candidate.email}
+            </a>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate text-xs sm:text-sm">{candidate.location}</span>
+          </div>
         </div>
         
-        {Object.keys(candidate.details).length > 0 && <Separator />}
+        {/* Qualifications section */}
+        {Object.keys(candidate.details).length > 0 && (
+          <Separator className="my-2 sm:my-3" />
+        )}
 
-        <div className="space-y-2">
-            {qualificationOrder.map(category => {
-              if (candidate.details[category] && candidate.details[category].length > 0) {
-                return (
-                  <div key={category}>
-                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">{category}</h4>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {candidate.details[category].map((value, index) => (
-                        <Badge key={`${category}-${value}-${index}`} variant={category === 'Key Stages' ? 'default' : 'secondary'}>{value}</Badge>
-                      ))}
-                    </div>
+        <div className="space-y-2 sm:space-y-2.5">
+          {qualificationOrder.map(category => {
+            if (candidate.details[category] && candidate.details[category].length > 0) {
+              return (
+                <div key={category} className="mb-1 sm:mb-0">
+                  <h4 className="font-semibold text-[10px] xs:text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    {category}
+                  </h4>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {candidate.details[category].map((value, index) => (
+                      <Badge 
+                        key={`${category}-${value}-${index}`} 
+                        variant={category === 'Key Stages' ? 'default' : 'secondary'}
+                        className="text-[10px] xs:text-xs py-0 h-5 sm:h-6 px-1.5 sm:px-2"
+                      >
+                        <span className="truncate max-w-[80px] xs:max-w-[100px] sm:max-w-none">
+                          {value}
+                        </span>
+                      </Badge>
+                    ))}
                   </div>
-                )
-              }
-              return null;
-            })}
+                </div>
+              )
+            }
+            return null;
+          })}
         </div>
              
-        <p className="text-lg font-semibold text-primary flex items-center pt-2">
-            £{candidate.rate}<span className="text-sm font-normal text-muted-foreground">/{candidate.rateType}</span>
+        {/* Rate section */}
+        <p className="text-sm sm:text-base lg:text-lg font-semibold text-primary flex items-center pt-2 sm:pt-3">
+          £{candidate.rate}
+          <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1">
+            /{candidate.rateType}
+          </span>
         </p>
       </CardContent>
-      <CardFooter className="p-4 bg-muted/50 grid grid-cols-2 gap-2 mt-auto">
-        <Button variant="warning" asChild>
+      
+      {/* Footer with buttons */}
+      <CardFooter className="p-3 sm:p-4 bg-muted/50 flex flex-col xs:flex-row gap-2 sm:gap-2 mt-auto">
+        <Button 
+          variant="warning" 
+          asChild 
+          className="w-full xs:w-1/2 text-xs sm:text-sm py-2 h-auto min-h-[36px] sm:min-h-[40px]"
+        >
           <Link href={`/profile/candidate/${candidate.id}`}>
-            <User className="mr-2"/>View Profile
+            <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"/>
+            <span>View Profile</span>
           </Link>
         </Button>
-         <Dialog open={isBookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+        
+        <Dialog open={isBookingDialogOpen} onOpenChange={setBookingDialogOpen}>
           <DialogTrigger asChild>
-            <Button><UserPlus className="mr-2 h-4 w-4"/>Book Now</Button>
+            <Button className="w-full xs:w-1/2 text-xs sm:text-sm py-2 h-auto min-h-[36px] sm:min-h-[40px]">
+              <UserPlus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"/>
+              <span>Book Now</span>
+            </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-md mx-auto p-4 sm:p-6">
             <DialogHeader>
-              <DialogTitle>Book {candidate.name}</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-base sm:text-lg lg:text-xl">
+                Book {candidate.name}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
                 Select one or more dates to book {candidate.role} for your school.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex justify-center p-1">
-                 <BookingCalendar
-                    mode="multiple"
-                    selected={dates}
-                    onSelect={setDates}
-                    candidate={candidate}
-                />
+            
+            <div className="flex justify-center p-1 overflow-x-auto">
+              <BookingCalendar
+                mode="multiple"
+                selected={dates}
+                onSelect={setDates}
+                candidate={candidate}
+                className="scale-90 sm:scale-100 origin-top min-w-[280px]"
+              />
             </div>
-             <DialogFooter className="sm:justify-end gap-2">
+            
+            <DialogFooter className="flex flex-col xs:flex-row gap-2 sm:gap-2 mt-4">
               <DialogClose asChild>
-                <Button type="button" variant="secondary">
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  className="w-full xs:w-auto text-xs sm:text-sm"
+                >
                   Cancel
                 </Button>
               </DialogClose>
-               <Button type="button" onClick={handleBooking} disabled={!dates || dates.length === 0}>
-                  Confirm Booking
-                </Button>
+              
+              <Button 
+                type="button" 
+                onClick={handleBooking} 
+                disabled={!dates || dates.length === 0}
+                className="w-full xs:w-auto text-xs sm:text-sm"
+              >
+                Confirm Booking
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

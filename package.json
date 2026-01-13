@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "GENKIT_NEXT_NO_UI=true next dev",
+    "dev": "set GENKIT_NEXT_NO_UI=true && next dev",
     "build": "next build",
     "start": "npm run build && next start",
     "lint": "next lint",
