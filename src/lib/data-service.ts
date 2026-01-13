@@ -368,8 +368,9 @@ export async function fetchCandidateAvailabilities(candidateId: string): Promise
 
 export async function fetchBookings(): Promise<Booking[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/schedulers`, {
-             cache: 'no-store'
+        console.log("📡 Fetching bookings...");
+        const response = await fetch(`${API_BASE_URL}/schedulers?per_page=100`, {
+            cache: 'no-store'
         });
         
         if (!response.ok) {
@@ -378,16 +379,30 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        // This is inefficient but necessary for demo without a proper backend search
-        const allCandidates = [];
-        let nextPageUrl: string | null = `${API_BASE_URL}/candidates?per_page=100`;
-        while(nextPageUrl) {
-            const candidatesResponse = await fetch(nextPageUrl);
-            const candidatesJson = await candidatesResponse.json();
-            allCandidates.push(...candidatesJson.data);
-            nextPageUrl = candidatesJson.links.next;
-        }
-        const candidateMap = new Map(allCandidates.map(transformCandidateData).map((c: Candidate) => [c.id, c]));
+        // Create a set of candidate IDs from the bookings
+        const candidateIds = new Set<string>();
+        jsonResponse.data.forEach((booking: any) => {
+            if (booking.candidate_id) {
+                candidateIds.add(booking.candidate_id.toString());
+            }
+        });
+
+        // Only fetch the specific candidates we need
+        const candidatePromises = Array.from(candidateIds).map(id => 
+            fetchCandidateById(id).catch(error => {
+                console.error(`Error fetching candidate ${id}:`, error);
+                return null;
+            })
+        );
+
+        const candidates = await Promise.all(candidatePromises);
+        const candidateMap = new Map<string, Candidate>();
+        
+        candidates.forEach(candidate => {
+            if (candidate) {
+                candidateMap.set(candidate.id, candidate);
+            }
+        });
 
         const bookings = jsonResponse.data.map((booking: any): Booking => {
             const candidateId = booking.candidate_id?.toString();
@@ -408,11 +423,84 @@ export async function fetchBookings(): Promise<Booking[]> {
             };
         });
 
+        console.log(`✅ Fetched ${bookings.length} bookings`);
         return bookings;
 
     } catch (error) {
         console.error("Error fetching bookings:", error);
         return [];
+    }
+}
+
+export async function fetchBookingsPaginated(page: number = 1, perPage: number = 50): Promise<{data: Booking[], currentPage: number, totalPages: number, total: number}> {
+    try {
+        console.log(`📡 Fetching bookings page ${page}...`);
+        const response = await fetch(`${API_BASE_URL}/schedulers?per_page=${perPage}&page=${page}`, {
+            cache: 'no-store'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch bookings: ${response.statusText}`);
+        }
+
+        const jsonResponse = await response.json();
+        
+        // Create a set of candidate IDs from the bookings
+        const candidateIds = new Set<string>();
+        jsonResponse.data.forEach((booking: any) => {
+            if (booking.candidate_id) {
+                candidateIds.add(booking.candidate_id.toString());
+            }
+        });
+
+        // Only fetch the specific candidates we need
+        const candidatePromises = Array.from(candidateIds).map(id => 
+            fetchCandidateById(id).catch(error => {
+                console.error(`Error fetching candidate ${id}:`, error);
+                return null;
+            })
+        );
+
+        const candidates = await Promise.all(candidatePromises);
+        const candidateMap = new Map<string, Candidate>();
+        
+        candidates.forEach(candidate => {
+            if (candidate) {
+                candidateMap.set(candidate.id, candidate);
+            }
+        });
+
+        const bookings = jsonResponse.data.map((booking: any): Booking => {
+            const candidateId = booking.candidate_id?.toString();
+            const candidate = candidateId ? candidateMap.get(candidateId) : undefined;
+            
+            return {
+                id: booking.id.toString(),
+                candidateId: candidateId,
+                candidateName: candidate?.name || 'Unknown Candidate',
+                candidateRole: candidate?.role || 'Unknown Role',
+                date: booking.start_date,
+                startDate: booking.start_date,
+                endDate: booking.end_date,
+                status: booking.status,
+                confirmationStatus: booking.confirmation_status,
+                bookingType: booking.booking_type,
+                session: booking.session_type,
+            };
+        });
+
+        console.log(`✅ Fetched page ${page} with ${bookings.length} bookings`);
+        
+        return {
+            data: bookings,
+            currentPage: jsonResponse.meta?.current_page || page,
+            totalPages: jsonResponse.meta?.last_page || 1,
+            total: jsonResponse.meta?.total || bookings.length
+        };
+
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        return { data: [], currentPage: page, totalPages: 0, total: 0 };
     }
 }
 
