@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ListFilter, Search, PoundSterling, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const CANDIDATES_PER_PAGE = 12;
 const API_PAGE_SIZE = 100;
@@ -46,6 +47,148 @@ interface FiltersProps {
     setFilters: (filters: FilterState) => void;
     allRoles: string[];
     allStatuses: string[];
+}
+
+// Helper function to capitalize first letter
+const capitalize = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+// Component to display selected filter chips
+function SelectedFilters({ filters, setFilters }: { filters: FilterState; setFilters: (filters: FilterState) => void }) {
+    const activeFilters = [];
+    
+    // Search filter
+    if (filters.searchTerm) {
+        activeFilters.push({
+            label: `Search: ${filters.searchTerm}`,
+            key: 'searchTerm',
+            value: '',
+        });
+    }
+    
+    // Role filter
+    if (filters.role !== 'all') {
+        activeFilters.push({
+            label: `Role: ${capitalize(filters.role)}`,
+            key: 'role',
+            value: 'all',
+        });
+    }
+    
+    // Subject filter
+    if (filters.subject !== 'all') {
+        const subjectLabel = subjects.find(s => s.toLowerCase() === filters.subject) || capitalize(filters.subject);
+        activeFilters.push({
+            label: `Subject: ${subjectLabel}`,
+            key: 'subject',
+            value: 'all',
+        });
+    }
+    
+    // Location filter
+    if (filters.location) {
+        activeFilters.push({
+            label: `Location: ${filters.location}`,
+            key: 'location',
+            value: '',
+        });
+    }
+    
+    // Rate type filter
+    if (filters.rateType !== 'all') {
+        activeFilters.push({
+            label: `Rate Type: ${capitalize(filters.rateType)}`,
+            key: 'rateType',
+            value: 'all',
+        });
+    }
+    
+    // Min rate filter
+    if (filters.minRate) {
+        activeFilters.push({
+            label: `Min Rate: £${filters.minRate}`,
+            key: 'minRate',
+            value: '',
+        });
+    }
+    
+    // Max rate filter
+    if (filters.maxRate) {
+        activeFilters.push({
+            label: `Max Rate: £${filters.maxRate}`,
+            key: 'maxRate',
+            value: '',
+        });
+    }
+    
+    // Status filter
+    if (filters.status !== 'all') {
+        activeFilters.push({
+            label: `Status: ${capitalize(filters.status)}`,
+            key: 'status',
+            value: 'all',
+        });
+    }
+    
+    const handleRemoveFilter = (key: keyof FilterState, defaultValue: string) => {
+        setFilters({ ...filters, [key]: defaultValue });
+    };
+    
+    const handleClearAll = () => {
+        setFilters({
+            searchTerm: '',
+            role: 'all',
+            subject: 'all',
+            location: '',
+            rateType: 'all',
+            minRate: '',
+            maxRate: '',
+            status: 'all',
+        });
+    };
+    
+    if (activeFilters.length === 0) {
+        return null;
+    }
+    
+    return (
+        <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                    Active Filters ({activeFilters.length})
+                </span>
+                {activeFilters.length > 0 && (
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={handleClearAll}
+                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                        Clear all
+                    </Button>
+                )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+                {activeFilters.map((filter, index) => (
+                    <Badge 
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 text-xs font-normal"
+                    >
+                        <span className="truncate max-w-[180px] sm:max-w-[200px]">{filter.label}</span>
+                        <button
+                            onClick={() => handleRemoveFilter(filter.key as keyof FilterState, filter.value)}
+                            className="ml-0.5 rounded-full hover:bg-muted p-0.5"
+                            aria-label={`Remove ${filter.label} filter`}
+                        >
+                            <X className="h-3 w-3" />
+                        </button>
+                    </Badge>
+                ))}
+            </div>
+        </div>
+    );
 }
 
 // Mobile Filter Drawer Component
@@ -158,19 +301,60 @@ function MobileFilters({
     );
 }
 
-// Desktop Filters Component
+// Desktop Filters Component with controlled accordion
 function DesktopFilters({ 
     filters, 
     setFilters, 
     allRoles,
     allStatuses
 }: FiltersProps) {
+    const [accordionValue, setAccordionValue] = useState<string[]>(['item-1', 'item-2', 'item-3']);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const updateFilter = useCallback((key: keyof FilterState, value: string) => {
         setFilters({ ...filters, [key]: value });
+        
+        // Close the accordion item after selection
+        const accordionItemMap: Record<string, string> = {
+            'role': 'item-1',
+            'subject': 'item-1',
+            'rateType': 'item-2',
+            'minRate': 'item-2',
+            'maxRate': 'item-2',
+            'location': 'item-2',
+            'status': 'item-3'
+        };
+        
+        const accordionItem = accordionItemMap[key];
+        if (accordionItem) {
+            // Clear any existing timeout
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            
+            // Close the accordion after a short delay
+            timeoutRef.current = setTimeout(() => {
+                setAccordionValue(prev => prev.filter(item => item !== accordionItem));
+            }, 300);
+        }
     }, [filters, setFilters]);
 
+    // Clean up timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
     return (
-        <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']} className="w-full">
+        <Accordion 
+            type="multiple" 
+            value={accordionValue}
+            onValueChange={setAccordionValue}
+            className="w-full"
+        >
             <AccordionItem value="item-1">
                 <AccordionTrigger className="text-sm sm:text-base">Role & Subject</AccordionTrigger>
                 <AccordionContent>
@@ -281,54 +465,74 @@ function DesktopFilters({
     );
 }
 
+// Improved responsive pagination controls
 function PaginationControls({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) {
     const getPageNumbers = () => {
-        const pageNumbers: (number | string)[] = [];
-        const maxPagesToShow = window.innerWidth < 640 ? 3 : 5;
+        // Dynamically determine max pages to show based on screen width
+        const maxPagesToShow = window.innerWidth < 640 ? 3 : 
+                              window.innerWidth < 768 ? 4 : 
+                              window.innerWidth < 1024 ? 5 : 7;
+        
         const halfPagesToShow = Math.floor(maxPagesToShow / 2);
+        const pageNumbers: (number | string)[] = [];
 
         if (totalPages <= maxPagesToShow + 2) {
+            // Show all pages if total is small
             for (let i = 1; i <= totalPages; i++) {
                 pageNumbers.push(i);
             }
         } else {
+            // Always show first page
             pageNumbers.push(1);
+            
+            // Determine if we need ellipsis after first page
             if (currentPage > halfPagesToShow + 2) {
                 pageNumbers.push('...');
             }
 
+            // Calculate start and end of middle section
             let start = Math.max(2, currentPage - halfPagesToShow);
             let end = Math.min(totalPages - 1, currentPage + halfPagesToShow);
 
+            // Adjust if near start
             if (currentPage <= halfPagesToShow + 1) {
                 end = maxPagesToShow;
             }
 
+            // Adjust if near end
             if (currentPage >= totalPages - halfPagesToShow) {
                 start = totalPages - maxPagesToShow + 1;
             }
 
+            // Add middle pages
             for (let i = start; i <= end; i++) {
                 pageNumbers.push(i);
             }
 
+            // Determine if we need ellipsis before last page
             if (currentPage < totalPages - halfPagesToShow - 1) {
                 pageNumbers.push('...');
             }
-            pageNumbers.push(totalPages);
+            
+            // Always show last page
+            if (totalPages > 1) {
+                pageNumbers.push(totalPages);
+            }
         }
         return pageNumbers;
     };
     
     return (
         <Pagination>
-            <PaginationContent>
+            <PaginationContent className="flex flex-wrap justify-center gap-1 sm:gap-2">
                 <PaginationItem>
                     <PaginationPrevious
                         href="#"
                         onClick={(e) => { e.preventDefault(); onPageChange(Math.max(1, currentPage - 1)); }}
-                        className={cn(currentPage === 1 && "pointer-events-none opacity-50", "text-xs sm:text-sm")}
-                        size="sm"
+                        className={cn(
+                            currentPage === 1 && "pointer-events-none opacity-50",
+                            "text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
+                        )}
                     />
                 </PaginationItem>
                 {getPageNumbers().map((page, index) => (
@@ -338,13 +542,14 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
                                 href="#"
                                 isActive={currentPage === page}
                                 onClick={(e) => { e.preventDefault(); onPageChange(page); }}
-                                className="text-xs sm:text-sm"
-                                size="sm"
+                                className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px] h-8 sm:h-9"
                             >
                                 {page}
                             </PaginationLink>
                         ) : (
-                            <PaginationEllipsis className="text-xs sm:text-sm" />
+                            <span className="flex items-center justify-center min-w-[24px] sm:min-w-[28px] h-8 sm:h-9 text-xs sm:text-sm text-muted-foreground">
+                                ...
+                            </span>
                         )}
                     </PaginationItem>
                 ))}
@@ -352,8 +557,10 @@ function PaginationControls({ currentPage, totalPages, onPageChange }: { current
                     <PaginationNext
                         href="#"
                         onClick={(e) => { e.preventDefault(); onPageChange(Math.min(totalPages, currentPage + 1)); }}
-                        className={cn(currentPage === totalPages && "pointer-events-none opacity-50", "text-xs sm:text-sm")}
-                        size="sm"
+                        className={cn(
+                            currentPage === totalPages && "pointer-events-none opacity-50",
+                            "text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
+                        )}
                     />
                 </PaginationItem>
             </PaginationContent>
@@ -387,6 +594,7 @@ export default function BrowseCandidatesPage() {
     const [allRoles, setAllRoles] = useState<string[]>([]);
     const [allStatuses, setAllStatuses] = useState<string[]>([]);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
     const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
     const debouncedLocationFilter = useDebounce(filters.location, 300);
@@ -553,6 +761,19 @@ export default function BrowseCandidatesPage() {
         allStatuses,
     };
 
+    const handleFilterChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
+        // Close mobile filters after selection
+        setShowMobileFilters(false);
+        // Close mobile sheet after selection
+        setIsMobileSheetOpen(false);
+    };
+
+    const updatedFilterProps = {
+        ...filterProps,
+        setFilters: handleFilterChange,
+    };
+
     return (
         <div className="min-h-screen bg-background">
             <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
@@ -574,7 +795,7 @@ export default function BrowseCandidatesPage() {
                                 </Button>
                                 {showMobileFilters && (
                                     <div className="mt-4">
-                                        <MobileFilters {...filterProps} />
+                                        <MobileFilters {...updatedFilterProps} />
                                     </div>
                                 )}
                             </CardContent>
@@ -587,7 +808,7 @@ export default function BrowseCandidatesPage() {
                             <Card>
                                 <CardContent className="p-4 sm:p-6">
                                     <h2 className="text-lg font-semibold mb-4">Filters</h2>
-                                    <DesktopFilters {...filterProps} />
+                                    <DesktopFilters {...updatedFilterProps} />
                                 </CardContent>
                             </Card>
                         </div>
@@ -598,13 +819,17 @@ export default function BrowseCandidatesPage() {
                         <div className="flex flex-col gap-4 sm:gap-6">
                             {/* Header */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-headline">
-                                    Candidate Marketplace
-                                </h1>
+                                <div className="flex-1 min-w-0">
+                                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-headline">
+                                        Candidate Marketplace
+                                    </h1>
+                                    {/* Selected Filters Section */}
+                                    <SelectedFilters filters={filters} setFilters={setFilters} />
+                                </div>
                                 
                                 {/* Mobile Filters Sheet for larger mobile screens */}
                                 <div className="block lg:hidden">
-                                    <Sheet>
+                                    <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
                                         <SheetTrigger asChild>
                                             <Button variant="outline" size="sm" className="sm:flex hidden items-center gap-2">
                                                 <ListFilter className="h-4 w-4" />
@@ -619,7 +844,7 @@ export default function BrowseCandidatesPage() {
                                                 </SheetDescription>
                                             </SheetHeader>
                                             <div className="mt-4">
-                                                <MobileFilters {...filterProps} />
+                                                <MobileFilters {...updatedFilterProps} />
                                             </div>
                                         </SheetContent>
                                     </Sheet>
