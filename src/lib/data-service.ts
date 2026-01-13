@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import type { Candidate, Booking } from './types';
@@ -93,7 +94,7 @@ export async function fetchCandidates(): Promise<Candidate[]> {
     while (nextPageUrl) {
         try {
             const response = await fetch(nextPageUrl, {
-                next: { revalidate: 3600 }
+                next: { revalidate: 3600 } // Cache pages for 1 hour
             });
 
             if (!response.ok) {
@@ -121,6 +122,203 @@ export async function fetchCandidates(): Promise<Candidate[]> {
     }
     
     return allCandidates;
+}
+
+export async function fetchCandidatesPaginated(page: number = 1, perPage: number = 12): Promise<{data: Candidate[], hasMore: boolean, currentPage: number, totalPages: number}> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&per_page=${perPage}&page=${page}`, {
+            next: { revalidate: 3600 } // Cache individual pages as they're under 2MB limit
+        });
+
+        if (!response.ok) {
+            console.error(`Failed to fetch candidates page ${page}: ${response.statusText}`);
+            return { data: [], hasMore: false, currentPage: page, totalPages: 0 };
+        }
+
+        const jsonResponse = await response.json();
+        const candidates = jsonResponse.data.map(transformCandidateData);
+        
+        return {
+            data: candidates,
+            hasMore: jsonResponse.links.next !== null,
+            currentPage: jsonResponse.meta.current_page,
+            totalPages: jsonResponse.meta.last_page
+        };
+    } catch (error) {
+        console.error(`Error fetching candidates page ${page}:`, error);
+        return { data: [], hasMore: false, currentPage: page, totalPages: 0 };
+    }
+}
+
+export interface FilteredPaginationParams {
+    page?: number;
+    perPage?: number;
+}
+
+export async function fetchCandidatesFilteredPaginated(params: FilteredPaginationParams): Promise<{data: Candidate[], currentPage: number, totalPages: number, total: number}> {
+    try {
+        const page = params.page || 1;
+        const perPage = params.perPage || 12;
+        
+        // Build query string
+        const queryParams = new URLSearchParams({
+            with_key_stages: '1',
+            per_page: perPage.toString(),
+            page: page.toString(),
+        });
+
+        const url = `${API_BASE_URL}/candidates?${queryParams.toString()}`;
+        console.log(`📡 Fetching paginated candidates: ${url}`);
+
+        const response = await fetch(url, {
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
+
+        if (!response.ok) {
+            console.error(`Failed to fetch candidates: ${response.statusText}`);
+            return { data: [], currentPage: page, totalPages: 0, total: 0 };
+        }
+
+        const jsonResponse = await response.json();
+        const candidates = jsonResponse.data.map(transformCandidateData);
+
+        console.log(`✅ Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total results: ${jsonResponse.meta.total}`);
+        
+        return {
+            data: candidates,
+            currentPage: jsonResponse.meta.current_page,
+            totalPages: jsonResponse.meta.last_page,
+            total: jsonResponse.meta.total
+        };
+    } catch (error) {
+        console.error(`Error fetching candidates:`, error);
+        return { data: [], currentPage: 1, totalPages: 0, total: 0 };
+    }
+}
+
+export interface FilterOptions {
+    searchTerm?: string;
+    role?: string;
+    subject?: string;
+    location?: string;
+    rateType?: string;
+    minRate?: number;
+    maxRate?: number;
+    status?: string;
+    dateRange?: { from: Date; to?: Date };
+}
+
+export async function fetchCandidatesFiltered(filters: FilterOptions): Promise<Candidate[]> {
+    const allCandidates: Candidate[] = [];
+    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1&per_page=100`;
+
+    console.log("Fetching candidates with filters...", filters);
+
+    while (nextPageUrl) {
+        try {
+            const response = await fetch(nextPageUrl, {
+                cache: 'no-store'
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
+                break;
+            }
+
+            const jsonResponse = await response.json();
+            const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
+            allCandidates.push(...candidatesOnPage);
+
+            nextPageUrl = jsonResponse.links.next;
+
+            console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
+        } catch (error) {
+            console.error(`Error fetching from ${nextPageUrl}:`, error);
+            break;
+        }
+    }
+
+    // Apply client-side filters
+    let filtered = allCandidates;
+
+    if (filters.searchTerm) {
+        const lowercasedTerm = filters.searchTerm.toLowerCase();
+        filtered = filtered.filter(c =>
+            c.name.toLowerCase().includes(lowercasedTerm) ||
+            c.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
+        );
+    }
+
+    if (filters.role && filters.role !== 'all') {
+        filtered = filtered.filter(c => c.role === filters.role);
+    }
+
+    if (filters.subject && filters.subject !== 'all') {
+        filtered = filtered.filter(c => c.qualifications.some(q => q.toLowerCase().includes(filters.subject!.toLowerCase())));
+    }
+
+    if (filters.location) {
+        filtered = filtered.filter(c => c.location.toLowerCase().includes(filters.location!.toLowerCase()));
+    }
+
+    if (filters.rateType && filters.rateType !== 'all') {
+        filtered = filtered.filter(c => c.rateType === filters.rateType);
+    }
+
+    if (filters.minRate) {
+        filtered = filtered.filter(c => c.rate >= filters.minRate!);
+    }
+
+    if (filters.maxRate) {
+        filtered = filtered.filter(c => c.rate <= filters.maxRate!);
+    }
+
+    if (filters.status && filters.status !== 'all') {
+        filtered = filtered.filter(c => c.status === filters.status);
+    }
+
+    if (filters.dateRange?.from) {
+        const { startOfDay, isWithinInterval } = await import('date-fns');
+        filtered = filtered.filter(c => {
+            if (c.availability.length === 0) return false;
+            const to = filters.dateRange!.to || filters.dateRange!.from;
+            const interval = { start: startOfDay(filters.dateRange!.from!), end: startOfDay(to) };
+            return c.availability.some(availDateStr => isWithinInterval(new Date(availDateStr), interval));
+        });
+    }
+
+    console.log(`Filtered down to ${filtered.length} candidates from ${allCandidates.length}`);
+    return filtered;
+}
+
+export async function getFilterMetadata(): Promise<{roles: string[], statuses: string[]}> {
+    try {
+        // Fetch just the first page with minimal data to get filter options
+        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&per_page=100&page=1`, {
+            next: { revalidate: 7200 } // Cache for 2 hours since filters don't change often
+        });
+
+        if (!response.ok) {
+            console.error('Failed to fetch filter metadata');
+            return { roles: [], statuses: [] };
+        }
+
+        const jsonResponse = await response.json();
+        const candidates = jsonResponse.data.map(transformCandidateData);
+        
+        // Extract unique roles and statuses
+        const roles = [...new Set(candidates.map(c => c.role))].sort();
+        const statuses = [...new Set(candidates.map(c => c.status))].sort();
+        
+        return { roles, statuses };
+    } catch (error) {
+        console.error('Error fetching filter metadata:', error);
+        return { roles: [], statuses: [] };
+    }
 }
 
 
@@ -180,10 +378,18 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        const allCandidates: Candidate[] = await fetchCandidates();
-        const candidateMap = new Map(allCandidates.map((c: Candidate) => [c.id, c]));
+        // This is inefficient but necessary for demo without a proper backend search
+        const allCandidates = [];
+        let nextPageUrl: string | null = `${API_BASE_URL}/candidates?per_page=100`;
+        while(nextPageUrl) {
+            const candidatesResponse = await fetch(nextPageUrl);
+            const candidatesJson = await candidatesResponse.json();
+            allCandidates.push(...candidatesJson.data);
+            nextPageUrl = candidatesJson.links.next;
+        }
+        const candidateMap = new Map(allCandidates.map(transformCandidateData).map((c: Candidate) => [c.id, c]));
 
-        const bookingsPromises = jsonResponse.data.map(async (booking: any): Promise<Booking> => {
+        const bookings = jsonResponse.data.map((booking: any): Booking => {
             const candidateId = booking.candidate_id?.toString();
             const candidate = candidateId ? candidateMap.get(candidateId) : undefined;
             
@@ -202,7 +408,6 @@ export async function fetchBookings(): Promise<Booking[]> {
             };
         });
 
-        const bookings = await Promise.all(bookingsPromises);
         return bookings;
 
     } catch (error) {
