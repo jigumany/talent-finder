@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
+const API_BASE_URL =  process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
 
 // Helper to format validation errors from Laravel
 function formatValidationErrors(errors: Record<string, string[]>): string {
@@ -37,7 +37,6 @@ export async function login(values: z.infer<typeof LoginSchema>) {
     });
 
     const resultText = await response.text();
-    console.log('Raw login response from API:', resultText);
     const result = JSON.parse(resultText);
 
     if (!result.success) {
