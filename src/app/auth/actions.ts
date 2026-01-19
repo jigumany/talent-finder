@@ -25,7 +25,9 @@ export async function login(values: z.infer<typeof LoginSchema>) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const url = `${API_BASE_URL}/login`;
+    console.log(`Attempting to login to: ${url}`);
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,18 +36,24 @@ export async function login(values: z.infer<typeof LoginSchema>) {
       body: JSON.stringify(validatedFields.data),
     });
 
-    const result = await response.json();
+    const resultText = await response.text();
+    console.log('Raw login response from API:', resultText);
+    const result = JSON.parse(resultText);
 
     if (!result.success) {
+      console.error('Login API returned an error:', result.message || result.errors);
       if (result.errors) {
         return { error: formatValidationErrors(result.errors) };
       }
       return { error: result.message || 'Login failed. Please check your credentials.' };
     }
 
-    if (!result.data.token) {
+    if (!result.data?.token) {
+        console.error('Login successful, but no token was provided in the response.');
         return { error: 'Login failed: No token received from server.' };
     }
+    
+    console.log('✅ Login successful. Token received.');
 
     (await cookies()).set('session_token', result.data.token, {
       httpOnly: true,
@@ -54,11 +62,32 @@ export async function login(values: z.infer<typeof LoginSchema>) {
       sameSite: 'lax',
       maxAge: 8 * 60 * 60, // 8 hours to match cache
     });
+    
+    console.log('✅ Session cookie set.');
 
     return { success: true };
 
   } catch (error) {
-    console.error('Login action error:', error);
+    console.error('--- LOGIN ACTION FAILED ---');
+    if (error instanceof Error) {
+        console.error('Error Type:', error.name);
+        console.error('Error Message:', error.message);
+        if ('cause' in error) {
+             console.error('Underlying Cause:', error.cause);
+        }
+        console.error('-----------------------------');
+        // Check for a common local development issue
+        if (error.message.includes('fetch failed')) {
+            console.error('Hint: A "fetch failed" error often means the Next.js server could not connect to the API URL.');
+            console.error('Please ensure your Laravel server is running and accessible at the URL defined in your .env file:', process.env.NEXT_PUBLIC_API_BASE_URL);
+        }
+    } else {
+        console.error('An unknown error occurred:', error);
+    }
+
+    if (error instanceof SyntaxError) {
+        return { error: 'Failed to parse the server response. It might not be valid JSON.' };
+    }
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -75,6 +104,7 @@ export async function logout() {
                   'Accept': 'application/json',
               }
           });
+          console.log('Logged out from API.');
       } catch (error) {
           console.error("Logout API call failed:", error);
           // We still proceed to delete the local cookie
@@ -82,6 +112,7 @@ export async function logout() {
   }
 
   (await cookies()).delete('session_token');
+  console.log('Session cookie deleted.');
   redirect('/');
 }
 
@@ -98,7 +129,6 @@ export async function validateInvitation(token: string) {
     if (!result.success) {
       return { error: result.message || 'Invitation is invalid or has expired.' };
     }
-    // The API now nests the data
     return { success: true, email: result.data.email };
   } catch (error) {
     console.error('Validate invitation error:', error);
@@ -146,3 +176,4 @@ export async function setupPassword(values: z.infer<typeof SetupPasswordSchema>)
         return { error: 'An unexpected error occurred while setting up the password.' };
     }
 }
+    
