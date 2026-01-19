@@ -69,7 +69,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         }
     }
 
-    const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
+    const role = apiCandidate.candidate_type?.name || 'Educator';
     
     const address_line_1 = apiCandidate.location?.address_line_1 || '';
     const city = apiCandidate.location?.city || '';
@@ -82,7 +82,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         location = city;
     }
 
-    // Use availability_status as primary, fallback to main status
+    // Use availability_status as primary
     const status = apiCandidate.availability_status?.name || apiCandidate.status?.name || 'Inactive';
     
     // Parse pay_rate safely, removing currency symbols and whitespace
@@ -124,7 +124,7 @@ export async function fetchCandidates(): Promise<Candidate[]> {
         try {
             const response = await fetch(nextPageUrl, {
                 headers: getAuthHeaders(),
-                next: { revalidate: 3600 } // Cache pages for 1 hour
+                cache: 'no-store'
             });
 
             if (!response.ok) {
@@ -133,12 +133,19 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             }
 
             const jsonResponse = await response.json();
+            console.log(`📦 API Response from ${nextPageUrl}:`, JSON.stringify(jsonResponse, null, 2));
+
             const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
             allCandidates.push(...candidatesOnPage);
             
-            nextPageUrl = jsonResponse.links.next;
+            const nextLink = Array.isArray(jsonResponse.links.next) ? jsonResponse.links.next[0] : jsonResponse.links.next;
+            nextPageUrl = nextLink;
 
-            if (!nextPageUrl || jsonResponse.meta.current_page >= jsonResponse.meta.last_page) {
+            const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
+            const lastPage = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
+
+
+            if (!nextPageUrl || currentPage >= lastPage) {
                 break;
             }
 
@@ -155,7 +162,7 @@ export async function fetchCandidatesPaginated(page: number = 1, perPage: number
     try {
         const response = await fetch(`${API_BASE_URL}/candidates?per_page=${perPage}&page=${page}`, {
             headers: getAuthHeaders(),
-            next: { revalidate: 3600 } 
+            cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -164,13 +171,19 @@ export async function fetchCandidatesPaginated(page: number = 1, perPage: number
         }
 
         const jsonResponse = await response.json();
+        console.log(`📦 API Response for paginated candidates (page ${page}):`, JSON.stringify(jsonResponse, null, 2));
+
         const candidates = jsonResponse.data.map(transformCandidateData);
+        
+        const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
+        const totalPages = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
+        const nextLink = Array.isArray(jsonResponse.links.next) ? jsonResponse.links.next[0] : jsonResponse.links.next;
         
         return {
             data: candidates,
-            hasMore: jsonResponse.links.next !== null,
-            currentPage: jsonResponse.meta.current_page,
-            totalPages: jsonResponse.meta.last_page
+            hasMore: nextLink !== null,
+            currentPage: currentPage,
+            totalPages: totalPages
         };
     } catch (error) {
         console.error(`Error fetching candidates page ${page}:`, error);
@@ -207,15 +220,21 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         }
 
         const jsonResponse = await response.json();
+        console.log('📦 API Response for candidates:', JSON.stringify(jsonResponse, null, 2));
+
         const candidates = jsonResponse.data.map(transformCandidateData);
 
-        console.log(`✅ Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total results: ${jsonResponse.meta.total}`);
+        const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
+        const totalPages = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
+        const total = Array.isArray(jsonResponse.meta.total) ? jsonResponse.meta.total[0] : jsonResponse.meta.total;
+
+        console.log(`✅ Fetched page ${currentPage} of ${totalPages}. Total results: ${total}`);
         
         return {
             data: candidates,
-            currentPage: jsonResponse.meta.current_page,
-            totalPages: jsonResponse.meta.last_page,
-            total: jsonResponse.meta.total
+            currentPage: currentPage,
+            totalPages: totalPages,
+            total: total
         };
     } catch (error) {
         console.error(`Error fetching candidates:`, error);
@@ -227,7 +246,7 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
     try {
         const response = await fetch(`${API_BASE_URL}/metadata/filters`, {
             headers: getAuthHeaders(),
-            next: { revalidate: 7200 }
+            cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -236,6 +255,9 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
         }
 
         const jsonResponse = await response.json();
+        console.log('📦 API Response for filter metadata:', JSON.stringify(jsonResponse, null, 2));
+        
+        // Assuming metadata API returns candidates to derive filters from
         const candidates = jsonResponse.data.map(transformCandidateData);
         
         const roles = [...new Set(candidates.map(c => c.role))].sort();
@@ -253,7 +275,7 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
     try {
         const response = await fetch(`${API_BASE_URL}/candidates/${id}`, {
             headers: getAuthHeaders(),
-            next: { revalidate: 3600 } 
+            cache: 'no-store' 
         });
 
         if (!response.ok) {
@@ -261,6 +283,8 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         }
         
         const jsonResponse = await response.json();
+        console.log(`📦 API Response for candidate ${id}:`, JSON.stringify(jsonResponse, null, 2));
+
         if (jsonResponse.data) {
             const candidate = transformCandidateData(jsonResponse.data);
             
@@ -292,6 +316,7 @@ export async function fetchBookings(): Promise<Booking[]> {
         }
 
         const jsonResponse = await response.json();
+        console.log(`📦 API Response for bookings:`, JSON.stringify(jsonResponse, null, 2));
         
         const candidateIds = new Set<string>();
         jsonResponse.data.forEach((booking: any) => {
@@ -357,7 +382,8 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
         }
 
         const jsonResponse = await response.json();
-        
+        console.log(`📦 API Response for paginated bookings (page ${page}):`, JSON.stringify(jsonResponse, null, 2));
+
         const candidateIds = new Set<string>();
         jsonResponse.data.forEach((booking: any) => {
             if (booking.candidate_id) {
@@ -401,12 +427,16 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
         });
 
         console.log(`✅ Fetched page ${page} with ${bookings.length} bookings`);
+
+        const currentPage = Array.isArray(jsonResponse.meta?.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta?.current_page || page;
+        const totalPages = Array.isArray(jsonResponse.meta?.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta?.last_page || 1;
+        const total = Array.isArray(jsonResponse.meta?.total) ? jsonResponse.meta.total[0] : jsonResponse.meta?.total || bookings.length;
         
         return {
             data: bookings,
-            currentPage: jsonResponse.meta?.current_page || page,
-            totalPages: jsonResponse.meta?.last_page || 1,
-            total: jsonResponse.meta?.total || bookings.length
+            currentPage: currentPage,
+            totalPages: totalPages,
+            total: total
         };
 
     } catch (error) {
@@ -447,7 +477,7 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
         createdby: 'MyTalent Support',
     };
 
-    console.log("Sending booking data to API:", JSON.stringify(bookingData, null, 2));
+    console.log("📦 Sending booking data to API:", JSON.stringify(bookingData, null, 2));
     
     try {
         const response = await fetch(`${API_BASE_URL}/bookings`, {
