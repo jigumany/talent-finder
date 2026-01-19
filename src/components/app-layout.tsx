@@ -56,11 +56,11 @@ const clientNav = [
     { name: 'Dashboard', href: '/dashboard', icon: Home, id: 'tour-step-1' },
     { name: 'Browse', href: '/browse-candidates', icon: Users, id: 'tour-step-3' },
     { name: 'Find', href: '/find-me-someone', icon: Search },
-    { name: 'Booking Manager', href: '/post-a-job', icon: FilePlus2, id: 'tour-step-2' },
+    // { name: 'Booking Manager', href: '/post-a-job', icon: FilePlus2, id: 'tour-step-2' },
     { name: 'Diary', href: '/diary', icon: Calendar },
     { name: 'Bookings', href: '/bookings', icon: Briefcase, id: 'tour-step-4' },
-    { name: 'Reviews', href: '/review-generator', icon: PenSquare },
-    { name: 'Blacklist', href: '/blacklist', icon: Ban },
+    // { name: 'Reviews', href: '/review-generator', icon: PenSquare },
+    // { name: 'Blacklist', href: '/blacklist', icon: Ban },
     { name: 'Profile', href: '/profile', icon: User },
 ];
 
