@@ -106,3 +106,24 @@ export type TeamMember = {
   role: 'Admin' | 'Member';
   avatarUrl: string;
 };
+
+export type UserProfile = {
+  contact: {
+    id: number | string;
+    name: string;
+    email: string
+    role: string;
+    permissions: any;
+  };
+  profile: {
+    id: number | string;
+    company: {
+      id: number | string;
+      name: string;
+      email: string;
+      phone: string;
+    };
+    settings: any;
+  };
+};
+

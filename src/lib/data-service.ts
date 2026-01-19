@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { Candidate, Booking } from './types';
+import type { Candidate, Booking, UserProfile } from './types';
 import { format, startOfDay } from 'date-fns';
 import { cookies } from 'next/headers';
 
@@ -274,35 +274,45 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         }
         
         const jsonResponse = await response.json();
-        if (jsonResponse.data) {
-            // The single candidate endpoint has a different, simpler structure.
-            // We adapt it to the Candidate type, providing defaults for missing rich data.
+        
+        // Check both the new structure (success: true, data: {...}) and fallback to old structure
+        if (jsonResponse.success && jsonResponse.data) {
+            // New API structure - the data is already in the correct format
+            const candidate = transformCandidateData(jsonResponse.data);
+            
+            // Add bio if available (you might want to ensure bio is in your CandidateResource)
+            // candidate.bio = jsonResponse.data.bio || candidate.bio;
+            
+            // Add mock review data (or fetch from a separate reviews endpoint)
+            candidate.reviewsData = [
+                { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
+                { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
+            ];
+
+            return candidate;
+        } 
+        // Fallback for old API structure (just in case)
+        else if (jsonResponse.data) {
             const apiCandidate = jsonResponse.data;
             
-            // Note: This endpoint does not provide rich details like rate, qualifications, etc.
-            // We are using the main `transformCandidateData` and providing it with a reconstructed
-            // object that matches the list-view structure to maintain consistency.
+            // Reconstruct for old API structure
             const reconstructedApiData = {
                 id: apiCandidate.id,
                 first_name: apiCandidate.first_name,
                 last_name: apiCandidate.last_name,
                 email: apiCandidate.email,
-                candidate_type: { name: 'Educator' }, // Default
-                status: apiCandidate.status, // e.g. { id: 3, name: "Online" }
-                availability_status: apiCandidate.availability?.status, // e.g. { id: 2, name: "Available" }
+                candidate_type: { name: 'Educator' },
+                status: apiCandidate.status,
+                availability_status: apiCandidate.availability?.status,
                 location: { city: apiCandidate.location?.city },
-                pay_rate: 0, // Not provided in this endpoint
-                pay_frequency: 'daily', // Default
-                details: [], // Not provided
-                key_stages: [], // Not provided
+                pay_rate: 0,
+                pay_frequency: 'daily',
+                details: [],
+                key_stages: [],
             };
             
             const candidate = transformCandidateData(reconstructedApiData);
-            
-            // Manually add bio as it's separate in this endpoint
             candidate.bio = apiCandidate.bio || `An experienced educator.`;
-            
-            // Add some mock review data as it's not in the response
             candidate.reviewsData = [
                 { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
                 { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
@@ -310,6 +320,7 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
 
             return candidate;
         }
+        
         return null;
     } catch (error) {
         console.error(`Error fetching candidate with id ${id}:`, error);
@@ -462,6 +473,7 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
 
 interface CreateBookingParams {
     candidateId: string;
+    companyId: number;
     candidateName: string;
     payRate: number;
     charge: number;
@@ -474,12 +486,11 @@ interface CreateBookingParams {
 }
 
 export async function createBooking(params: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
-    const { candidateId, candidateName, start_date, end_date, booking_pattern, booking_type, booking_role, recurring, payRate, charge } = params;
-    const companyId = '118008';
+    const { candidateId, companyId, candidateName, start_date, end_date, booking_pattern, booking_type, booking_role, recurring, payRate, charge } = params;
     
     const bookingData = {
         candidate_id: parseInt(candidateId),
-        company_id: parseInt(companyId),
+        company_id: companyId,
         start_date: start_date,
         end_date: end_date,
         booking_type: booking_type,
@@ -488,7 +499,7 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
         recurring: recurring ? 1 : 0,
         booking_pattern: booking_pattern,
         booking_role: booking_role,
-        booking_details: `Booking for ${booking_role}`,
+        status: 'Pencilled',
         createdby: 'MyTalent Support',
     };
 
@@ -521,7 +532,6 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
            status: result.data.status,
            confirmationStatus: result.data.confirmation_status,
            bookingType: result.data.booking_type,
-           session: result.data.session_type,
        };
 
         return { success: true, bookings: [newBooking] };
@@ -588,6 +598,40 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
     } catch (error) {
         console.error(`Error updating booking ${id}:`, error);
         return { success: false };
+    }
+}
+
+export async function fetchUserProfile(): Promise<{ data?: UserProfile; error?: string }> {
+    try {
+        const url = `${API_BASE_URL}/profile`;
+        console.log(`📡 Fetching user profile from: ${url}`);
+        const response = await fetch(url, {
+            headers: await getAuthHeaders(),
+            cache: 'no-store'
+        });
+
+        const jsonResponse = await response.json();
+
+        if (!response.ok) {
+            console.error(`Error ${response.status} fetching user profile: ${response.statusText}`);
+            console.error('Error body:', jsonResponse);
+            return { error: jsonResponse.message || `API error: ${response.statusText}` };
+        }
+
+        if (jsonResponse.success && jsonResponse.data) {
+            console.log("✅ User profile fetched successfully.");
+            return { data: jsonResponse.data };
+        } else {
+            console.error("Failed to fetch user profile:", jsonResponse.message);
+            return { error: jsonResponse.message || "Failed to fetch user profile." };
+        }
+
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        if (error instanceof Error) {
+          return { error: error.message };
+        }
+        return { error: "An unknown error occurred while fetching your profile." };
     }
 }
     

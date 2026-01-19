@@ -29,6 +29,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Input } from './ui/input';
 import { Switch } from './ui/switch';
 import { Checkbox } from './ui/checkbox';
+import { useUser } from '@/context/user-context';
 import { format } from 'date-fns';
 import {
   Select,
@@ -55,6 +56,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
   const [bookingType, setBookingType] = useState<'Day' | 'Hourly'>('Day');
   
   const [dayDetails, setDayDetails] = useState<Record<string, DayDetail>>({});
+  const { user } = useUser();
 
   const [recurring, setRecurring] = useState(false);
   const [recurringDays, setRecurringDays] = useState({
@@ -125,6 +127,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
 
     const result = await createBooking({ 
       candidateId: candidate.id,
+      companyId: user?.profile?.company?.id as number,
       candidateName: candidate.name,
       payRate: candidate.rate || 0,
       charge: 350,
@@ -322,10 +325,6 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
                             <Label htmlFor="hourly-card">Hourly</Label>
                         </div>
                     </RadioGroup>
-                  </div>
-                   <div className="flex items-center space-x-2">
-                    <Switch id="recurring-booking-card" checked={recurring} onCheckedChange={setRecurring} />
-                    <Label htmlFor="recurring-booking-card">Recurring Booking</Label>
                   </div>
                </div>
 

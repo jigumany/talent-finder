@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, FileText, Star, MapPin, MessageSquare, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText, Star, MapPin, MessageSquare, Loader2, UserPlus } from 'lucide-react';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -27,8 +26,27 @@ import images from '@/lib/placeholder-images.json';
 import { cn } from '@/lib/utils';
 import { notFound, useParams } from 'next/navigation';
 import { fetchCandidateById, createBooking } from '@/lib/data-service';
+import { useUser } from '@/context/user-context';
 import { BookingCalendar } from '@/components/booking-calendar';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+interface DayDetail {
+  date: Date;
+  session: 'allday' | 'am' | 'pm';
+  startTime?: string;
+  endTime?: string;
+}
 
 export default function CandidatePublicProfilePage() {
   const params = useParams();
@@ -39,7 +57,21 @@ export default function CandidatePublicProfilePage() {
 
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<'Day' | 'Hourly'>('Day');
+  const [recurring, setRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState({
+    Monday: false,
+    Tuesday: false,
+    Wednesday: false,
+    Thursday: false,
+    Friday: false,
+    Saturday: false,
+    Sunday: false,
+  });
+  const [dayDetails, setDayDetails] = useState<Record<string, DayDetail>>({});
+  
   const resumeImage = images['document-resume'];
+  const { user } = useUser();
   
   useEffect(() => {
       if (!id) return;
@@ -54,6 +86,31 @@ export default function CandidatePublicProfilePage() {
       }
       loadCandidate();
   }, [id]);
+
+  const handleDateSelect = (selectedDates: Date[] | undefined) => {
+    setDates(selectedDates);
+    const newDayDetails: Record<string, DayDetail> = {};
+    selectedDates?.forEach(d => {
+      const dateString = d.toISOString().split('T')[0];
+      newDayDetails[dateString] = dayDetails[dateString] || {
+        date: d,
+        session: 'allday',
+        startTime: '09:00',
+        endTime: '17:00'
+      };
+    });
+    setDayDetails(newDayDetails);
+  };
+
+  const handleDayDetailChange = (dateString: string, field: keyof DayDetail, value: any) => {
+    setDayDetails(prev => ({
+      ...prev,
+      [dateString]: {
+        ...prev[dateString],
+        [field]: value
+      }
+    }));
+  };
 
   const getStatusColor = (status: string) => {
     const lowerStatus = status.toLowerCase();
@@ -78,27 +135,48 @@ export default function CandidatePublicProfilePage() {
   
   const qualificationOrder = ['Key Stages', 'Qualifications', 'SEND', 'Languages', 'Additional Qualifications'];
 
-
   const handleBooking = async () => {
     if (!candidate || !dates || dates.length === 0) return;
-    
-    // This is a simplified booking from the profile page.
-    const booking_pattern = dates.map(d => ({
-      date: format(d, 'yyyy-MM-dd'),
-      type: 'allday'
-    }));
+
+    const sortedDates = dates.sort((a,b) => a.getTime() - b.getTime());
+    const startDate = sortedDates[0];
+    const endDate = sortedDates[sortedDates.length - 1];
+
+    let booking_pattern: any;
+    if (recurring) {
+      booking_pattern = Object.entries(recurringDays)
+        .filter(([, isSelected]) => isSelected)
+        .reduce((acc, [day]) => {
+          acc[day] = 'allday';
+          return acc;
+        }, {} as Record<string, string>);
+    } else {
+      if (bookingType === 'Day') {
+         booking_pattern = Object.values(dayDetails).map(detail => ({
+           date: format(detail.date, 'yyyy-MM-dd'),
+           type: detail.session
+         }));
+      } else { // Hourly
+         booking_pattern = Object.values(dayDetails).map(detail => ({
+           date: format(detail.date, 'yyyy-MM-dd'),
+           start_time: detail.startTime,
+           end_time: detail.endTime
+         }));
+      }
+    }
 
     const result = await createBooking({ 
       candidateId: candidate.id,
+      companyId: user?.profile?.company?.id as number,
       candidateName: candidate.name,
       payRate: candidate.rate || 0,
-      charge: 350, // Default charge rate
-      recurring: false,
+      charge: 350,
+      recurring,
       booking_pattern,
-      start_date: format(dates[0], 'yyyy-MM-dd'),
-      end_date: format(dates[dates.length - 1], 'yyyy-MM-dd'),
-      booking_type: 'Day',
-      booking_role: candidate.role
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      end_date: format(endDate, 'yyyy-MM-dd'),
+      booking_type: bookingType,
+      booking_role: candidate.role,
     });
 
     if (result.success) {
@@ -107,6 +185,11 @@ export default function CandidatePublicProfilePage() {
           description: `Your request to book ${candidate.name} has been sent.`,
       });
       setBookingDialogOpen(false);
+      // Reset form
+      setDates([]);
+      setDayDetails({});
+      setRecurring(false);
+      setBookingType('Day');
     } else {
         toast({
           title: "Booking Failed",
@@ -142,11 +225,13 @@ export default function CandidatePublicProfilePage() {
                         <MapPin className="h-4 w-4" />
                         <span>{candidate.location}</span>
                     </div>
-                     {candidate.rating > 0 && (
+                     {candidate.rating && candidate.rating > 0 && (
                         <div className="flex items-center gap-1.5 text-amber-500">
                             <Star className="w-4 h-4 fill-current" />
                             <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-                            <span>({candidate.reviews} reviews)</span>
+                            {candidate.reviews && (
+                              <span>({candidate.reviews} reviews)</span>
+                            )}
                         </div>
                     )}
                 </div>
@@ -154,35 +239,173 @@ export default function CandidatePublicProfilePage() {
             <div className="w-full md:w-auto flex flex-col gap-2">
                  <Dialog open={isBookingDialogOpen} onOpenChange={setBookingDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="lg" className="w-full"><CalendarIcon className="mr-2"/> Book Now</Button>
+                    <Button size="lg" className="w-full">
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Book Now
+                    </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Book {candidate.name}</DialogTitle>
-                      <DialogDescriptionComponent>
-                        Select one or more dates to book {candidate.role} for your school.
+                      <DialogTitle className="text-xl">Book {candidate.name}</DialogTitle>
+                      <DialogDescriptionComponent className="text-sm">
+                        Configure booking details for {candidate.role}.
                       </DialogDescriptionComponent>
                     </DialogHeader>
-                    <div className="flex justify-center p-1">
-                         <BookingCalendar
-                            mode="multiple"
-                            selected={dates}
-                            onSelect={setDates}
-                            candidate={candidate}
+                    
+                    <div className="grid md:grid-cols-2 gap-6 items-start">
+                      <div className="space-y-4">
+                        <BookingCalendar
+                          mode="multiple"
+                          selected={dates}
+                          onSelect={handleDateSelect}
+                          candidate={candidate}
                         />
+                        
+                        <div className="space-y-4 pt-4">
+                          <div className="space-y-2">
+                            <Label className="text-base">Booking Type</Label>
+                            <RadioGroup 
+                              value={bookingType} 
+                              onValueChange={(v: 'Day' | 'Hourly') => setBookingType(v)} 
+                              className="flex gap-4"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Day" id="day-profile" />
+                                <Label htmlFor="day-profile" className="text-sm">Daily</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Hourly" id="hourly-profile" />
+                                <Label htmlFor="hourly-profile" className="text-sm">Hourly</Label>
+                              </div>
+                            </RadioGroup>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 pt-2">
+                            <Switch
+                              id="recurring-profile"
+                              checked={recurring}
+                              onCheckedChange={setRecurring}
+                            />
+                            <Label htmlFor="recurring-profile" className="text-sm">
+                              Recurring Booking
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                        {recurring ? (
+                          <div className="space-y-4">
+                            <Label className="text-base">Select Recurring Days</Label>
+                            <div className="grid grid-cols-2 gap-3">
+                              {Object.keys(recurringDays).map((day) => (
+                                <div key={day} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`rec-${day}-profile`}
+                                    checked={recurringDays[day as keyof typeof recurringDays]}
+                                    onCheckedChange={(checked) => setRecurringDays(prev => ({...prev, [day]: !!checked}))}
+                                  />
+                                  <label htmlFor={`rec-${day}-profile`} className="text-sm font-medium">
+                                    {day}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-sm text-muted-foreground pt-2">
+                              This will create a recurring booking for the selected days of the week.
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            {dates && dates.length > 0 ? (
+                              <div className="space-y-4">
+                                <Label className="text-base">Configure Selected Dates</Label>
+                                {Object.values(dayDetails).map(detail => (
+                                  <div key={detail.date.toISOString()} className="p-4 border rounded-lg space-y-3 bg-card">
+                                    <p className="font-semibold text-sm">{format(detail.date, 'EEEE, MMMM d, yyyy')}</p>
+                                    {bookingType === 'Day' ? (
+                                      <div className="space-y-2">
+                                        <Label className="text-sm">Session Type</Label>
+                                        <Select 
+                                          value={detail.session} 
+                                          onValueChange={(value) => handleDayDetailChange(detail.date.toISOString().split('T')[0], 'session', value)}
+                                        >
+                                          <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select session" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="allday">All Day (Full Day)</SelectItem>
+                                            <SelectItem value="am">Morning Session (AM)</SelectItem>
+                                            <SelectItem value="pm">Afternoon Session (PM)</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    ) : (
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                          <Label className="text-sm">Start Time</Label>
+                                          <Input 
+                                            type="time" 
+                                            value={detail.startTime} 
+                                            onChange={e => handleDayDetailChange(detail.date.toISOString().split('T')[0], 'startTime', e.target.value)}
+                                            className="w-full"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label className="text-sm">End Time</Label>
+                                          <Input 
+                                            type="time" 
+                                            value={detail.endTime} 
+                                            onChange={e => handleDayDetailChange(detail.date.toISOString().split('T')[0], 'endTime', e.target.value)}
+                                            className="w-full"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                                <p className="text-sm text-muted-foreground">
+                                  Select dates on the calendar to configure sessions
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                     <DialogFooter className="sm:justify-end gap-2">
+                    
+                    <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-6">
                       <DialogClose asChild>
-                        <Button type="button" variant="secondary">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="w-full sm:w-auto"
+                          onClick={() => {
+                            setDates([]);
+                            setDayDetails({});
+                            setRecurring(false);
+                          }}
+                        >
                           Cancel
                         </Button>
                       </DialogClose>
-                       <Button type="button" onClick={handleBooking} disabled={!dates || dates.length === 0}>
-                          Confirm Booking
-                        </Button>
+                      
+                      <Button 
+                        type="button" 
+                        onClick={handleBooking} 
+                        disabled={!dates || dates.length === 0 || (recurring && !Object.values(recurringDays).some(day => day))}
+                        className="w-full sm:w-auto"
+                      >
+                        Confirm Booking
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+                
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button size="lg" variant="warning" className="w-full">
@@ -233,14 +456,14 @@ export default function CandidatePublicProfilePage() {
                     </Card>
                 )}
 
-                 {Object.keys(candidate.details).length > 0 && (
+                 {candidate.details && Object.keys(candidate.details).length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Qualifications & Skills</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {qualificationOrder.map(category => {
-                                if (candidate.details[category] && candidate.details[category].length > 0) {
+                                if (candidate.details && candidate.details[category] && candidate.details[category].length > 0) {
                                     return (
                                     <div key={category}>
                                         <h3 className="font-semibold text-md mb-2">{category}</h3>
@@ -291,7 +514,7 @@ export default function CandidatePublicProfilePage() {
                 )}
             </div>
             <div className="space-y-8">
-                {candidate.rate > 0 && (
+                {candidate.rate && candidate.rate > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Rates</CardTitle>
@@ -299,12 +522,12 @@ export default function CandidatePublicProfilePage() {
                         <CardContent>
                         <div className="text-2xl font-bold text-primary flex items-center">
                                 £{candidate.rate.toFixed(2)}
-                                <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType}</span>
+                                <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType || 'day'}</span>
                             </div>
                         </CardContent>
                     </Card>
                 )}
-                {candidate.availability.length > 0 && (
+                {candidate.availability && candidate.availability.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Availability</CardTitle>

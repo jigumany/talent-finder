@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils';
 import type { Candidate } from '@/lib/types';
 
 
-interface BookingCalendarProps extends CalendarProps {
+type BookingCalendarProps = CalendarProps & {
     candidate?: Candidate;
-}
+};
 
 export function BookingCalendar({ candidate, className, ...props }: BookingCalendarProps) {
 

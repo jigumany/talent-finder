@@ -24,27 +24,11 @@ export default function ClientDashboard() {
         async function loadRecentBookings() {
             setIsLoading(true);
             try {
-                // Load multiple pages to get enough data for charts
-                let allBookings: Booking[] = [];
-                let page = 1;
-                let hasMoreData = true;
-                const maxPagesToLoad = 3; // Load up to 150 bookings (3 pages of 50)
-                
-                while (hasMoreData && page <= maxPagesToLoad) {
-                    const result = await fetchBookingsPaginated(page, 50);
-                    allBookings = [...allBookings, ...result.data];
-                    hasMoreData = result.currentPage < result.totalPages;
-                    page++;
-                    
-                    // If we have enough bookings for the charts, stop loading
-                    if (allBookings.length >= 100) {
-                        break;
-                    }
-                }
-                
-                setBookings(allBookings);
-                setTotalBookings(allBookings.length);
-                setHasMore(hasMoreData);
+                const result = await fetchBookingsPaginated(1, 50);
+                setBookings(result.data);
+                setTotalBookings(result.total);
+                setHasMore(result.currentPage < result.totalPages);
+                setCurrentPage(result.currentPage);
             } catch (error) {
                 console.error('Error loading bookings:', error);
             } finally {
@@ -54,7 +38,30 @@ export default function ClientDashboard() {
         loadRecentBookings();
     }, []);
     
-    const confirmedBooking = useMemo(() => bookings.find(b => b.status === 'Confirmed'), [bookings]);
+    // Find upcoming booking (status 'Confirmed' or 'Pencilled')
+    const upcomingBooking = useMemo(() => {
+        const today = new Date();
+        // Sort by start_date and find the first upcoming booking
+        const upcoming = bookings
+            .filter(b => {
+                try {
+                    const startDate = parseISO(b.startDate);
+                    return startDate >= today && 
+                           (b.status === 'Confirmed' || b.status === 'Pencilled' || b.status === 'Pending');
+                } catch (error) {
+                    return false;
+                }
+            })
+            .sort((a, b) => {
+                try {
+                    return parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
+                } catch (error) {
+                    return 0;
+                }
+            });
+        
+        return upcoming[0] || null;
+    }, [bookings]);
 
     const monthlyBookingsChartData = useMemo(() => {
         const sixMonthsAgo = subMonths(new Date(), CHART_MONTHS_TO_SHOW - 1);
@@ -62,14 +69,14 @@ export default function ClientDashboard() {
         const counts: {[key: string]: number} = {};
         bookings.forEach(booking => {
             try {
-                const date = parseISO(booking.date);
+                const date = parseISO(booking.startDate);
                 // Only include bookings from the last 6 months
                 if (date >= sixMonthsAgo) {
                     const month = format(date, 'MMM');
                     counts[month] = (counts[month] || 0) + 1;
                 }
             } catch (error) {
-                console.error('Error parsing booking date:', booking.date);
+                console.error('Error parsing booking date:', booking.startDate);
             }
         });
 
@@ -96,25 +103,20 @@ export default function ClientDashboard() {
         },
     } satisfies ChartConfig;
 
-     const statusDistributionChartData = useMemo(() => {
-        const counts: Record<string, number> = {
-            Completed: 0,
-            Confirmed: 0,
-            Interview: 0,
-            Pencilled: 0,
-            Cancelled: 0,
-        };
-
+    const statusDistributionChartData = useMemo(() => {
+        const counts: Record<string, number> = {};
+        
+        // Initialize with common statuses
+        const commonStatuses = ['Confirmed', 'Pencilled', 'Pending', 'Cancelled', 'Completed'];
+        commonStatuses.forEach(status => counts[status] = 0);
+        
+        // Count actual statuses from bookings
         bookings.forEach(booking => {
-            if (counts.hasOwnProperty(booking.status)) {
-                counts[booking.status]++;
-            } else {
-                // For any other status, count as "Other"
-                counts[booking.status] = (counts[booking.status] || 0) + 1;
-            }
+            const status = booking.status || 'Unknown';
+            counts[status] = (counts[status] || 0) + 1;
         });
 
-        // Filter out zero values and transform
+        // Filter out zero values and transform for chart
         return Object.entries(counts)
             .filter(([_, value]) => value > 0)
             .map(([status, value], index) => ({
@@ -140,6 +142,7 @@ export default function ClientDashboard() {
             setBookings(prev => [...prev, ...result.data]);
             setCurrentPage(nextPage);
             setHasMore(result.currentPage < result.totalPages);
+            setTotalBookings(result.total);
         } catch (error) {
             console.error('Error loading more bookings:', error);
         } finally {
@@ -185,15 +188,21 @@ export default function ClientDashboard() {
                     <CalendarCheck2 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    {confirmedBooking ? (
+                    {upcomingBooking ? (
                         <>
-                            <div className="text-2xl font-bold truncate">{confirmedBooking.candidateName}</div>
+                            <div className="text-2xl font-bold truncate">{upcomingBooking.candidateName}</div>
                             <p className="text-xs text-muted-foreground">
-                                For {format(parseISO(confirmedBooking.date), "dd/MM/yyyy")}
+                                {upcomingBooking.startDate === upcomingBooking.endDate 
+                                    ? `On ${format(parseISO(upcomingBooking.startDate), "dd/MM/yyyy")}`
+                                    : `${format(parseISO(upcomingBooking.startDate), "dd/MM")} - ${format(parseISO(upcomingBooking.endDate), "dd/MM/yyyy")}`
+                                }
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Status: <span className="font-medium">{upcomingBooking.status}</span>
                             </p>
                         </>
                     ) : (
-                         <div className="text-lg font-semibold text-muted-foreground">None</div>
+                         <div className="text-lg font-semibold text-muted-foreground">No upcoming bookings</div>
                     )}
                 </CardContent>
             </Card>

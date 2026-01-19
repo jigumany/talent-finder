@@ -46,6 +46,7 @@ import { cn } from '@/lib/utils';
 import { Logo } from './logo';
 import images from '@/lib/placeholder-images.json';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUser, useUserContact } from '@/context/user-context';
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { logout } from '@/app/auth/actions';
@@ -67,7 +68,8 @@ const clientNav = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { role, setRole } = useRole();
     const pathname = usePathname();
-    const user = { name: 'Oakwood Primary', email: 'contact@oakwoodprimary.org.uk', fallback: 'OP' };
+    const { user } = useUser();
+    const contact = useUserContact();
     const avatarImage = images['user-avatar-fallback'];
     const isMobile = useIsMobile();
     const [isClient, setIsClient] = useState(false);
@@ -76,6 +78,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         setIsClient(true);
     }, []);
+
+    const displayUser = {
+        name: user?.profile?.company?.name || 'Company',
+        email: contact?.email || 'No email'
+    };
+
+    const avatarData = {
+        src: '', // You might want to add avatar URL to your UserProfile type
+        hint: user?.profile?.company?.name || 'User avatar',
+        fallback: user?.profile?.company?.name?.charAt(0)?.toUpperCase() || 'U'
+    };
 
     const navItems = clientNav;
 
@@ -142,16 +155,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <DropdownMenuTrigger asChild>
                             <Button variant="secondary" size="icon" className="rounded-full">
                                 <Avatar>
-                                    <AvatarImage src={avatarImage.src} alt={user.name} data-ai-hint={avatarImage.hint} />
-                                    <AvatarFallback>{user.fallback}</AvatarFallback>
+                                    <AvatarImage src={avatarData.src} alt={displayUser.name} data-ai-hint={avatarData.hint} />
+                                    <AvatarFallback>{avatarData.fallback}</AvatarFallback>
                                 </Avatar>
                                 <span className="sr-only">Toggle user menu</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>
-                                <div className="font-medium">{user.name}</div>
-                                <div className="text-xs text-muted-foreground">{user.email}</div>
+                                <div className="font-medium">{displayUser.name}</div>
+                                <div className="text-xs text-muted-foreground">{displayUser.email}</div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                              <DropdownMenuItem asChild>
@@ -210,16 +223,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <DropdownMenuTrigger asChild>
                             <Button variant="secondary" size="icon" className="rounded-full">
                                 <Avatar>
-                                    <AvatarImage src={avatarImage.src} alt={user.name} data-ai-hint={avatarImage.hint} />
-                                    <AvatarFallback>{user.fallback}</AvatarFallback>
+                                    <AvatarImage src={avatarData.src} alt={displayUser.name} data-ai-hint={avatarData.hint} />
+                                    <AvatarFallback>{avatarData.fallback}</AvatarFallback>
                                 </Avatar>
                                 <span className="sr-only">Toggle user menu</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>
-                                <div className="font-medium">{user.name}</div>
-                                <div className="text-xs text-muted-foreground">{user.email}</div>
+                                <div className="font-medium">{displayUser.name}</div>
+                                <div className="text-xs text-muted-foreground">{displayUser.email}</div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                              <DropdownMenuItem asChild>
