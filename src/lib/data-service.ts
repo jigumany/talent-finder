@@ -163,13 +163,13 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 export interface FilteredPaginationParams {
     page?: number;
     perPage?: number;
-    searchTerm?: string;
+    search?: string;
     role?: string;
     subject?: string;
     location?: string;
-    rateType?: string;
-    minRate?: string;
-    maxRate?: string;
+    pay_frequency?: string;
+    min_rate?: string;
+    max_rate?: string;
     status?: string;
 }
 
@@ -184,13 +184,13 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         });
 
         // Add filters to query params if they exist and are not the 'all' value
-        if (params.searchTerm) queryParams.append('search', params.searchTerm);
+        if (params.search) queryParams.append('search', params.search);
         if (params.role && params.role !== 'all') queryParams.append('role', params.role);
         if (params.subject && params.subject !== 'all') queryParams.append('subject', params.subject);
         if (params.location) queryParams.append('location', params.location);
-        if (params.rateType && params.rateType !== 'all') queryParams.append('pay_frequency', params.rateType);
-        if (params.minRate) queryParams.append('min_rate', params.minRate);
-        if (params.maxRate) queryParams.append('max_rate', params.maxRate);
+        if (params.pay_frequency && params.pay_frequency !== 'all') queryParams.append('pay_frequency', params.pay_frequency);
+        if (params.min_rate) queryParams.append('min_rate', params.min_rate);
+        if (params.max_rate) queryParams.append('max_rate', params.max_rate);
         if (params.status && params.status !== 'all') queryParams.append('status', params.status);
 
 
@@ -261,7 +261,7 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
         const url = `${API_BASE_URL}/candidates/${id}`;
-        console.log(`📡 Fetching data from: ${url}`);
+        console.log(`📡 Fetching single candidate from: ${url}`);
         const response = await fetch(url, {
             headers: getAuthHeaders(),
             cache: 'no-store' 
@@ -276,14 +276,39 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         
         const jsonResponse = await response.json();
         if (jsonResponse.data) {
-            const candidate = transformCandidateData(jsonResponse.data);
+            // The single candidate endpoint has a different, simpler structure.
+            // We adapt it to the Candidate type, providing defaults for missing rich data.
+            const apiCandidate = jsonResponse.data;
             
-            if (!candidate.reviewsData) {
-                 candidate.reviewsData = [
-                    { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
-                    { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
-                ]
-            }
+            // Note: This endpoint does not provide rich details like rate, qualifications, etc.
+            // We are using the main `transformCandidateData` and providing it with a reconstructed
+            // object that matches the list-view structure to maintain consistency.
+            const reconstructedApiData = {
+                id: apiCandidate.id,
+                first_name: apiCandidate.first_name,
+                last_name: apiCandidate.last_name,
+                email: apiCandidate.email,
+                candidate_type: { name: 'Educator' }, // Default
+                status: apiCandidate.status, // e.g. { id: 3, name: "Online" }
+                availability_status: apiCandidate.availability?.status, // e.g. { id: 2, name: "Available" }
+                location: { city: apiCandidate.location?.city },
+                pay_rate: 0, // Not provided in this endpoint
+                pay_frequency: 'daily', // Default
+                details: [], // Not provided
+                key_stages: [], // Not provided
+            };
+            
+            const candidate = transformCandidateData(reconstructedApiData);
+            
+            // Manually add bio as it's separate in this endpoint
+            candidate.bio = apiCandidate.bio || `An experienced educator.`;
+            
+            // Add some mock review data as it's not in the response
+            candidate.reviewsData = [
+                { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
+                { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
+            ];
+
             return candidate;
         }
         return null;

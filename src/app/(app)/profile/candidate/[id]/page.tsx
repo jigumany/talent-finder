@@ -83,11 +83,6 @@ export default function CandidatePublicProfilePage() {
     if (!candidate || !dates || dates.length === 0) return;
     
     // This is a simplified booking from the profile page.
-    // We assume non-recurring, 'Day' booking, with 'allday' session.
-    const sortedDates = dates.sort((a,b) => a.getTime() - b.getTime());
-    const startDate = sortedDates[0];
-    const endDate = sortedDates[sortedDates.length - 1];
-
     const booking_pattern = dates.map(d => ({
       date: format(d, 'yyyy-MM-dd'),
       type: 'allday'
@@ -100,8 +95,8 @@ export default function CandidatePublicProfilePage() {
       charge: 350, // Default charge rate
       recurring: false,
       booking_pattern,
-      start_date: format(startDate, 'yyyy-MM-dd'),
-      end_date: format(endDate, 'yyyy-MM-dd'),
+      start_date: format(dates[0], 'yyyy-MM-dd'),
+      end_date: format(dates[dates.length - 1], 'yyyy-MM-dd'),
       booking_type: 'Day',
       booking_role: candidate.role
     });
@@ -131,13 +126,15 @@ export default function CandidatePublicProfilePage() {
             <div className="flex-1">
                 <div className="flex items-center gap-4">
                   <h1 className="text-3xl font-bold font-headline">{candidate.name}</h1>
-                  <Badge 
-                    variant="outline" 
-                    className={cn('text-base whitespace-nowrap', getStatusColor(candidate.status), 'border-transparent text-white')}
-                    title={`Status: ${candidate.status}`}
-                  >
-                    {candidate.status}
-                  </Badge>
+                   {candidate.status && (
+                    <Badge 
+                      variant="outline" 
+                      className={cn('text-base whitespace-nowrap', getStatusColor(candidate.status), 'border-transparent text-white')}
+                      title={`Status: ${candidate.status}`}
+                    >
+                      {candidate.status}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-lg text-muted-foreground">{candidate.role}</p>
                  <div className="flex items-center gap-4 mt-2 text-muted-foreground text-sm">
@@ -145,11 +142,13 @@ export default function CandidatePublicProfilePage() {
                         <MapPin className="h-4 w-4" />
                         <span>{candidate.location}</span>
                     </div>
-                     <div className="flex items-center gap-1.5 text-amber-500">
-                        <Star className="w-4 h-4 fill-current" />
-                        <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-                        <span>({candidate.reviews} reviews)</span>
-                    </div>
+                     {candidate.rating > 0 && (
+                        <div className="flex items-center gap-1.5 text-amber-500">
+                            <Star className="w-4 h-4 fill-current" />
+                            <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                            <span>({candidate.reviews} reviews)</span>
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="w-full md:w-auto flex flex-col gap-2">
@@ -221,54 +220,56 @@ export default function CandidatePublicProfilePage() {
 
         <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>About Me</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground whitespace-pre-wrap">
-                            {candidate.bio}
-                        </p>
-                    </CardContent>
-                </Card>
+                 {candidate.bio && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>About Me</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground whitespace-pre-wrap">
+                                {candidate.bio}
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
 
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Qualifications & Skills</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {Object.keys(candidate.details).length > 0 ? (
-                             qualificationOrder.map(category => {
-                              if (candidate.details[category] && candidate.details[category].length > 0) {
-                                return (
-                                  <div key={category}>
-                                      <h3 className="font-semibold text-md mb-2">{category}</h3>
-                                      <div className="flex flex-wrap gap-2">
-                                          {candidate.details[category].map((value, index) => (
-                                              <Badge key={`${category}-${value}-${index}`} variant={category === 'Key Stages' ? 'default' : 'secondary'} className="text-base py-1 px-3">
-                                                  {value}
-                                              </Badge>
-                                          ))}
-                                      </div>
-                                      <Separator className="mt-4" />
-                                  </div>
-                                )
-                              }
-                              return null;
-                            })
-                        ) : (
-                            <p className="text-muted-foreground">No specific qualifications listed.</p>
-                        )}
-                    </CardContent>
-                </Card>
+                 {Object.keys(candidate.details).length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Qualifications & Skills</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {qualificationOrder.map(category => {
+                                if (candidate.details[category] && candidate.details[category].length > 0) {
+                                    return (
+                                    <div key={category}>
+                                        <h3 className="font-semibold text-md mb-2">{category}</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {candidate.details[category].map((value, index) => (
+                                                <Badge key={`${category}-${value}-${index}`} variant={category === 'Key Stages' ? 'default' : 'secondary'} className="text-base py-1 px-3">
+                                                    {value}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                        <Separator className="mt-4" />
+                                    </div>
+                                    )
+                                }
+                                return null;
+                                })
+                            }
+                        </CardContent>
+                    </Card>
+                )}
 
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Reviews</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {candidate.reviewsData && candidate.reviewsData.length > 0 ? (
-                            candidate.reviewsData.map((review, index) => (
+
+                 {candidate.reviewsData && candidate.reviewsData.length > 0 && (
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Recent Reviews</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {candidate.reviewsData.map((review, index) => (
                                 <div key={index}>
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -284,46 +285,42 @@ export default function CandidatePublicProfilePage() {
                                     <p className="text-muted-foreground mt-2 italic">"{review.comment}"</p>
                                     {index < candidate.reviewsData!.length - 1 && <Separator className="mt-6" />}
                                 </div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-8">
-                                <MessageSquare className="h-10 w-10 mb-4" />
-                                <p className="font-semibold">No reviews yet</p>
-                                <p className="text-sm">This candidate has not received any reviews.</p>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
             </div>
             <div className="space-y-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Rates</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-primary flex items-center">
-                            £{candidate.rate.toFixed(2)}
-                            <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType}</span>
+                {candidate.rate > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Rates</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                        <div className="text-2xl font-bold text-primary flex items-center">
+                                £{candidate.rate.toFixed(2)}
+                                <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+                {candidate.availability.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Availability</CardTitle>
+                            <CardDescription>
+                                This calendar shows the candidate's general availability.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <div className="flex justify-center p-1">
+                            <AvailabilityCalendar candidate={candidate}/>
                         </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Availability</CardTitle>
-                         <CardDescription>
-                            This calendar shows the candidate's general availability.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex justify-center p-1">
-                        <AvailabilityCalendar candidate={candidate}/>
-                      </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     </div>
   );
 }
-
-    
