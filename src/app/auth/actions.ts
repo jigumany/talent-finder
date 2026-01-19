@@ -36,7 +36,6 @@ export async function login(values: z.infer<typeof LoginSchema>) {
       body: JSON.stringify(validatedFields.data),
     });
 
-    // We need to clone the response to be able to read it as text and then as json
     const resultText = await response.text();
     console.log('Raw login response from API:', resultText);
     const result = JSON.parse(resultText);
@@ -56,7 +55,6 @@ export async function login(values: z.infer<typeof LoginSchema>) {
     
     console.log('✅ Login successful. Token received.');
 
-    // Correctly set the cookie without the unnecessary 'await'
     cookies().set('session_token', result.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -70,7 +68,23 @@ export async function login(values: z.infer<typeof LoginSchema>) {
     return { success: true };
 
   } catch (error) {
-    console.error('Login action error:', error);
+    console.error('--- LOGIN ACTION FAILED ---');
+    if (error instanceof Error) {
+        console.error('Error Type:', error.name);
+        console.error('Error Message:', error.message);
+        if ('cause' in error) {
+             console.error('Underlying Cause:', error.cause);
+        }
+        console.error('-----------------------------');
+        // Check for a common local development issue
+        if (error.message.includes('fetch failed')) {
+            console.error('Hint: A "fetch failed" error often means the Next.js server could not connect to the API URL.');
+            console.error('Please ensure your Laravel server is running and accessible at the URL defined in your .env file:', process.env.NEXT_PUBLIC_API_BASE_URL);
+        }
+    } else {
+        console.error('An unknown error occurred:', error);
+    }
+
     if (error instanceof SyntaxError) {
         return { error: 'Failed to parse the server response. It might not be valid JSON.' };
     }
@@ -115,7 +129,6 @@ export async function validateInvitation(token: string) {
     if (!result.success) {
       return { error: result.message || 'Invitation is invalid or has expired.' };
     }
-    // The API now nests the data
     return { success: true, email: result.data.email };
   } catch (error) {
     console.error('Validate invitation error:', error);
@@ -163,3 +176,4 @@ export async function setupPassword(values: z.infer<typeof SetupPasswordSchema>)
         return { error: 'An unexpected error occurred while setting up the password.' };
     }
 }
+    
