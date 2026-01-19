@@ -184,11 +184,11 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         });
 
         // Add filters to query params if they exist and are not the 'all' value
-        if (params.searchTerm) queryParams.append('q', params.searchTerm);
+        if (params.searchTerm) queryParams.append('search', params.searchTerm);
         if (params.role && params.role !== 'all') queryParams.append('role', params.role);
         if (params.subject && params.subject !== 'all') queryParams.append('subject', params.subject);
         if (params.location) queryParams.append('location', params.location);
-        if (params.rateType && params.rateType !== 'all') queryParams.append('rate_type', params.rateType);
+        if (params.rateType && params.rateType !== 'all') queryParams.append('pay_frequency', params.rateType);
         if (params.minRate) queryParams.append('min_rate', params.minRate);
         if (params.maxRate) queryParams.append('max_rate', params.maxRate);
         if (params.status && params.status !== 'all') queryParams.append('status', params.status);
