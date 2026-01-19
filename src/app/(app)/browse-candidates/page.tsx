@@ -18,9 +18,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 const CANDIDATES_PER_PAGE = 12;
-const API_PAGE_SIZE = 100;
-const INITIAL_PAGES_TO_LOAD = 3;
-const MAX_PAGES_TO_LOAD = 100;
 
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
 
@@ -35,13 +32,6 @@ interface FilterState {
     status: string;
 }
 
-interface CandidateCache {
-    data: Candidate[];
-    totalPages: number;
-    total: number;
-    lastFetched: number;
-}
-
 interface FiltersProps {
     filters: FilterState;
     setFilters: (filters: FilterState) => void;
@@ -51,6 +41,7 @@ interface FiltersProps {
 
 // Helper function to capitalize first letter
 const capitalize = (str: string) => {
+    if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
@@ -213,7 +204,7 @@ function MobileFilters({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all" className="text-sm">All Roles</SelectItem>
-                            {allRoles.map(r => <SelectItem key={r} value={r} className="text-sm">{r}</SelectItem>)}
+                            {allRoles.map(r => <SelectItem key={r} value={r} className="text-sm">{capitalize(r)}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
@@ -285,14 +276,14 @@ function MobileFilters({
                 </div>
 
                 <div>
-                    <Label className="text-sm font-medium mb-2 block">Status</Label>
+                    <Label className="text-sm font-medium mb-2 block">Availability Status</Label>
                     <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
                         <SelectTrigger className="w-full text-sm">
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all" className="text-sm">All Statuses</SelectItem>
-                            {allStatuses.map(s => <SelectItem key={s} value={s} className="text-sm">{s}</SelectItem>)}
+                            {allStatuses.map(s => <SelectItem key={s} value={s} className="text-sm">{capitalize(s)}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
@@ -314,7 +305,6 @@ function DesktopFilters({
     const updateFilter = useCallback((key: keyof FilterState, value: string) => {
         setFilters({ ...filters, [key]: value });
         
-        // Close the accordion item after selection
         const accordionItemMap: Record<string, string> = {
             'role': 'item-1',
             'subject': 'item-1',
@@ -327,19 +317,16 @@ function DesktopFilters({
         
         const accordionItem = accordionItemMap[key];
         if (accordionItem) {
-            // Clear any existing timeout
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
             
-            // Close the accordion after a short delay
             timeoutRef.current = setTimeout(() => {
                 setAccordionValue(prev => prev.filter(item => item !== accordionItem));
             }, 300);
         }
     }, [filters, setFilters]);
 
-    // Clean up timeout on unmount
     useEffect(() => {
         return () => {
             if (timeoutRef.current) {
@@ -367,7 +354,7 @@ function DesktopFilters({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all" className="text-xs sm:text-sm">All Roles</SelectItem>
-                                    {allRoles.map(r => <SelectItem key={r} value={r} className="text-xs sm:text-sm">{r}</SelectItem>)}
+                                    {allRoles.map(r => <SelectItem key={r} value={r} className="text-xs sm:text-sm">{capitalize(r)}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -446,7 +433,7 @@ function DesktopFilters({
             </AccordionItem>
 
             <AccordionItem value="item-3">
-                <AccordionTrigger className="text-sm sm:text-base">Status</AccordionTrigger>
+                <AccordionTrigger className="text-sm sm:text-base">Availability Status</AccordionTrigger>
                 <AccordionContent>
                     <div className="space-y-2">
                         <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
@@ -455,7 +442,7 @@ function DesktopFilters({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all" className="text-xs sm:text-sm">All Statuses</SelectItem>
-                                {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs sm:text-sm">{s}</SelectItem>)}
+                                {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs sm:text-sm">{capitalize(s)}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -581,16 +568,11 @@ export default function BrowseCandidatesPage() {
         status: 'all',
     });
 
-    const [candidateCache, setCandidateCache] = useState<CandidateCache>({
-        data: [],
-        totalPages: 0,
-        total: 0,
-        lastFetched: 0,
-    });
-    const [loadedPages, setLoadedPages] = useState(0);
-    const [isLoadingInitial, setIsLoadingInitial] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
+    const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalResults, setTotalResults] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+
     const [allRoles, setAllRoles] = useState<string[]>([]);
     const [allStatuses, setAllStatuses] = useState<string[]>([]);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -603,156 +585,66 @@ export default function BrowseCandidatesPage() {
 
     useEffect(() => {
         async function loadMetadata() {
-            setIsLoadingMetadata(true);
-            const metadata = await getFilterMetadata();
-            setAllRoles(metadata.roles);
-            setAllStatuses(metadata.statuses);
-            setIsLoadingMetadata(false);
+            setIsLoading(true);
+            try {
+                const metadata = await getFilterMetadata();
+                setAllRoles(metadata.roles);
+                setAllStatuses(metadata.statuses);
+            } catch (error) {
+                console.error("Failed to load filter metadata", error);
+            } finally {
+                setIsLoading(false);
+            }
         }
         loadMetadata();
     }, []);
 
     useEffect(() => {
-        async function loadInitialPages() {
-            setIsLoadingInitial(true);
-            const allCandidates: Candidate[] = [];
-            let totalPages = 0;
-            let total = 0;
-
+        async function loadCandidates() {
+            setIsLoading(true);
             try {
-                for (let page = 1; page <= INITIAL_PAGES_TO_LOAD; page++) {
-                    const result = await fetchCandidatesFilteredPaginated({
-                        page,
-                        perPage: API_PAGE_SIZE,
-                    });
-                    
-                    allCandidates.push(...result.data);
-                    totalPages = result.totalPages;
-                    total = result.total;
-                }
-
-                setCandidateCache({
-                    data: allCandidates,
-                    totalPages,
-                    total,
-                    lastFetched: Date.now(),
-                });
-                setLoadedPages(INITIAL_PAGES_TO_LOAD);
-            } catch (error) {
-                console.error('Error loading initial pages:', error);
-            } finally {
-                setIsLoadingInitial(false);
-            }
-        }
-
-        loadInitialPages();
-    }, []);
-
-    const loadMorePages = useCallback(async (additionalPages: number = 3) => {
-        if (loadedPages >= candidateCache.totalPages || isLoadingMore) return;
-
-        setIsLoadingMore(true);
-        try {
-            const startPage = loadedPages + 1;
-            const endPage = Math.min(loadedPages + additionalPages, candidateCache.totalPages);
-
-            for (let page = startPage; page <= endPage; page++) {
                 const result = await fetchCandidatesFilteredPaginated({
-                    page,
-                    perPage: API_PAGE_SIZE,
+                    page: currentPage,
+                    perPage: CANDIDATES_PER_PAGE,
+                    searchTerm: debouncedSearchTerm,
+                    role: filters.role,
+                    subject: filters.subject,
+                    location: debouncedLocationFilter,
+                    rateType: filters.rateType,
+                    minRate: debouncedMinRate,
+                    maxRate: debouncedMaxRate,
+                    status: filters.status,
                 });
-                
-                setCandidateCache(prev => ({
-                    ...prev,
-                    data: [...prev.data, ...result.data],
-                }));
+                setCandidates(result.data);
+                setTotalPages(result.totalPages);
+                setTotalResults(result.total);
+            } catch (error) {
+                console.error("Failed to fetch candidates", error);
+                setCandidates([]);
+                setTotalPages(0);
+                setTotalResults(0);
+            } finally {
+                setIsLoading(false);
             }
-
-            setLoadedPages(endPage);
-        } catch (error) {
-            console.error('Error loading more pages:', error);
-        } finally {
-            setIsLoadingMore(false);
         }
-    }, [loadedPages, candidateCache.totalPages, isLoadingMore]);
-
-    const filteredCandidates = useMemo(() => {
-        let results = [...candidateCache.data];
-
-        if (debouncedSearchTerm) {
-            const term = debouncedSearchTerm.toLowerCase();
-            results = results.filter(c =>
-                c.name.toLowerCase().includes(term) ||
-                c.qualifications.some(q => q.toLowerCase().includes(term))
-            );
-        }
-
-        if (filters.role !== 'all') {
-            results = results.filter(c => c.role === filters.role);
-        }
-
-        if (filters.subject !== 'all') {
-            results = results.filter(c =>
-                c.qualifications.some(q => q.toLowerCase().includes(filters.subject.toLowerCase()))
-            );
-        }
-
-        if (debouncedLocationFilter) {
-            results = results.filter(c =>
-                c.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase())
-            );
-        }
-
-        if (filters.rateType !== 'all') {
-            results = results.filter(c => c.rateType === filters.rateType);
-        }
-
-        if (debouncedMinRate) {
-            const minVal = parseFloat(debouncedMinRate);
-            results = results.filter(c => c.rate >= minVal);
-        }
-
-        if (debouncedMaxRate) {
-            const maxVal = parseFloat(debouncedMaxRate);
-            results = results.filter(c => c.rate <= maxVal);
-        }
-
-        if (filters.status !== 'all') {
-            results = results.filter(c => c.status === filters.status);
-        }
-
-        return results;
+        loadCandidates();
     }, [
-        candidateCache.data,
+        currentPage,
         debouncedSearchTerm,
-        filters.role,
-        filters.subject,
         debouncedLocationFilter,
-        filters.rateType,
         debouncedMinRate,
         debouncedMaxRate,
+        filters.role,
+        filters.subject,
+        filters.rateType,
         filters.status,
     ]);
 
-    const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
-    const paginatedCandidates = useMemo(() => {
-        const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
-        const endIndex = startIndex + CANDIDATES_PER_PAGE;
-        return filteredCandidates.slice(startIndex, endIndex);
-    }, [filteredCandidates, currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
     }, [debouncedSearchTerm, filters.role, filters.subject, debouncedLocationFilter, filters.rateType, debouncedMinRate, debouncedMaxRate, filters.status]);
 
-    useEffect(() => {
-        const threshold = 50;
-        if (filteredCandidates.length > 0 && 
-            filteredCandidates.length - (currentPage * CANDIDATES_PER_PAGE) < threshold &&
-            loadedPages < candidateCache.totalPages) {
-            loadMorePages();
-        }
-    }, [currentPage, filteredCandidates.length, loadedPages, candidateCache.totalPages, loadMorePages]);
 
     const filterProps = {
         filters,
@@ -863,7 +755,7 @@ export default function BrowseCandidatesPage() {
                             </div>
 
                             {/* Loading State */}
-                            {isLoadingMetadata || (isLoadingInitial && candidateCache.data.length === 0) ? (
+                            {isLoading ? (
                                 <div className="flex flex-col items-center justify-center h-48 sm:h-64 gap-4">
                                     <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-primary" />
                                     <p className="text-sm sm:text-base text-muted-foreground text-center">
@@ -875,26 +767,15 @@ export default function BrowseCandidatesPage() {
                                     {/* Results Info */}
                                     <div className="text-xs sm:text-sm text-muted-foreground flex flex-wrap justify-between items-center gap-2">
                                         <span className="flex-1 min-w-0">
-                                            Showing {paginatedCandidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–
-                                            {Math.min(currentPage * CANDIDATES_PER_PAGE, filteredCandidates.length)} of {filteredCandidates.length} results
+                                            Showing {candidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–
+                                            {(currentPage - 1) * CANDIDATES_PER_PAGE + candidates.length} of {totalResults} results
                                         </span>
-                                        {loadedPages < candidateCache.totalPages && (
-                                            <Button 
-                                                variant="link" 
-                                                size="sm" 
-                                                className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm p-0 h-auto"
-                                                onClick={() => loadMorePages()}
-                                                disabled={isLoadingMore}
-                                            >
-                                                {isLoadingMore ? 'Loading...' : `Load more (${candidateCache.totalPages - loadedPages} pages)`}
-                                            </Button>
-                                        )}
                                     </div>
 
                                     {/* Candidates Grid */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                                        {paginatedCandidates.length > 0 ? (
-                                            paginatedCandidates.map(candidate => (
+                                        {candidates.length > 0 ? (
+                                            candidates.map(candidate => (
                                                 <CandidateCard key={candidate.id} candidate={candidate} />
                                             ))
                                         ) : (
@@ -904,13 +785,6 @@ export default function BrowseCandidatesPage() {
                                             </div>
                                         )}
                                     </div>
-                                    
-                                    {/* Loading More Indicator */}
-                                    {isLoadingMore && (
-                                        <div className="flex justify-center py-4">
-                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                        </div>
-                                    )}
                                     
                                     {/* Pagination */}
                                     {totalPages > 1 && (

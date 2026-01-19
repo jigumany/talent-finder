@@ -160,44 +160,17 @@ export async function fetchCandidates(): Promise<Candidate[]> {
     return allCandidates;
 }
 
-export async function fetchCandidatesPaginated(page: number = 1, perPage: number = 12): Promise<{data: Candidate[], hasMore: boolean, currentPage: number, totalPages: number}> {
-    try {
-        const url = `${API_BASE_URL}/candidates?per_page=${perPage}&page=${page}`;
-        console.log(`📡 Fetching data from: ${url}`);
-        const response = await fetch(url, {
-            headers: getAuthHeaders(),
-            cache: 'no-store'
-        });
-
-        if (!response.ok) {
-            console.error(`Error ${response.status} fetching candidates page ${page}: ${response.statusText}`);
-            const errorBody = await response.text();
-            console.error('Error body:', errorBody);
-            return { data: [], hasMore: false, currentPage: page, totalPages: 0 };
-        }
-
-        const jsonResponse = await response.json();
-        const candidates = jsonResponse.data.map(transformCandidateData);
-        
-        const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
-        const totalPages = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
-        const nextLink = Array.isArray(jsonResponse.links.next) ? jsonResponse.links.next[0] : jsonResponse.links.next;
-        
-        return {
-            data: candidates,
-            hasMore: nextLink !== null,
-            currentPage: currentPage,
-            totalPages: totalPages
-        };
-    } catch (error) {
-        console.error(`Error fetching candidates page ${page}:`, error);
-        return { data: [], hasMore: false, currentPage: page, totalPages: 0 };
-    }
-}
-
 export interface FilteredPaginationParams {
     page?: number;
     perPage?: number;
+    searchTerm?: string;
+    role?: string;
+    subject?: string;
+    location?: string;
+    rateType?: string;
+    minRate?: string;
+    maxRate?: string;
+    status?: string;
 }
 
 export async function fetchCandidatesFilteredPaginated(params: FilteredPaginationParams): Promise<{data: Candidate[], currentPage: number, totalPages: number, total: number}> {
@@ -209,6 +182,17 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
             per_page: perPage.toString(),
             page: page.toString(),
         });
+
+        // Add filters to query params if they exist and are not the 'all' value
+        if (params.searchTerm) queryParams.append('q', params.searchTerm);
+        if (params.role && params.role !== 'all') queryParams.append('role', params.role);
+        if (params.subject && params.subject !== 'all') queryParams.append('subject', params.subject);
+        if (params.location) queryParams.append('location', params.location);
+        if (params.rateType && params.rateType !== 'all') queryParams.append('rate_type', params.rateType);
+        if (params.minRate) queryParams.append('min_rate', params.minRate);
+        if (params.maxRate) queryParams.append('max_rate', params.maxRate);
+        if (params.status && params.status !== 'all') queryParams.append('status', params.status);
+
 
         const url = `${API_BASE_URL}/candidates?${queryParams.toString()}`;
         console.log(`📡 Fetching data from: ${url}`);
@@ -261,10 +245,10 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
         }
 
         const jsonResponse = await response.json();
-        const candidates = jsonResponse.data.map(transformCandidateData);
         
-        const roles = [...new Set(candidates.map(c => c.role))].sort();
-        const statuses = [...new Set(candidates.map(c => c.status))].sort();
+        // The API returns roles and availability_status as arrays of objects
+        const roles = jsonResponse.data.roles.map((r: { name: string }) => r.name).sort() || [];
+        const statuses = jsonResponse.data.availability_status.map((s: { name: string }) => s.name).sort() || [];
         
         return { roles, statuses };
     } catch (error) {
@@ -524,4 +508,62 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
     }
 }
 
+interface UpdateBookingParams {
+    id: string;
+    dates?: Date[];
+    role?: string;
+    bookingType?: 'Day' | 'Hourly';
+    session?: 'AllDay' | 'AM' | 'PM';
+    status?: string;
+}
+
+export async function updateBooking(params: UpdateBookingParams): Promise<{success: boolean; booking?: Booking}> {
+    const { id, ...updateData } = params;
+
+    const apiPayload: any = {};
+    
+    if (updateData.dates && updateData.dates.length > 0) {
+        const sortedDates = updateData.dates.sort((a,b) => a.getTime() - b.getTime());
+        apiPayload.start_date = format(startOfDay(sortedDates[0]), 'yyyy-MM-dd');
+        apiPayload.end_date = format(startOfDay(sortedDates[sortedDates.length - 1]), 'yyyy-MM-dd');
+    }
+    if (updateData.bookingType) apiPayload.booking_type = updateData.bookingType;
+    if (updateData.session) apiPayload.session_type = updateData.session;
+    if (updateData.status) apiPayload.status = updateData.status;
+    if (updateData.role) apiPayload.job_title_id = updateData.role;
+
+    try {
+         const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(apiPayload)
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok || result.errors) {
+            console.error(`Booking update failed for id ${id}:`, result.errors);
+            return { success: false };
+        }
+
+        const updatedBooking = {
+           id: result.data.id.toString(),
+           candidateId: result.data.candidate_id?.toString(),
+           candidateName: '',
+           candidateRole: params.role || '',
+           date: result.data.start_date,
+           startDate: result.data.start_date,
+           endDate: result.data.end_date,
+           status: result.data.status,
+           confirmationStatus: result.data.confirmation_status,
+           bookingType: result.data.booking_type,
+           session: result.data.session_type,
+       };
+
+        return { success: true, booking: updatedBooking };
+    } catch (error) {
+        console.error(`Error updating booking ${id}:`, error);
+        return { success: false };
+    }
+}
     
