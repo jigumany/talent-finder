@@ -25,7 +25,9 @@ export async function login(values: z.infer<typeof LoginSchema>) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const url = `${API_BASE_URL}/login`;
+    console.log(`Attempting to login to: ${url}`);
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,37 +36,50 @@ export async function login(values: z.infer<typeof LoginSchema>) {
       body: JSON.stringify(validatedFields.data),
     });
 
-    const result = await response.json();
+    // We need to clone the response to be able to read it as text and then as json
+    const resultText = await response.text();
+    console.log('Raw login response from API:', resultText);
+    const result = JSON.parse(resultText);
 
     if (!result.success) {
+      console.error('Login API returned an error:', result.message || result.errors);
       if (result.errors) {
         return { error: formatValidationErrors(result.errors) };
       }
       return { error: result.message || 'Login failed. Please check your credentials.' };
     }
 
-    if (!result.data.token) {
+    if (!result.data?.token) {
+        console.error('Login successful, but no token was provided in the response.');
         return { error: 'Login failed: No token received from server.' };
     }
+    
+    console.log('✅ Login successful. Token received.');
 
-    (await cookies()).set('session_token', result.data.token, {
+    // Correctly set the cookie without the unnecessary 'await'
+    cookies().set('session_token', result.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax',
       maxAge: 8 * 60 * 60, // 8 hours to match cache
     });
+    
+    console.log('✅ Session cookie set.');
 
     return { success: true };
 
   } catch (error) {
     console.error('Login action error:', error);
+    if (error instanceof SyntaxError) {
+        return { error: 'Failed to parse the server response. It might not be valid JSON.' };
+    }
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 }
 
 export async function logout() {
-  const token = (await cookies()).get('session_token')?.value;
+  const token = cookies().get('session_token')?.value;
 
   if (token) {
       try {
@@ -75,13 +90,15 @@ export async function logout() {
                   'Accept': 'application/json',
               }
           });
+          console.log('Logged out from API.');
       } catch (error) {
           console.error("Logout API call failed:", error);
           // We still proceed to delete the local cookie
       }
   }
 
-  (await cookies()).delete('session_token');
+  cookies().delete('session_token');
+  console.log('Session cookie deleted.');
   redirect('/');
 }
 
