@@ -57,9 +57,10 @@ export default function CandidatePublicProfilePage() {
 
   const getStatusColor = (status: string) => {
     const lowerStatus = status.toLowerCase();
-    if (lowerStatus.includes('active') || lowerStatus.includes('available') || lowerStatus.includes('online')) return 'bg-green-500';
-    if (lowerStatus.includes('stop') || lowerStatus.includes('pending') || lowerStatus.includes('pre-screen')) return 'bg-yellow-500';
-    if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
+    if (lowerStatus.includes('available')) return 'bg-green-500';
+    if (lowerStatus.includes('booked')) return 'bg-yellow-500';
+    if (lowerStatus.includes('unavailable') || lowerStatus.includes('inactive')) return 'bg-red-500';
+    if (lowerStatus.includes('online')) return 'bg-green-500';
     return 'bg-gray-400';
   };
 
@@ -81,7 +82,29 @@ export default function CandidatePublicProfilePage() {
   const handleBooking = async () => {
     if (!candidate || !dates || dates.length === 0) return;
     
-    const result = await createBooking({ candidateId: candidate.id, dates, role: candidate.role });
+    // This is a simplified booking from the profile page.
+    // We assume non-recurring, 'Day' booking, with 'allday' session.
+    const sortedDates = dates.sort((a,b) => a.getTime() - b.getTime());
+    const startDate = sortedDates[0];
+    const endDate = sortedDates[sortedDates.length - 1];
+
+    const booking_pattern = dates.map(d => ({
+      date: format(d, 'yyyy-MM-dd'),
+      type: 'allday'
+    }));
+
+    const result = await createBooking({ 
+      candidateId: candidate.id,
+      candidateName: candidate.name,
+      payRate: candidate.rate || 0,
+      charge: 350, // Default charge rate
+      recurring: false,
+      booking_pattern,
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      end_date: format(endDate, 'yyyy-MM-dd'),
+      booking_type: 'Day',
+      booking_role: candidate.role
+    });
 
     if (result.success) {
       toast({
@@ -279,7 +302,7 @@ export default function CandidatePublicProfilePage() {
                     </CardHeader>
                     <CardContent>
                        <div className="text-2xl font-bold text-primary flex items-center">
-                            £{candidate.rate}
+                            £{candidate.rate.toFixed(2)}
                             <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType}</span>
                         </div>
                     </CardContent>
@@ -302,3 +325,5 @@ export default function CandidatePublicProfilePage() {
     </div>
   );
 }
+
+    

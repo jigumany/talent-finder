@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -23,21 +24,119 @@ import { BookingCalendar } from './booking-calendar';
 import { createBooking } from '@/lib/data-service';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { Label } from './ui/label';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Input } from './ui/input';
+import { Switch } from './ui/switch';
+import { Checkbox } from './ui/checkbox';
+import { format } from 'date-fns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface CandidateCardProps {
   candidate: Candidate;
 }
 
+type DayDetail = {
+  date: Date;
+  session: 'allday' | 'am' | 'pm';
+  startTime?: string;
+  endTime?: string;
+};
+
 export function CandidateCard({ candidate }: CandidateCardProps) {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<'Day' | 'Hourly'>('Day');
+  
+  const [dayDetails, setDayDetails] = useState<Record<string, DayDetail>>({});
+
+  const [recurring, setRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState({
+    Monday: false,
+    Tuesday: false,
+    Wednesday: false,
+    Thursday: false,
+    Friday: false,
+    Saturday: false,
+    Sunday: false,
+  });
+  
+  const handleDateSelect = (selectedDates: Date[] | undefined) => {
+    setDates(selectedDates);
+    const newDayDetails: Record<string, DayDetail> = {};
+    selectedDates?.forEach(d => {
+      const dateString = d.toISOString().split('T')[0];
+      newDayDetails[dateString] = dayDetails[dateString] || {
+        date: d,
+        session: 'allday',
+        startTime: '09:00',
+        endTime: '17:00'
+      };
+    });
+    setDayDetails(newDayDetails);
+  };
+  
+  const handleDayDetailChange = (dateString: string, field: keyof DayDetail, value: any) => {
+    setDayDetails(prev => ({
+      ...prev,
+      [dateString]: {
+        ...prev[dateString],
+        [field]: value
+      }
+    }));
+  };
 
   const handleBooking = async () => {
     if (!dates || dates.length === 0) return;
 
-    const result = await createBooking({ candidateId: candidate.id, dates, role: candidate.role });
+    const sortedDates = dates.sort((a,b) => a.getTime() - b.getTime());
+    const startDate = sortedDates[0];
+    const endDate = sortedDates[sortedDates.length - 1];
 
-    if (result.success) {
+    let booking_pattern: any;
+    if (recurring) {
+      booking_pattern = Object.entries(recurringDays)
+        .filter(([, isSelected]) => isSelected)
+        .reduce((acc, [day]) => {
+          // For now, recurring is always allday. This could be expanded.
+          acc[day] = 'allday';
+          return acc;
+        }, {} as Record<string, string>);
+    } else {
+      if (bookingType === 'Day') {
+         booking_pattern = Object.values(dayDetails).map(detail => ({
+           date: format(detail.date, 'yyyy-MM-dd'),
+           type: detail.session
+         }));
+      } else { // Hourly
+         booking_pattern = Object.values(dayDetails).map(detail => ({
+           date: format(detail.date, 'yyyy-MM-dd'),
+           start_time: detail.startTime,
+           end_time: detail.endTime
+         }));
+      }
+    }
+
+    const result = await createBooking({ 
+      candidateId: candidate.id,
+      candidateName: candidate.name,
+      payRate: candidate.rate || 0,
+      charge: 350,
+      recurring,
+      booking_pattern,
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      end_date: format(endDate, 'yyyy-MM-dd'),
+      booking_type: bookingType,
+      booking_role: candidate.role,
+    });
+
+    if (result.success && result.bookings) {
         toast({
             title: "Booking Request Sent!",
             description: `Your request to book ${candidate.name} has been sent.`,
@@ -46,7 +145,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     } else {
          toast({
             title: "Booking Failed",
-            description: "Could not create the booking. The candidate may not be available on the selected dates.",
+            description: "Could not create the booking. The candidate may not be available on the selected dates or your session has expired.",
             variant: "destructive",
         });
     }
@@ -54,9 +153,10 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
 
   const getStatusColor = (status: string) => {
     const lowerStatus = status.toLowerCase();
-    if (lowerStatus.includes('active') || lowerStatus.includes('available') || lowerStatus.includes('online')) return 'bg-green-500';
-    if (lowerStatus.includes('stop') || lowerStatus.includes('pending') || lowerStatus.includes('pre-screen')) return 'bg-yellow-500';
-    if (lowerStatus.includes('archived') || lowerStatus.includes('inactive')) return 'bg-red-500';
+    if (lowerStatus.includes('available')) return 'bg-green-500';
+    if (lowerStatus.includes('booked')) return 'bg-yellow-500';
+    if (lowerStatus.includes('unavailable') || lowerStatus.includes('inactive')) return 'bg-red-500';
+    if (lowerStatus.includes('online')) return 'bg-green-500';
     return 'bg-gray-400';
   };
   
@@ -164,7 +264,7 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
              
         {/* Rate section */}
         <p className="text-sm sm:text-base lg:text-lg font-semibold text-primary flex items-center pt-2 sm:pt-3">
-          £{candidate.rate}
+          £{candidate.rate.toFixed(2)}
           <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1">
             /{candidate.rateType}
           </span>
@@ -191,24 +291,100 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
               <span>Book Now</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-md mx-auto p-4 sm:p-6">
+           <DialogContent className="w-[95vw] max-w-fit mx-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg lg:text-xl">
                 Book {candidate.name}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
-                Select one or more dates to book {candidate.role} for your school.
+                Select dates and booking details for {candidate.role}.
               </DialogDescription>
             </DialogHeader>
             
-            <div className="flex justify-center p-1 overflow-x-auto">
-              <BookingCalendar
-                mode="multiple"
-                selected={dates}
-                onSelect={setDates}
-                candidate={candidate}
-                className="scale-90 sm:scale-100 origin-top min-w-[280px]"
-              />
+            <div className="grid md:grid-cols-2 gap-6 items-start">
+               <div className="space-y-4">
+                  <BookingCalendar
+                    mode="multiple"
+                    selected={dates}
+                    onSelect={handleDateSelect}
+                    candidate={candidate}
+                    className="scale-90 sm:scale-100 origin-top min-w-[280px]"
+                  />
+                  <div className="space-y-2">
+                    <Label>Booking Type</Label>
+                    <RadioGroup value={bookingType} onValueChange={(v: 'Day' | 'Hourly') => setBookingType(v)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Day" id="day-card" />
+                            <Label htmlFor="day-card">Daily</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Hourly" id="hourly-card" />
+                            <Label htmlFor="hourly-card">Hourly</Label>
+                        </div>
+                    </RadioGroup>
+                  </div>
+                   <div className="flex items-center space-x-2">
+                    <Switch id="recurring-booking-card" checked={recurring} onCheckedChange={setRecurring} />
+                    <Label htmlFor="recurring-booking-card">Recurring Booking</Label>
+                  </div>
+               </div>
+
+               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                  {recurring ? (
+                    <div className="space-y-2">
+                      <Label>Select Recurring Days</Label>
+                       {Object.keys(recurringDays).map((day) => (
+                          <div key={day} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`rec-${day}-card`}
+                              checked={recurringDays[day as keyof typeof recurringDays]}
+                              onCheckedChange={(checked) => setRecurringDays(prev => ({...prev, [day]: !!checked}))}
+                            />
+                            <label htmlFor={`rec-${day}-card`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              {day}
+                            </label>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <>
+                      {dates && dates.length > 0 ? (
+                        <div className="space-y-4">
+                           {Object.values(dayDetails).map(detail => (
+                            <div key={detail.date.toISOString()} className="p-3 border rounded-md space-y-3">
+                              <p className="font-semibold">{format(detail.date, 'PPP')}</p>
+                              {bookingType === 'Day' ? (
+                                <Select value={detail.session} onValueChange={(value) => handleDayDetailChange(detail.date.toISOString().split('T')[0], 'session', value)}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select session" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="allday">All Day</SelectItem>
+                                    <SelectItem value="am">AM</SelectItem>
+                                    <SelectItem value="pm">PM</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <Label className="text-xs">Start Time</Label>
+                                    <Input type="time" value={detail.startTime} onChange={e => handleDayDetailChange(detail.date.toISOString().split('T')[0], 'startTime', e.target.value)} />
+                                  </div>
+                                   <div>
+                                    <Label className="text-xs">End Time</Label>
+                                    <Input type="time" value={detail.endTime} onChange={e => handleDayDetailChange(detail.date.toISOString().split('T')[0], 'endTime', e.target.value)} />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                           ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center pt-8">Select dates on the calendar to configure sessions.</p>
+                      )}
+                    </>
+                  )}
+               </div>
             </div>
             
             <DialogFooter className="flex flex-col xs:flex-row gap-2 sm:gap-2 mt-4">
@@ -237,3 +413,5 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
     </Card>
   );
 }
+
+    

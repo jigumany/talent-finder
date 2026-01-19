@@ -34,7 +34,7 @@ const detailTypeMap: Record<string, string> = {
     'KS4': 'Key Stages',
     'KS5': 'Key Stages',
     'Quals': 'Qualifications',
-    'Add': 'Additional Qualifications',
+    'Additional Criteria': 'Additional Qualifications',
     'Langs': 'Languages',
     'SEND': 'SEND',
 };
@@ -58,29 +58,40 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         // Use our map to get the proper category name, or fall back to the API's name.
         const category = detailTypeMap[detail.detail_type] || detail.detail_type;
         
-        // If the category doesn't exist on our details object, initialize it.
         if (!details[category]) {
             details[category] = [];
         }
         
-        // Add the value to the correct category.
         details[category].push(detail.detail_type_value);
 
-        // Also add to the flat 'qualifications' array for backwards compatibility/other uses.
         if (!flatQualifications.includes(detail.detail_type_value)) {
             flatQualifications.push(detail.detail_type_value);
         }
     }
 
     const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
-    const location = apiCandidate.location?.address_line_1 || apiCandidate.location?.city || 'Location not specified';
-    const status = apiCandidate.status?.name || apiCandidate.availability_status?.name || 'Inactive';
     
+    const address_line_1 = apiCandidate.location?.address_line_1 || '';
+    const city = apiCandidate.location?.city || '';
+    let location = 'Location not specified';
+    if (address_line_1 && city && !address_line_1.toLowerCase().includes(city.toLowerCase())) {
+        location = `${address_line_1}, ${city}`;
+    } else if (address_line_1) {
+        location = address_line_1;
+    } else if (city) {
+        location = city;
+    }
+
+    // Use availability_status as primary, fallback to main status
+    const status = apiCandidate.availability_status?.name || apiCandidate.status?.name || 'Inactive';
+    
+    // Parse pay_rate safely, removing currency symbols and whitespace
+    const payRateString = String(apiCandidate.pay_rate || '0');
+    const rate = parseFloat(payRateString.replace(/[^0-9.]/g, '')) || 0;
+
     let rateType: 'hourly' | 'daily' = 'daily';
-    if (apiCandidate.pay_type?.toLowerCase() === 'hourly' || apiCandidate.pay_type?.toLowerCase() === 'daily') {
-        rateType = apiCandidate.pay_type.toLowerCase();
-    } else if (apiCandidate.rate_type?.toLowerCase() === 'hourly' || apiCandidate.rate_type?.toLowerCase() === 'daily') {
-        rateType = apiCandidate.rate_type.toLowerCase();
+    if (apiCandidate.pay_frequency?.toLowerCase() === 'hourly') {
+        rateType = 'hourly';
     }
 
     return {
@@ -88,13 +99,13 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
         email: apiCandidate.email,
         role: role,
-        rate: apiCandidate.pay_rate || 0,
+        rate: rate,
         rateType: rateType,
         rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
         reviews: Math.floor(Math.random() * 30),
         location: location,
         qualifications: flatQualifications,
-        details: details, // This is now the correctly structured object.
+        details: details,
         availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
         cvUrl: '#',
@@ -425,40 +436,32 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
 interface CreateBookingParams {
     candidateId: string;
     candidateName: string;
-    dates: Date[];
-    role: string;
     payRate: number;
     charge: number;
-    bookingType: 'Day' | 'Hourly';
-    session?: 'AllDay' | 'AM' | 'PM';
     recurring: boolean;
-    recurringDays?: { [key: string]: 'allday' | 'am' | 'pm' };
-    booking_pattern?: any;
+    booking_pattern: any;
+    start_date: string; // YYYY-MM-DD
+    end_date: string; // YYYY-MM-DD
+    booking_type: 'Day' | 'Hourly';
+    booking_role: string;
 }
 
-export async function createBooking({ candidateId, candidateName, dates, role, payRate, charge, bookingType, recurring, recurringDays, booking_pattern }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
+export async function createBooking(params: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
+    const { candidateId, candidateName, start_date, end_date, booking_pattern, booking_type, booking_role, recurring, payRate, charge } = params;
     const companyId = '118008';
     
-    if (!dates || dates.length === 0) {
-        return { success: false };
-    }
-
-    const sortedDates = dates.sort((a, b) => a.getTime() - b.getTime());
-    const startDate = sortedDates[0];
-    const endDate = sortedDates[sortedDates.length - 1];
-
     const bookingData = {
         candidate_id: parseInt(candidateId),
         company_id: parseInt(companyId),
-        start_date: format(startOfDay(startDate), 'yyyy-MM-dd'),
-        end_date: format(startOfDay(endDate), 'yyyy-MM-dd'),
-        booking_type: bookingType,
-        pay_rate: payRate || 0,
-        charge: charge || 0,
+        start_date: start_date,
+        end_date: end_date,
+        booking_type: booking_type,
+        pay_rate: payRate,
+        charge: charge,
         recurring: recurring ? 1 : 0,
         booking_pattern: booking_pattern,
-        booking_role: role,
-        booking_details: `Booking for ${role}`,
+        booking_role: booking_role,
+        booking_details: `Booking for ${booking_role}`,
         createdby: 'MyTalent Support',
     };
 
@@ -482,7 +485,7 @@ export async function createBooking({ candidateId, candidateName, dates, role, p
            id: result.data.id.toString(),
            candidateId: result.data.candidate_id?.toString(),
            candidateName: candidateName,
-           candidateRole: role,
+           candidateRole: booking_role,
            date: result.data.start_date,
            startDate: result.data.start_date,
            endDate: result.data.end_date,
@@ -579,3 +582,5 @@ export async function cancelBooking(bookingId: string): Promise<{success: boolea
         return { success: false };
     }
 }
+
+    
