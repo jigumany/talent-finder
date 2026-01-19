@@ -55,7 +55,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
     
     console.log('✅ Login successful. Token received.');
 
-    cookies().set('session_token', result.data.token, {
+    (await cookies()).set('session_token', result.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
@@ -93,7 +93,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 }
 
 export async function logout() {
-  const token = cookies().get('session_token')?.value;
+  const token = (await cookies()).get('session_token')?.value;
 
   if (token) {
       try {
@@ -111,7 +111,7 @@ export async function logout() {
       }
   }
 
-  cookies().delete('session_token');
+  (await cookies()).delete('session_token');
   console.log('Session cookie deleted.');
   redirect('/');
 }
