@@ -17,9 +17,10 @@ function getAuthHeaders() {
     };
 
     if (token) {
+        console.log("✅ Auth token found. Attaching to request header.");
         headers['Authorization'] = `Bearer ${token}`;
     } else {
-        console.warn("Session token not found for API request.");
+        console.warn("🚨 Auth token not found for API request.");
     }
 
     return headers;
@@ -122,19 +123,20 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 
     while (nextPageUrl) {
         try {
+            console.log(`📡 Fetching data from: ${nextPageUrl}`);
             const response = await fetch(nextPageUrl, {
                 headers: getAuthHeaders(),
                 cache: 'no-store'
             });
 
             if (!response.ok) {
-                console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
+                console.error(`Error ${response.status} from ${nextPageUrl}: ${response.statusText}`);
+                const errorBody = await response.text();
+                console.error('Error body:', errorBody);
                 break; 
             }
 
             const jsonResponse = await response.json();
-            console.log(`📦 API Response from ${nextPageUrl}:`, JSON.stringify(jsonResponse, null, 2));
-
             const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
             allCandidates.push(...candidatesOnPage);
             
@@ -160,19 +162,21 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 
 export async function fetchCandidatesPaginated(page: number = 1, perPage: number = 12): Promise<{data: Candidate[], hasMore: boolean, currentPage: number, totalPages: number}> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates?per_page=${perPage}&page=${page}`, {
+        const url = `${API_BASE_URL}/candidates?per_page=${perPage}&page=${page}`;
+        console.log(`📡 Fetching data from: ${url}`);
+        const response = await fetch(url, {
             headers: getAuthHeaders(),
             cache: 'no-store'
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch candidates page ${page}: ${response.statusText}`);
+            console.error(`Error ${response.status} fetching candidates page ${page}: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
             return { data: [], hasMore: false, currentPage: page, totalPages: 0 };
         }
 
         const jsonResponse = await response.json();
-        console.log(`📦 API Response for paginated candidates (page ${page}):`, JSON.stringify(jsonResponse, null, 2));
-
         const candidates = jsonResponse.data.map(transformCandidateData);
         
         const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
@@ -207,7 +211,7 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         });
 
         const url = `${API_BASE_URL}/candidates?${queryParams.toString()}`;
-        console.log(`📡 Fetching paginated candidates: ${url}`);
+        console.log(`📡 Fetching data from: ${url}`);
 
         const response = await fetch(url, {
             headers: getAuthHeaders(),
@@ -215,20 +219,18 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch candidates: ${response.statusText}`);
+            console.error(`Error ${response.status} fetching candidates: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
             return { data: [], currentPage: page, totalPages: 0, total: 0 };
         }
 
         const jsonResponse = await response.json();
-        console.log('📦 API Response for candidates:', JSON.stringify(jsonResponse, null, 2));
-
         const candidates = jsonResponse.data.map(transformCandidateData);
 
         const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
         const totalPages = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
         const total = Array.isArray(jsonResponse.meta.total) ? jsonResponse.meta.total[0] : jsonResponse.meta.total;
-
-        console.log(`✅ Fetched page ${currentPage} of ${totalPages}. Total results: ${total}`);
         
         return {
             data: candidates,
@@ -244,20 +246,21 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
 
 export async function getFilterMetadata(): Promise<{roles: string[], statuses: string[]}> {
     try {
-        const response = await fetch(`${API_BASE_URL}/metadata/filters`, {
+        const url = `${API_BASE_URL}/metadata/filters`;
+        console.log(`📡 Fetching data from: ${url}`);
+        const response = await fetch(url, {
             headers: getAuthHeaders(),
             cache: 'no-store'
         });
 
         if (!response.ok) {
-            console.error('Failed to fetch filter metadata');
+            console.error(`Error ${response.status} fetching filter metadata: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
             return { roles: [], statuses: [] };
         }
 
         const jsonResponse = await response.json();
-        console.log('📦 API Response for filter metadata:', JSON.stringify(jsonResponse, null, 2));
-        
-        // Assuming metadata API returns candidates to derive filters from
         const candidates = jsonResponse.data.map(transformCandidateData);
         
         const roles = [...new Set(candidates.map(c => c.role))].sort();
@@ -273,18 +276,21 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
 
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates/${id}`, {
+        const url = `${API_BASE_URL}/candidates/${id}`;
+        console.log(`📡 Fetching data from: ${url}`);
+        const response = await fetch(url, {
             headers: getAuthHeaders(),
             cache: 'no-store' 
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch candidate with id ${id}: ${response.statusText}`);
+            console.error(`Error ${response.status} fetching candidate with id ${id}: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
+            return null;
         }
         
         const jsonResponse = await response.json();
-        console.log(`📦 API Response for candidate ${id}:`, JSON.stringify(jsonResponse, null, 2));
-
         if (jsonResponse.data) {
             const candidate = transformCandidateData(jsonResponse.data);
             
@@ -305,19 +311,21 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
 
 export async function fetchBookings(): Promise<Booking[]> {
     try {
-        console.log("📡 Fetching bookings...");
-        const response = await fetch(`${API_BASE_URL}/bookings?per_page=100`, {
+        const url = `${API_BASE_URL}/bookings?per_page=100`;
+        console.log(`📡 Fetching data from: ${url}`);
+        const response = await fetch(url, {
             headers: getAuthHeaders(),
             cache: 'no-store'
         });
         
         if (!response.ok) {
-            throw new Error(`Failed to fetch bookings: ${response.statusText}`);
+            console.error(`Error ${response.status} fetching bookings: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
+            return [];
         }
 
         const jsonResponse = await response.json();
-        console.log(`📦 API Response for bookings:`, JSON.stringify(jsonResponse, null, 2));
-        
         const candidateIds = new Set<string>();
         jsonResponse.data.forEach((booking: any) => {
             if (booking.candidate_id) {
@@ -360,7 +368,6 @@ export async function fetchBookings(): Promise<Booking[]> {
             };
         });
 
-        console.log(`✅ Fetched ${bookings.length} bookings`);
         return bookings;
 
     } catch (error) {
@@ -371,19 +378,21 @@ export async function fetchBookings(): Promise<Booking[]> {
 
 export async function fetchBookingsPaginated(page: number = 1, perPage: number = 50): Promise<{data: Booking[], currentPage: number, totalPages: number, total: number}> {
     try {
-        console.log(`📡 Fetching bookings page ${page}...`);
-        const response = await fetch(`${API_BASE_URL}/bookings?per_page=${perPage}&page=${page}`, {
+        const url = `${API_BASE_URL}/bookings?per_page=${perPage}&page=${page}`;
+        console.log(`📡 Fetching data from: ${url}`);
+        const response = await fetch(url, {
             headers: getAuthHeaders(),
             cache: 'no-store'
         });
         
         if (!response.ok) {
-            throw new Error(`Failed to fetch bookings: ${response.statusText}`);
+            console.error(`Error ${response.status} fetching paginated bookings: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
+            return { data: [], currentPage: page, totalPages: 0, total: 0 };
         }
 
         const jsonResponse = await response.json();
-        console.log(`📦 API Response for paginated bookings (page ${page}):`, JSON.stringify(jsonResponse, null, 2));
-
         const candidateIds = new Set<string>();
         jsonResponse.data.forEach((booking: any) => {
             if (booking.candidate_id) {
@@ -425,8 +434,6 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
                 session: booking.session_type,
             };
         });
-
-        console.log(`✅ Fetched page ${page} with ${bookings.length} bookings`);
 
         const currentPage = Array.isArray(jsonResponse.meta?.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta?.current_page || page;
         const totalPages = Array.isArray(jsonResponse.meta?.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta?.last_page || 1;
@@ -480,7 +487,9 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
     console.log("📦 Sending booking data to API:", JSON.stringify(bookingData, null, 2));
     
     try {
-        const response = await fetch(`${API_BASE_URL}/bookings`, {
+        const url = `${API_BASE_URL}/bookings`;
+        console.log(`📡 Posting data to: ${url}`);
+        const response = await fetch(url, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(bookingData)
@@ -514,3 +523,5 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
         return { success: false };
     }
 }
+
+    
