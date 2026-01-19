@@ -1,11 +1,29 @@
 
-
 'use server';
 
 import type { Candidate, Booking } from './types';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
+import { cookies } from 'next/headers';
 
-const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v2/open';
+const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
+
+function getAuthHeaders() {
+    const cookieStore = cookies();
+    const token = cookieStore.get('session_token')?.value;
+
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    } else {
+        console.warn("Session token not found for API request.");
+    }
+
+    return headers;
+}
 
 // This map translates API short codes into human-readable category names.
 const detailTypeMap: Record<string, string> = {
@@ -94,6 +112,7 @@ export async function fetchCandidates(): Promise<Candidate[]> {
     while (nextPageUrl) {
         try {
             const response = await fetch(nextPageUrl, {
+                headers: getAuthHeaders(),
                 next: { revalidate: 3600 } // Cache pages for 1 hour
             });
 
@@ -107,11 +126,8 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             allCandidates.push(...candidatesOnPage);
             
             nextPageUrl = jsonResponse.links.next;
-            
-            // console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total so far: ${allCandidates.length}`);
 
             if (!nextPageUrl || jsonResponse.meta.current_page >= jsonResponse.meta.last_page) {
-                // console.log(`Finished fetching. Total candidates: ${allCandidates.length}`);
                 break;
             }
 
@@ -127,7 +143,8 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 export async function fetchCandidatesPaginated(page: number = 1, perPage: number = 12): Promise<{data: Candidate[], hasMore: boolean, currentPage: number, totalPages: number}> {
     try {
         const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&per_page=${perPage}&page=${page}`, {
-            next: { revalidate: 3600 } // Cache individual pages as they're under 2MB limit
+            headers: getAuthHeaders(),
+            next: { revalidate: 3600 } 
         });
 
         if (!response.ok) {
@@ -160,7 +177,6 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         const page = params.page || 1;
         const perPage = params.perPage || 12;
         
-        // Build query string
         const queryParams = new URLSearchParams({
             with_key_stages: '1',
             per_page: perPage.toString(),
@@ -171,11 +187,8 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         console.log(`📡 Fetching paginated candidates: ${url}`);
 
         const response = await fetch(url, {
+            headers: getAuthHeaders(),
             cache: 'no-store',
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache'
-            }
         });
 
         if (!response.ok) {
@@ -200,106 +213,11 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
     }
 }
 
-export interface FilterOptions {
-    searchTerm?: string;
-    role?: string;
-    subject?: string;
-    location?: string;
-    rateType?: string;
-    minRate?: number;
-    maxRate?: number;
-    status?: string;
-    dateRange?: { from: Date; to?: Date };
-}
-
-export async function fetchCandidatesFiltered(filters: FilterOptions): Promise<Candidate[]> {
-    const allCandidates: Candidate[] = [];
-    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1&per_page=100`;
-
-    console.log("Fetching candidates with filters...", filters);
-
-    while (nextPageUrl) {
-        try {
-            const response = await fetch(nextPageUrl, {
-                cache: 'no-store'
-            });
-
-            if (!response.ok) {
-                console.error(`Failed to fetch from ${nextPageUrl}: ${response.statusText}`);
-                break;
-            }
-
-            const jsonResponse = await response.json();
-            const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
-            allCandidates.push(...candidatesOnPage);
-
-            nextPageUrl = jsonResponse.links.next;
-
-            console.log(`Fetched page ${jsonResponse.meta.current_page} of ${jsonResponse.meta.last_page}. Total candidates so far: ${allCandidates.length}`);
-        } catch (error) {
-            console.error(`Error fetching from ${nextPageUrl}:`, error);
-            break;
-        }
-    }
-
-    // Apply client-side filters
-    let filtered = allCandidates;
-
-    if (filters.searchTerm) {
-        const lowercasedTerm = filters.searchTerm.toLowerCase();
-        filtered = filtered.filter(c =>
-            c.name.toLowerCase().includes(lowercasedTerm) ||
-            c.qualifications.some(q => q.toLowerCase().includes(lowercasedTerm))
-        );
-    }
-
-    if (filters.role && filters.role !== 'all') {
-        filtered = filtered.filter(c => c.role === filters.role);
-    }
-
-    if (filters.subject && filters.subject !== 'all') {
-        filtered = filtered.filter(c => c.qualifications.some(q => q.toLowerCase().includes(filters.subject!.toLowerCase())));
-    }
-
-    if (filters.location) {
-        filtered = filtered.filter(c => c.location.toLowerCase().includes(filters.location!.toLowerCase()));
-    }
-
-    if (filters.rateType && filters.rateType !== 'all') {
-        filtered = filtered.filter(c => c.rateType === filters.rateType);
-    }
-
-    if (filters.minRate) {
-        filtered = filtered.filter(c => c.rate >= filters.minRate!);
-    }
-
-    if (filters.maxRate) {
-        filtered = filtered.filter(c => c.rate <= filters.maxRate!);
-    }
-
-    if (filters.status && filters.status !== 'all') {
-        filtered = filtered.filter(c => c.status === filters.status);
-    }
-
-    if (filters.dateRange?.from) {
-        const { startOfDay, isWithinInterval } = await import('date-fns');
-        filtered = filtered.filter(c => {
-            if (c.availability.length === 0) return false;
-            const to = filters.dateRange!.to || filters.dateRange!.from;
-            const interval = { start: startOfDay(filters.dateRange!.from!), end: startOfDay(to) };
-            return c.availability.some(availDateStr => isWithinInterval(new Date(availDateStr), interval));
-        });
-    }
-
-    console.log(`Filtered down to ${filtered.length} candidates from ${allCandidates.length}`);
-    return filtered;
-}
-
 export async function getFilterMetadata(): Promise<{roles: string[], statuses: string[]}> {
     try {
-        // Fetch just the first page with minimal data to get filter options
-        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&per_page=100&page=1`, {
-            next: { revalidate: 7200 } // Cache for 2 hours since filters don't change often
+        const response = await fetch(`${API_BASE_URL}/metadata/filters`, {
+            headers: getAuthHeaders(),
+            next: { revalidate: 7200 }
         });
 
         if (!response.ok) {
@@ -310,7 +228,6 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
         const jsonResponse = await response.json();
         const candidates = jsonResponse.data.map(transformCandidateData);
         
-        // Extract unique roles and statuses
         const roles = [...new Set(candidates.map(c => c.role))].sort();
         const statuses = [...new Set(candidates.map(c => c.status))].sort();
         
@@ -324,8 +241,9 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
 
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates/${id}?with_key_stages=1`, {
-             next: { revalidate: 3600 } 
+        const response = await fetch(`${API_BASE_URL}/candidates/${id}`, {
+            headers: getAuthHeaders(),
+            next: { revalidate: 3600 } 
         });
 
         if (!response.ok) {
@@ -353,7 +271,9 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
 
 export async function fetchCandidateAvailabilities(candidateId: string): Promise<any[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}/availabilities`);
+        const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}/availabilities`, {
+            headers: getAuthHeaders()
+        });
         if (!response.ok) {
             throw new Error(`Failed to fetch availabilities for candidate ${candidateId}`);
         }
@@ -369,7 +289,8 @@ export async function fetchCandidateAvailabilities(candidateId: string): Promise
 export async function fetchBookings(): Promise<Booking[]> {
     try {
         console.log("📡 Fetching bookings...");
-        const response = await fetch(`${API_BASE_URL}/schedulers?per_page=100`, {
+        const response = await fetch(`${API_BASE_URL}/bookings?per_page=100`, {
+            headers: getAuthHeaders(),
             cache: 'no-store'
         });
         
@@ -379,7 +300,6 @@ export async function fetchBookings(): Promise<Booking[]> {
 
         const jsonResponse = await response.json();
         
-        // Create a set of candidate IDs from the bookings
         const candidateIds = new Set<string>();
         jsonResponse.data.forEach((booking: any) => {
             if (booking.candidate_id) {
@@ -387,7 +307,6 @@ export async function fetchBookings(): Promise<Booking[]> {
             }
         });
 
-        // Only fetch the specific candidates we need
         const candidatePromises = Array.from(candidateIds).map(id => 
             fetchCandidateById(id).catch(error => {
                 console.error(`Error fetching candidate ${id}:`, error);
@@ -435,7 +354,8 @@ export async function fetchBookings(): Promise<Booking[]> {
 export async function fetchBookingsPaginated(page: number = 1, perPage: number = 50): Promise<{data: Booking[], currentPage: number, totalPages: number, total: number}> {
     try {
         console.log(`📡 Fetching bookings page ${page}...`);
-        const response = await fetch(`${API_BASE_URL}/schedulers?per_page=${perPage}&page=${page}`, {
+        const response = await fetch(`${API_BASE_URL}/bookings?per_page=${perPage}&page=${page}`, {
+            headers: getAuthHeaders(),
             cache: 'no-store'
         });
         
@@ -445,7 +365,6 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
 
         const jsonResponse = await response.json();
         
-        // Create a set of candidate IDs from the bookings
         const candidateIds = new Set<string>();
         jsonResponse.data.forEach((booking: any) => {
             if (booking.candidate_id) {
@@ -453,7 +372,6 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
             }
         });
 
-        // Only fetch the specific candidates we need
         const candidatePromises = Array.from(candidateIds).map(id => 
             fetchCandidateById(id).catch(error => {
                 console.error(`Error fetching candidate ${id}:`, error);
@@ -506,13 +424,19 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
 
 interface CreateBookingParams {
     candidateId: string;
+    candidateName: string;
     dates: Date[];
     role: string;
-    bookingType?: 'Day' | 'Hourly';
+    payRate: number;
+    charge: number;
+    bookingType: 'Day' | 'Hourly';
     session?: 'AllDay' | 'AM' | 'PM';
+    recurring: boolean;
+    recurringDays?: { [key: string]: 'allday' | 'am' | 'pm' };
+    booking_pattern?: any;
 }
 
-export async function createBooking({ candidateId, dates, role, bookingType, session }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
+export async function createBooking({ candidateId, candidateName, dates, role, payRate, charge, bookingType, recurring, recurringDays, booking_pattern }: CreateBookingParams): Promise<{success: boolean; bookings?: Booking[]}> {
     const companyId = '118008';
     
     if (!dates || dates.length === 0) {
@@ -526,36 +450,38 @@ export async function createBooking({ candidateId, dates, role, bookingType, ses
     const bookingData = {
         candidate_id: parseInt(candidateId),
         company_id: parseInt(companyId),
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
+        start_date: format(startOfDay(startDate), 'yyyy-MM-dd'),
+        end_date: format(startOfDay(endDate), 'yyyy-MM-dd'),
         booking_type: bookingType,
-        session_type: session,
-        status: 'Pencilled',
-        confirmation_status: 'Pending',
+        pay_rate: payRate || 0,
+        charge: charge || 0,
+        recurring: recurring ? 1 : 0,
+        booking_pattern: booking_pattern,
+        booking_role: role,
+        booking_details: `Booking for ${role}`,
         createdby: 'MyTalent Support',
     };
+
+    console.log("Sending booking data to API:", JSON.stringify(bookingData, null, 2));
     
     try {
-        const response = await fetch(`${API_BASE_URL}/schedulers`, {
+        const response = await fetch(`${API_BASE_URL}/bookings`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(bookingData)
         });
 
         const result = await response.json();
 
         if (!response.ok || result.errors) {
-            console.error("Booking creation failed:", result.errors);
+            console.error("Booking creation failed:", result.errors || result.message);
             return { success: false };
         }
         
         const newBooking = {
            id: result.data.id.toString(),
            candidateId: result.data.candidate_id?.toString(),
-           candidateName: '',
+           candidateName: candidateName,
            candidateRole: role,
            date: result.data.start_date,
            startDate: result.data.start_date,
@@ -591,8 +517,8 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
     
     if (updateData.dates && updateData.dates.length > 0) {
         const sortedDates = updateData.dates.sort((a,b) => a.getTime() - b.getTime());
-        apiPayload.start_date = format(sortedDates[0], 'yyyy-MM-dd');
-        apiPayload.end_date = format(sortedDates[sortedDates.length - 1], 'yyyy-MM-dd');
+        apiPayload.start_date = format(startOfDay(sortedDates[0]), 'yyyy-MM-dd');
+        apiPayload.end_date = format(startOfDay(sortedDates[sortedDates.length - 1]), 'yyyy-MM-dd');
     }
     if (updateData.bookingType) apiPayload.booking_type = updateData.bookingType;
     if (updateData.session) apiPayload.session_type = updateData.session;
@@ -601,12 +527,9 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
     if (updateData.role) apiPayload.job_title_id = updateData.role;
 
     try {
-         const response = await fetch(`${API_BASE_URL}/schedulers/${id}`, {
+         const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(apiPayload)
         });
 
@@ -641,8 +564,9 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
 
 export async function cancelBooking(bookingId: string): Promise<{success: boolean}> {
      try {
-        const response = await fetch(`${API_BASE_URL}/schedulers/${bookingId}`, {
+        const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
             method: 'DELETE',
+            headers: getAuthHeaders(),
         });
 
         if (!response.ok) {
@@ -654,10 +578,4 @@ export async function cancelBooking(bookingId: string): Promise<{success: boolea
         console.error("Error canceling booking:", error);
         return { success: false };
     }
-}
-
-// In a real app, this would come from the API
-export async function getUniqueCandidateRoles(): Promise<string[]> {
-    // This is a mock. A real implementation would query the API for distinct roles.
-    return ['Teacher', 'Teaching Assistant', 'Non Class Support', 'Tutor'];
 }

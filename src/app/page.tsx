@@ -1,8 +1,12 @@
+
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,17 +16,50 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import images from '@/lib/placeholder-images.json';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { login } from '@/app/auth/actions';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+
+const LoginSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
 
 export default function AuthPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const [isResetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const landingImage = images['landing-page'];
+
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await login(values);
+      if (result?.error) {
+        setError(result.error);
+      }
+      if (result?.success) {
+        toast({ title: 'Login Successful', description: 'Welcome back!' });
+        router.push('/dashboard');
+        router.refresh(); // Refresh to ensure layout gets new cookie state
+      }
+    });
+  };
 
   const handlePasswordReset = () => {
     if (!resetEmail) {
@@ -40,14 +77,6 @@ export default function AuthPage() {
         description: `If an account exists for ${resetEmail}, a password reset link has been sent.`,
     });
     setResetEmail('');
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
   }
 
   return (
@@ -94,62 +123,89 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="me@example.co.uk"
-                    required
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>Email</Label>
+                        <FormControl>
+                           <Input
+                            type="email"
+                            placeholder="me@example.co.uk"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <Dialog open={isResetDialogOpen} onOpenChange={setResetDialogOpen}>
-                      <DialogTrigger asChild>
-                        <button className="ml-auto inline-block text-sm underline">
-                          Forgot your password?
-                        </button>
-                      </DialogTrigger>
-                       <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Forgot Password</DialogTitle>
-                          <DialogDescription>
-                            Enter your email address and we'll send you a link to reset your password.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="reset-email">Email Address</Label>
-                            <Input
-                              id="reset-email"
-                              type="email"
-                              placeholder="me@example.co.uk"
-                              value={resetEmail}
-                              onChange={(e) => setResetEmail(e.target.value)}
-                              required
-                            />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center">
+                           <Label>Password</Label>
+                            <Dialog open={isResetDialogOpen} onOpenChange={setResetDialogOpen}>
+                              <DialogTrigger asChild>
+                                <button type="button" className="ml-auto inline-block text-sm underline">
+                                  Forgot your password?
+                                </button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>Forgot Password</DialogTitle>
+                                  <DialogDescription>
+                                    Enter your email address and we'll send you a link to reset your password.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                  <div className="grid gap-2">
+                                    <Label htmlFor="reset-email">Email Address</Label>
+                                    <Input
+                                      id="reset-email"
+                                      type="email"
+                                      placeholder="me@example.co.uk"
+                                      value={resetEmail}
+                                      onChange={(e) => setResetEmail(e.target.value)}
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="secondary">Cancel</Button>
+                                    </DialogClose>
+                                    <Button type="button" onClick={handlePasswordReset}>
+                                        Send Reset Link
+                                    </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                           </div>
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">Cancel</Button>
-                            </DialogClose>
-                            <Button type="button" onClick={handlePasswordReset}>
-                                Send Reset Link
-                            </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <Input id="password" type="password" required />
-                </div>
-                <Button type="submit" className="w-full" asChild>
-                  <Link href="/dashboard">Login</Link>
-                </Button>
-              </div>
+                        <FormControl>
+                           <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Login Failed</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+                  <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Login
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </div>

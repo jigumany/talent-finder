@@ -48,6 +48,7 @@ import images from '@/lib/placeholder-images.json';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { logout } from '@/app/auth/actions';
 
 
 const clientNav = [
@@ -153,9 +154,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 <div className="text-xs text-muted-foreground">{user.email}</div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/"><LogOut className="mr-2 h-4 w-4" />Logout</Link>
-                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <form action={logout} className="w-full">
+                                  <button type="submit" className="flex items-center w-full cursor-default select-none rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Logout</span>
+                                  </button>
+                                </form>
+                              </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
@@ -216,9 +222,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 <div className="text-xs text-muted-foreground">{user.email}</div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/"><LogOut className="mr-2 h-4 w-4" />Logout</Link>
-                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <form action={logout} className="w-full">
+                                   <button type="submit" className="flex items-center w-full cursor-default select-none rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Logout</span>
+                                  </button>
+                                </form>
+                              </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
