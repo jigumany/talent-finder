@@ -5,7 +5,7 @@ import type { Candidate, Booking } from './types';
 import { format, startOfDay } from 'date-fns';
 import { cookies } from 'next/headers';
 
-const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
 
 function getAuthHeaders() {
     const cookieStore = cookies();
@@ -116,7 +116,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
 
 export async function fetchCandidates(): Promise<Candidate[]> {
     const allCandidates: Candidate[] = [];
-    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1&per_page=100`;
+    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?per_page=100`;
 
     console.log("Starting to fetch all candidates...");
 
@@ -153,7 +153,7 @@ export async function fetchCandidates(): Promise<Candidate[]> {
 
 export async function fetchCandidatesPaginated(page: number = 1, perPage: number = 12): Promise<{data: Candidate[], hasMore: boolean, currentPage: number, totalPages: number}> {
     try {
-        const response = await fetch(`${API_BASE_URL}/candidates?with_key_stages=1&per_page=${perPage}&page=${page}`, {
+        const response = await fetch(`${API_BASE_URL}/candidates?per_page=${perPage}&page=${page}`, {
             headers: getAuthHeaders(),
             next: { revalidate: 3600 } 
         });
@@ -189,7 +189,6 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         const perPage = params.perPage || 12;
         
         const queryParams = new URLSearchParams({
-            with_key_stages: '1',
             per_page: perPage.toString(),
             page: page.toString(),
         });
@@ -279,23 +278,6 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         return null;
     }
 }
-
-export async function fetchCandidateAvailabilities(candidateId: string): Promise<any[]> {
-    try {
-        const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}/availabilities`, {
-            headers: getAuthHeaders()
-        });
-        if (!response.ok) {
-            throw new Error(`Failed to fetch availabilities for candidate ${candidateId}`);
-        }
-        const jsonResponse = await response.json();
-        return jsonResponse.data || [];
-    } catch (error) {
-        console.error(`Error fetching candidate availabilities for ${candidateId}:`, error);
-        return [];
-    }
-}
-
 
 export async function fetchBookings(): Promise<Booking[]> {
     try {
@@ -476,12 +458,12 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
 
         const result = await response.json();
 
-        if (!response.ok || result.errors) {
+        if (!response.ok || !result.success || result.errors) {
             console.error("Booking creation failed:", result.errors || result.message);
             return { success: false };
         }
         
-        const newBooking = {
+       const newBooking = {
            id: result.data.id.toString(),
            candidateId: result.data.candidate_id?.toString(),
            candidateName: candidateName,
@@ -502,85 +484,3 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
         return { success: false };
     }
 }
-
-interface UpdateBookingParams {
-    id: string;
-    candidateId?: string;
-    dates?: Date[];
-    role?: string;
-    bookingType?: 'Day' | 'Hourly';
-    session?: 'AllDay' | 'AM' | 'PM';
-    status?: string;
-}
-
-export async function updateBooking(params: UpdateBookingParams): Promise<{success: boolean; booking?: Booking}> {
-    const { id, ...updateData } = params;
-
-    const apiPayload: any = {};
-    
-    if (updateData.dates && updateData.dates.length > 0) {
-        const sortedDates = updateData.dates.sort((a,b) => a.getTime() - b.getTime());
-        apiPayload.start_date = format(startOfDay(sortedDates[0]), 'yyyy-MM-dd');
-        apiPayload.end_date = format(startOfDay(sortedDates[sortedDates.length - 1]), 'yyyy-MM-dd');
-    }
-    if (updateData.bookingType) apiPayload.booking_type = updateData.bookingType;
-    if (updateData.session) apiPayload.session_type = updateData.session;
-    if (updateData.status) apiPayload.status = updateData.status;
-    if (updateData.candidateId) apiPayload.candidate_id = parseInt(updateData.candidateId);
-    if (updateData.role) apiPayload.job_title_id = updateData.role;
-
-    try {
-         const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(apiPayload)
-        });
-
-        const result = await response.json();
-        
-        if (!response.ok || result.errors) {
-            console.error(`Booking update failed for id ${id}:`, result.errors);
-            return { success: false };
-        }
-
-        const updatedBooking = {
-           id: result.data.id.toString(),
-           candidateId: result.data.candidate_id?.toString(),
-           candidateName: '',
-           candidateRole: params.role || '',
-           date: result.data.start_date,
-           startDate: result.data.start_date,
-           endDate: result.data.end_date,
-           status: result.data.status,
-           confirmationStatus: result.data.confirmation_status,
-           bookingType: result.data.booking_type,
-           session: result.data.session_type,
-       };
-
-        return { success: true, booking: updatedBooking };
-    } catch (error) {
-        console.error(`Error updating booking ${id}:`, error);
-        return { success: false };
-    }
-}
-
-
-export async function cancelBooking(bookingId: string): Promise<{success: boolean}> {
-     try {
-        const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
-            method: 'DELETE',
-            headers: getAuthHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to cancel booking: ${response.statusText}`);
-        }
-        
-        return { success: true };
-    } catch (error) {
-        console.error("Error canceling booking:", error);
-        return { success: false };
-    }
-}
-
-    

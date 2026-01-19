@@ -8,13 +8,9 @@ import { isSameDay, format, parseISO } from "date-fns";
 import type { Booking } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar, Briefcase, User, MoreVertical, CalendarClock, Trash2, Loader2, CalendarPlus, ArrowRightLeft } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Calendar, Briefcase, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { fetchBookings, cancelBooking } from "@/lib/data-service";
+import { fetchBookings } from "@/lib/data-service";
 
 
 export default function DiaryPage() {
@@ -23,9 +19,6 @@ export default function DiaryPage() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
     const { toast } = useToast();
-
-    // State for dialogs
-    const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
     useEffect(() => {
         async function loadData() {
@@ -46,27 +39,6 @@ export default function DiaryPage() {
         selectedDate && isSameDay(parseISO(booking.date), selectedDate)
     ), [bookings, selectedDate]);
 
-    const handleCancelBooking = async (bookingId: string) => {
-        const booking = bookings.find(b => b.id === bookingId);
-        if (!booking) return;
-        
-        const result = await cancelBooking(bookingId);
-        if(result.success) {
-            setBookings(prev => prev.map(b => b.id === bookingId ? {...b, status: 'Cancelled'} : b));
-            toast({
-                title: "Booking Cancelled",
-                description: `The booking with ${booking.candidateName} has been cancelled.`,
-                variant: "destructive"
-            });
-        } else {
-             toast({
-                title: "Error",
-                description: `There was a problem cancelling the booking.`,
-                variant: "destructive"
-            });
-        }
-        setBookingToCancel(null);
-    };
 
     if (isLoading) {
         return (
@@ -131,42 +103,6 @@ export default function DiaryPage() {
                                                 >
                                                     {booking.status}
                                                 </Badge>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                          {(booking.status === 'Confirmed' || booking.status === 'Interview') && (
-                                                            <>
-                                                                <DropdownMenuItem onClick={() => toast({ title: 'Reschedule Clicked', description: 'This would open a rescheduling modal.'})}>
-                                                                    <CalendarPlus className="mr-2 h-4 w-4" />
-                                                                    Reschedule
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => toast({ title: 'Extend Clicked', description: 'This would open a booking extension form.'})}>
-                                                                    <ArrowRightLeft className="mr-2 h-4 w-4" />
-                                                                    Extend
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
-                                                                <DropdownMenuItem className="text-destructive" onClick={() => setBookingToCancel(booking)}>
-                                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                                    Cancel
-                                                                </DropdownMenuItem>
-                                                            </>
-                                                         )}
-                                                          {booking.status === 'Completed' && (
-                                                             <DropdownMenuItem disabled>
-                                                                No actions available
-                                                            </DropdownMenuItem>
-                                                          )}
-                                                          {booking.status === 'Cancelled' && (
-                                                             <DropdownMenuItem disabled>
-                                                                Booking Cancelled
-                                                            </DropdownMenuItem>
-                                                          )}
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
                                              </div>
                                         </div>
                                     </div>
@@ -180,27 +116,6 @@ export default function DiaryPage() {
                     </Card>
                 </div>
              </div>
-
-             {/* Cancel Booking Dialog */}
-            <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will cancel the {bookingToCancel?.status.toLowerCase()} with {bookingToCancel?.candidateName}.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Back</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={() => bookingToCancel && handleCancelBooking(bookingToCancel.id)}
-                            className={buttonVariants({ variant: "destructive" })}
-                        >
-                            Confirm Cancellation
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }

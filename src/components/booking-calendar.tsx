@@ -1,44 +1,22 @@
 
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import type { DayPickerProps } from 'react-day-picker';
-import { isWithinInterval, startOfDay, parseISO } from 'date-fns';
+import { Calendar } from './ui/calendar';
+import type { CalendarProps } from './ui/calendar';
 import { cn } from '@/lib/utils';
 import type { Candidate } from '@/lib/types';
-import { fetchCandidateAvailabilities } from '@/lib/data-service';
-import { Calendar } from './ui/calendar';
 
-interface BookingCalendarProps extends DayPickerProps {
+
+interface BookingCalendarProps extends CalendarProps {
     candidate?: Candidate;
 }
 
 export function BookingCalendar({ candidate, className, ...props }: BookingCalendarProps) {
-    const [unavailableIntervals, setUnavailableIntervals] = useState<{from: Date; to: Date}[]>([]);
-
-    useEffect(() => {
-        if (candidate?.id) {
-            fetchCandidateAvailabilities(candidate.id).then(availabilities => {
-                const intervals = availabilities
-                    .filter((a: any) => a.status === 'Unavailable' && a.start_date && a.end_date)
-                    .map((a: any) => ({
-                        from: startOfDay(parseISO(a.start_date)),
-                        to: startOfDay(parseISO(a.end_date))
-                    }));
-                setUnavailableIntervals(intervals);
-            });
-        }
-    }, [candidate]);
-
-    const isDayUnavailable = (day: Date) => {
-        return unavailableIntervals.some(interval => isWithinInterval(day, interval));
-    };
 
     return (
         <div className="flex flex-col items-center">
              <Calendar
                 disabled={[
-                    (day) => isDayUnavailable(day),
                     { before: new Date() }
                 ]}
                 className={cn("rounded-md border", className)}
