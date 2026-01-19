@@ -606,13 +606,12 @@ export default function BrowseCandidatesPage() {
                 const result = await fetchCandidatesFilteredPaginated({
                     page: currentPage,
                     perPage: CANDIDATES_PER_PAGE,
-                    searchTerm: debouncedSearchTerm,
+                    search: debouncedSearchTerm,
                     role: filters.role,
                     subject: filters.subject,
                     location: debouncedLocationFilter,
-                    rateType: filters.rateType,
-                    minRate: debouncedMinRate,
-                    maxRate: debouncedMaxRate,
+                    min_rate: debouncedMinRate,
+                    max_rate: debouncedMaxRate,
                     status: filters.status,
                 });
                 setCandidates(result.data);

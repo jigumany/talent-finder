@@ -7,8 +7,8 @@ import { cookies } from 'next/headers';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
 
-function getAuthHeaders() {
-    const cookieStore = cookies();
+async function getAuthHeaders() {
+    const cookieStore = await cookies();
     const token = cookieStore.get('session_token')?.value;
 
     const headers: HeadersInit = {
@@ -124,8 +124,8 @@ export async function fetchCandidates(): Promise<Candidate[]> {
     while (nextPageUrl) {
         try {
             console.log(`📡 Fetching data from: ${nextPageUrl}`);
-            const response = await fetch(nextPageUrl, {
-                headers: getAuthHeaders(),
+            const response: Response = await fetch(nextPageUrl, {
+                headers: await getAuthHeaders(),
                 cache: 'no-store'
             });
 
@@ -193,12 +193,12 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         if (params.max_rate) queryParams.append('max_rate', params.max_rate);
         if (params.status && params.status !== 'all') queryParams.append('status', params.status);
 
-
         const url = `${API_BASE_URL}/candidates?${queryParams.toString()}`;
-        console.log(`📡 Fetching data from: ${url}`);
+
+        const authHeaders = await getAuthHeaders();
 
         const response = await fetch(url, {
-            headers: getAuthHeaders(),
+            headers: authHeaders,
             cache: 'no-store',
         });
 
@@ -233,7 +233,7 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
         const url = `${API_BASE_URL}/metadata/filters`;
         console.log(`📡 Fetching data from: ${url}`);
         const response = await fetch(url, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             cache: 'no-store'
         });
 
@@ -261,9 +261,8 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
         const url = `${API_BASE_URL}/candidates/${id}`;
-        console.log(`📡 Fetching single candidate from: ${url}`);
         const response = await fetch(url, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             cache: 'no-store' 
         });
 
@@ -323,7 +322,7 @@ export async function fetchBookings(): Promise<Booking[]> {
         const url = `${API_BASE_URL}/bookings?per_page=100`;
         console.log(`📡 Fetching data from: ${url}`);
         const response = await fetch(url, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             cache: 'no-store'
         });
         
@@ -390,7 +389,7 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
         const url = `${API_BASE_URL}/bookings?per_page=${perPage}&page=${page}`;
         console.log(`📡 Fetching data from: ${url}`);
         const response = await fetch(url, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             cache: 'no-store'
         });
         
@@ -500,7 +499,7 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
         console.log(`📡 Posting data to: ${url}`);
         const response = await fetch(url, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             body: JSON.stringify(bookingData)
         });
 
@@ -560,7 +559,7 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
     try {
          const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             body: JSON.stringify(apiPayload)
         });
 

@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
 
 // Helper to format validation errors from Laravel
 function formatValidationErrors(errors: Record<string, string[]>): string {
@@ -47,7 +47,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
         return { error: 'Login failed: No token received from server.' };
     }
 
-    cookies().set('session_token', result.data.token, {
+    (await cookies()).set('session_token', result.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
@@ -64,7 +64,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 }
 
 export async function logout() {
-  const token = cookies().get('session_token')?.value;
+  const token = (await cookies()).get('session_token')?.value;
 
   if (token) {
       try {
@@ -81,7 +81,7 @@ export async function logout() {
       }
   }
 
-  cookies().delete('session_token');
+  (await cookies()).delete('session_token');
   redirect('/');
 }
 
