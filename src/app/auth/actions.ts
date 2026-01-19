@@ -7,6 +7,11 @@ import { z } from 'zod';
 
 const API_BASE_URL = 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
 
+// Helper to format validation errors from Laravel
+function formatValidationErrors(errors: Record<string, string[]>): string {
+  return Object.values(errors).flat().join(' ');
+}
+
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
@@ -31,16 +36,23 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 
     const result = await response.json();
 
-    if (!response.ok || !result.token) {
+    if (!result.success) {
+      if (result.errors) {
+        return { error: formatValidationErrors(result.errors) };
+      }
       return { error: result.message || 'Login failed. Please check your credentials.' };
     }
 
-    cookies().set('session_token', result.token, {
+    if (!result.data.token) {
+        return { error: 'Login failed: No token received from server.' };
+    }
+
+    cookies().set('session_token', result.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 8 * 60 * 60, // 8 hours to match cache
     });
 
     return { success: true };
@@ -52,6 +64,23 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 }
 
 export async function logout() {
+  const token = cookies().get('session_token')?.value;
+
+  if (token) {
+      try {
+          await fetch(`${API_BASE_URL}/logout`, {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Accept': 'application/json',
+              }
+          });
+      } catch (error) {
+          console.error("Logout API call failed:", error);
+          // We still proceed to delete the local cookie
+      }
+  }
+
   cookies().delete('session_token');
   redirect('/');
 }
@@ -66,10 +95,11 @@ export async function validateInvitation(token: string) {
       }
     });
     const result = await response.json();
-    if (!response.ok) {
+    if (!result.success) {
       return { error: result.message || 'Invitation is invalid or has expired.' };
     }
-    return { success: true, email: result.email }; // Assuming API returns email
+    // The API now nests the data
+    return { success: true, email: result.data.email };
   } catch (error) {
     console.error('Validate invitation error:', error);
     return { error: 'An unexpected error occurred while validating the invitation.' };
@@ -78,8 +108,12 @@ export async function validateInvitation(token: string) {
 
 
 const SetupPasswordSchema = z.object({
-  token: z.string().min(1),
+  token: z.string().min(1, 'Token is required.'),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
+  password_confirmation: z.string(),
+}).refine(data => data.password === data.password_confirmation, {
+    message: "Passwords don't match",
+    path: ['password_confirmation'],
 });
 
 export async function setupPassword(values: z.infer<typeof SetupPasswordSchema>) {
@@ -100,7 +134,10 @@ export async function setupPassword(values: z.infer<typeof SetupPasswordSchema>)
 
         const result = await response.json();
 
-        if (!response.ok) {
+        if (!result.success) {
+            if (result.errors) {
+              return { error: formatValidationErrors(result.errors) };
+            }
             return { error: result.message || 'Failed to set up password.' };
         }
         return { success: true, message: result.message || 'Password has been set successfully! You can now log in.' };

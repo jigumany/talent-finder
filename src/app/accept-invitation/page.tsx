@@ -67,7 +67,11 @@ function AcceptInvitationForm() {
   const onSubmit = (values: z.infer<typeof PasswordSchema>) => {
     setError(null);
     startTransition(async () => {
-      const result = await setupPassword({ token: token!, password: values.password });
+      const result = await setupPassword({ 
+        token: token!, 
+        password: values.password,
+        password_confirmation: values.confirmPassword,
+      });
       if (result.error) {
         setError(result.error);
         toast({ title: 'Error', description: result.error, variant: 'destructive' });
