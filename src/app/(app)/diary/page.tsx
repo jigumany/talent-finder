@@ -393,11 +393,6 @@ export default function DiaryPage() {
               Tap booking days for details
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              {totalBookings}
-            </Badge>
-          </div>
         </div>
       </div>
 
@@ -417,12 +412,6 @@ export default function DiaryPage() {
                 <span>Loading more bookings...</span>
               </div>
             )}
-            <Badge variant="outline" className="text-sm">
-              {totalBookings} bookings
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              {totalBookingDays} days
-            </Badge>
           </div>
         </div>
       </div>
@@ -535,7 +524,7 @@ export default function DiaryPage() {
       </Sheet>
 
       {/* Floating Action Button for Mobile - Show Today's Bookings */}
-      {isMobile && (
+      {/* {isMobile && (
         <div className="fixed bottom-6 right-4 z-40">
           <Button
             size="lg"
@@ -548,7 +537,7 @@ export default function DiaryPage() {
             <Calendar className="h-6 w-6" />
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
