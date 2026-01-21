@@ -395,10 +395,34 @@ export async function fetchBookings(): Promise<Booking[]> {
     }
 }
 
-export async function fetchBookingsPaginated(page: number = 1, perPage: number = 50): Promise<{data: Booking[], currentPage: number, totalPages: number, total: number}> {
+// Transform booking data from API
+const transformBookingData = (apiBooking: any): Booking => {
+    const candidate = apiBooking.candidate;
+    
+    return {
+        id: apiBooking.id.toString(),
+        candidateId: apiBooking.candidate_id?.toString(),
+        candidateName: candidate?.name || 'Unknown Candidate',
+        candidateRole: apiBooking.booking_role || 'Unknown Role',
+        candidateLocation: 'Location not specified', // Your API doesn't return location in booking data
+        date: apiBooking.start_date,
+        startDate: apiBooking.start_date,
+        endDate: apiBooking.end_date,
+        status: apiBooking.status || 'Unknown',
+        bookingType: apiBooking.booking_type || 'Day',
+        payRate: apiBooking.pay_rate || 0,
+        charge: apiBooking.charge || 0,
+        recurring: apiBooking.recurring || false,
+        bookingPattern: apiBooking.booking_pattern || [],
+        createdBy: apiBooking.createdby || 'System',
+        createdAt: apiBooking.created_at,
+        updatedAt: apiBooking.updated_at,
+    };
+};
+
+export async function fetchBookingsPaginated(page: number = 1, perPage: number = 10): Promise<{data: Booking[], currentPage: number, totalPages: number, total: number}> {
     try {
         const url = `${API_BASE_URL}/bookings?per_page=${perPage}&page=${page}`;
-        console.log(`📡 Fetching data from: ${url}`);
         const response = await fetch(url, {
             headers: await getAuthHeaders(),
             cache: 'no-store'
@@ -412,51 +436,17 @@ export async function fetchBookingsPaginated(page: number = 1, perPage: number =
         }
 
         const jsonResponse = await response.json();
-        const candidateIds = new Set<string>();
-        jsonResponse.data.forEach((booking: any) => {
-            if (booking.candidate_id) {
-                candidateIds.add(booking.candidate_id.toString());
-            }
-        });
 
-        const candidatePromises = Array.from(candidateIds).map(id => 
-            fetchCandidateById(id).catch(error => {
-                console.error(`Error fetching candidate ${id}:`, error);
-                return null;
-            })
-        );
+        if (!jsonResponse.success) {
+            console.error('API returned unsuccessful response:', jsonResponse);
+            return { data: [], currentPage: page, totalPages: 0, total: 0 };
+        }
 
-        const candidates = await Promise.all(candidatePromises);
-        const candidateMap = new Map<string, Candidate>();
-        
-        candidates.forEach(candidate => {
-            if (candidate) {
-                candidateMap.set(candidate.id, candidate);
-            }
-        });
+        const bookings = jsonResponse.data.map(transformBookingData);
 
-        const bookings = jsonResponse.data.map((booking: any): Booking => {
-            const candidateId = booking.candidate_id?.toString();
-            const candidate = candidateId ? candidateMap.get(candidateId) : undefined;
-            
-            return {
-                id: booking.id.toString(),
-                candidateId: candidateId,
-                candidateName: candidate?.name || 'Unknown Candidate',
-                candidateRole: candidate?.role || 'Unknown Role',
-                date: booking.start_date,
-                startDate: booking.start_date,
-                endDate: booking.end_date,
-                status: booking.status,
-                confirmationStatus: booking.confirmation_status,
-                bookingType: booking.booking_type,
-                session: booking.session_type,
-            };
-        });
-
-        const currentPage = Array.isArray(jsonResponse.meta?.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta?.current_page || page;
-        const totalPages = Array.isArray(jsonResponse.meta?.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta?.last_page || 1;
-        const total = Array.isArray(jsonResponse.meta?.total) ? jsonResponse.meta.total[0] : jsonResponse.meta?.total || bookings.length;
+        const currentPage = jsonResponse.meta?.current_page || page;
+        const totalPages = jsonResponse.meta?.last_page || 1;
+        const total = jsonResponse.meta?.total || bookings.length;
         
         return {
             data: bookings,

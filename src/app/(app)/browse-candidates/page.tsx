@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CandidateCard } from '@/components/candidate-card';
 import type { Candidate } from '@/lib/types';
-import { ListFilter, Search, PoundSterling, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ListFilter, Search, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
@@ -19,24 +19,15 @@ import { Badge } from '@/components/ui/badge';
 
 const CANDIDATES_PER_PAGE = 12;
 
-const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL', 'TEFL'];
-
 interface FilterState {
     searchTerm: string;
     role: string;
-    subject: string;
-    location: string;
-    rateType: string;
-    minRate: string;
-    maxRate: string;
-    status: string;
 }
 
 interface FiltersProps {
     filters: FilterState;
     setFilters: (filters: FilterState) => void;
     allRoles: string[];
-    allStatuses: string[];
 }
 
 // Helper function to capitalize first letter
@@ -67,61 +58,6 @@ function SelectedFilters({ filters, setFilters }: { filters: FilterState; setFil
         });
     }
     
-    // Subject filter
-    if (filters.subject !== 'all') {
-        const subjectLabel = subjects.find(s => s.toLowerCase() === filters.subject) || capitalize(filters.subject);
-        activeFilters.push({
-            label: `Subject: ${subjectLabel}`,
-            key: 'subject',
-            value: 'all',
-        });
-    }
-    
-    // Location filter
-    if (filters.location) {
-        activeFilters.push({
-            label: `Location: ${filters.location}`,
-            key: 'location',
-            value: '',
-        });
-    }
-    
-    // Rate type filter
-    if (filters.rateType !== 'all') {
-        activeFilters.push({
-            label: `Rate Type: ${capitalize(filters.rateType)}`,
-            key: 'rateType',
-            value: 'all',
-        });
-    }
-    
-    // Min rate filter
-    if (filters.minRate) {
-        activeFilters.push({
-            label: `Min Rate: £${filters.minRate}`,
-            key: 'minRate',
-            value: '',
-        });
-    }
-    
-    // Max rate filter
-    if (filters.maxRate) {
-        activeFilters.push({
-            label: `Max Rate: £${filters.maxRate}`,
-            key: 'maxRate',
-            value: '',
-        });
-    }
-    
-    // Status filter
-    if (filters.status !== 'all') {
-        activeFilters.push({
-            label: `Status: ${capitalize(filters.status)}`,
-            key: 'status',
-            value: 'all',
-        });
-    }
-    
     const handleRemoveFilter = (key: keyof FilterState, defaultValue: string) => {
         setFilters({ ...filters, [key]: defaultValue });
     };
@@ -130,12 +66,6 @@ function SelectedFilters({ filters, setFilters }: { filters: FilterState; setFil
         setFilters({
             searchTerm: '',
             role: 'all',
-            subject: 'all',
-            location: '',
-            rateType: 'all',
-            minRate: '',
-            maxRate: '',
-            status: 'all',
         });
     };
     
@@ -186,8 +116,7 @@ function SelectedFilters({ filters, setFilters }: { filters: FilterState; setFil
 function MobileFilters({ 
     filters, 
     setFilters, 
-    allRoles,
-    allStatuses
+    allRoles
 }: FiltersProps) {
     const updateFilter = useCallback((key: keyof FilterState, value: string) => {
         setFilters({ ...filters, [key]: value });
@@ -208,85 +137,6 @@ function MobileFilters({
                         </SelectContent>
                     </Select>
                 </div>
-
-                <div>
-                    <Label className="text-sm font-medium mb-2 block">Subject / Qualification</Label>
-                    <Select value={filters.subject} onValueChange={(v) => updateFilter('subject', v)}>
-                        <SelectTrigger className="w-full text-sm">
-                            <SelectValue placeholder="Select a subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all" className="text-sm">All Subjects</SelectItem>
-                            {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()} className="text-sm">{s}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div>
-                    <Label className="text-sm font-medium mb-2 block">Rate Type</Label>
-                    <Select value={filters.rateType} onValueChange={(v) => updateFilter('rateType', v)}>
-                        <SelectTrigger className="w-full text-sm">
-                            <SelectValue placeholder="Select rate type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all" className="text-sm">All Rate Types</SelectItem>
-                            <SelectItem value="daily" className="text-sm">Daily</SelectItem>
-                            <SelectItem value="hourly" className="text-sm">Hourly</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div>
-                    <Label className="text-sm font-medium mb-2 block">Rate Range</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="relative">
-                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                            <Input 
-                                id="min-rate"
-                                type="number"
-                                placeholder="Min"
-                                className="pl-8 text-sm h-10"
-                                value={filters.minRate}
-                                onChange={(e) => updateFilter('minRate', e.target.value)}
-                            />
-                        </div>
-                        <div className="relative">
-                            <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                            <Input 
-                                id="max-rate"
-                                type="number"
-                                placeholder="Max"
-                                className="pl-8 text-sm h-10"
-                                value={filters.maxRate}
-                                onChange={(e) => updateFilter('maxRate', e.target.value)}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <Label className="text-sm font-medium mb-2 block">Location</Label>
-                    <Input 
-                        id="location"
-                        placeholder="Search location..."
-                        className="text-sm h-10"
-                        value={filters.location}
-                        onChange={(e) => updateFilter('location', e.target.value)}
-                    />
-                </div>
-
-                <div>
-                    <Label className="text-sm font-medium mb-2 block">Availability Status</Label>
-                    <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
-                        <SelectTrigger className="w-full text-sm">
-                            <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all" className="text-sm">All Statuses</SelectItem>
-                            {allStatuses.map(s => <SelectItem key={s} value={s} className="text-sm">{capitalize(s)}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
             </div>
         </div>
     );
@@ -296,10 +146,9 @@ function MobileFilters({
 function DesktopFilters({ 
     filters, 
     setFilters, 
-    allRoles,
-    allStatuses
+    allRoles
 }: FiltersProps) {
-    const [accordionValue, setAccordionValue] = useState<string[]>(['item-1', 'item-2', 'item-3']);
+    const [accordionValue, setAccordionValue] = useState<string[]>(['item-1']);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const updateFilter = useCallback((key: keyof FilterState, value: string) => {
@@ -307,12 +156,6 @@ function DesktopFilters({
         
         const accordionItemMap: Record<string, string> = {
             'role': 'item-1',
-            'subject': 'item-1',
-            'rateType': 'item-2',
-            'minRate': 'item-2',
-            'maxRate': 'item-2',
-            'location': 'item-2',
-            'status': 'item-3'
         };
         
         const accordionItem = accordionItemMap[key];
@@ -343,7 +186,7 @@ function DesktopFilters({
             className="w-full"
         >
             <AccordionItem value="item-1">
-                <AccordionTrigger className="text-sm sm:text-base">Role & Subject</AccordionTrigger>
+                <AccordionTrigger className="text-sm sm:text-base">Role</AccordionTrigger>
                 <AccordionContent>
                     <div className="space-y-4">
                         <div className="space-y-2">
@@ -358,93 +201,6 @@ function DesktopFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs sm:text-sm">Subject / Qualification</Label>
-                            <Select value={filters.subject} onValueChange={(v) => updateFilter('subject', v)}>
-                                <SelectTrigger className="text-xs sm:text-sm">
-                                    <SelectValue placeholder="Select a subject" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all" className="text-xs sm:text-sm">All Subjects</SelectItem>
-                                    {subjects.map(s => <SelectItem key={s} value={s.toLowerCase()} className="text-xs sm:text-sm">{s}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-2">
-                <AccordionTrigger className="text-sm sm:text-base">Rate & Location</AccordionTrigger>
-                <AccordionContent>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label className="text-xs sm:text-sm">Rate Type</Label>
-                            <Select value={filters.rateType} onValueChange={(v) => updateFilter('rateType', v)}>
-                                <SelectTrigger className="text-xs sm:text-sm">
-                                    <SelectValue placeholder="Select rate type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all" className="text-xs sm:text-sm">All Rate Types</SelectItem>
-                                    <SelectItem value="daily" className="text-xs sm:text-sm">Daily</SelectItem>
-                                    <SelectItem value="hourly" className="text-xs sm:text-sm">Hourly</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs sm:text-sm">Rate Range</Label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="relative">
-                                    <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                                    <Input 
-                                        id="min-rate"
-                                        type="number"
-                                        placeholder="Min"
-                                        className="pl-7 text-xs sm:text-sm h-9"
-                                        value={filters.minRate}
-                                        onChange={(e) => updateFilter('minRate', e.target.value)}
-                                    />
-                                </div>
-                                <div className="relative">
-                                    <PoundSterling className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                                    <Input 
-                                        id="max-rate"
-                                        type="number"
-                                        placeholder="Max"
-                                        className="pl-7 text-xs sm:text-sm h-9"
-                                        value={filters.maxRate}
-                                        onChange={(e) => updateFilter('maxRate', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs sm:text-sm">Location</Label>
-                            <Input 
-                                id="location"
-                                placeholder="Search location..."
-                                className="text-xs sm:text-sm h-9"
-                                value={filters.location}
-                                onChange={(e) => updateFilter('location', e.target.value)}
-                            />
-                        </div>
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-3">
-                <AccordionTrigger className="text-sm sm:text-base">Availability Status</AccordionTrigger>
-                <AccordionContent>
-                    <div className="space-y-2">
-                        <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
-                            <SelectTrigger className="text-xs sm:text-sm">
-                                <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all" className="text-xs sm:text-sm">All Statuses</SelectItem>
-                                {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs sm:text-sm">{capitalize(s)}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
                     </div>
                 </AccordionContent>
             </AccordionItem>
@@ -560,40 +316,26 @@ export default function BrowseCandidatesPage() {
     const [filters, setFilters] = useState<FilterState>({
         searchTerm: '',
         role: 'all',
-        subject: 'all',
-        location: '',
-        rateType: 'all',
-        minRate: '',
-        maxRate: '',
-        status: 'all',
     });
 
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [totalPages, setTotalPages] = useState(0);
     const [totalResults, setTotalResults] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [initialLoad, setInitialLoad] = useState(true);
 
     const [allRoles, setAllRoles] = useState<string[]>([]);
-    const [allStatuses, setAllStatuses] = useState<string[]>([]);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
-    const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
     const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
-    const debouncedLocationFilter = useDebounce(filters.location, 300);
-    const debouncedMinRate = useDebounce(filters.minRate, 500);
-    const debouncedMaxRate = useDebounce(filters.maxRate, 500);
 
     useEffect(() => {
         async function loadMetadata() {
-            setIsLoading(true);
             try {
                 const metadata = await getFilterMetadata();
                 setAllRoles(metadata.roles);
-                setAllStatuses(metadata.statuses);
             } catch (error) {
                 console.error("Failed to load filter metadata", error);
-            } finally {
-                setIsLoading(false);
             }
         }
         loadMetadata();
@@ -607,12 +349,7 @@ export default function BrowseCandidatesPage() {
                     page: currentPage,
                     perPage: CANDIDATES_PER_PAGE,
                     search: debouncedSearchTerm,
-                    role: filters.role,
-                    subject: filters.subject,
-                    location: debouncedLocationFilter,
-                    min_rate: debouncedMinRate,
-                    max_rate: debouncedMaxRate,
-                    status: filters.status,
+                    role: filters.role
                 });
                 setCandidates(result.data);
                 setTotalPages(result.totalPages);
@@ -624,40 +361,32 @@ export default function BrowseCandidatesPage() {
                 setTotalResults(0);
             } finally {
                 setIsLoading(false);
+                setInitialLoad(false);
             }
         }
         loadCandidates();
     }, [
         currentPage,
         debouncedSearchTerm,
-        debouncedLocationFilter,
-        debouncedMinRate,
-        debouncedMaxRate,
         filters.role,
-        filters.subject,
-        filters.rateType,
-        filters.status,
     ]);
-
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedSearchTerm, filters.role, filters.subject, debouncedLocationFilter, filters.rateType, debouncedMinRate, debouncedMaxRate, filters.status]);
-
+    }, [
+        debouncedSearchTerm, 
+        filters.role,
+    ]);
 
     const filterProps = {
         filters,
         setFilters,
         allRoles,
-        allStatuses,
     };
 
     const handleFilterChange = (newFilters: FilterState) => {
         setFilters(newFilters);
-        // Close mobile filters after selection
         setShowMobileFilters(false);
-        // Close mobile sheet after selection
-        setIsMobileSheetOpen(false);
     };
 
     const updatedFilterProps = {
@@ -673,19 +402,21 @@ export default function BrowseCandidatesPage() {
                     <div className="lg:hidden col-span-full">
                         <Card>
                             <CardContent className="p-3 sm:p-4">
-                                <Button 
-                                    variant="outline" 
-                                    className="w-full justify-between"
-                                    onClick={() => setShowMobileFilters(!showMobileFilters)}
-                                >
-                                    <span className="flex items-center gap-2">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-lg font-semibold">Filters</h2>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        className="flex items-center gap-2"
+                                        onClick={() => setShowMobileFilters(!showMobileFilters)}
+                                    >
                                         <ListFilter className="h-4 w-4" />
-                                        Filters
-                                    </span>
-                                    {showMobileFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                </Button>
+                                        {showMobileFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                                <SelectedFilters filters={filters} setFilters={setFilters} />
                                 {showMobileFilters && (
-                                    <div className="mt-4">
+                                    <div className="mt-4 pt-4 border-t">
                                         <MobileFilters {...updatedFilterProps} />
                                     </div>
                                 )}
@@ -695,10 +426,17 @@ export default function BrowseCandidatesPage() {
 
                     {/* Desktop Sidebar */}
                     <aside className="hidden lg:block lg:col-span-1">
-                        <div className="sticky top-24">
+                        <div className="sticky top-24 space-y-6">
                             <Card>
-                                <CardContent className="p-4 sm:p-6">
+                                <CardContent className="p-6">
                                     <h2 className="text-lg font-semibold mb-4">Filters</h2>
+                                    <SelectedFilters filters={filters} setFilters={setFilters} />
+                                </CardContent>
+                            </Card>
+                            
+                            <Card>
+                                <CardContent className="p-6">
+                                    <h3 className="text-md font-semibold mb-4">Refine Results</h3>
                                     <DesktopFilters {...updatedFilterProps} />
                                 </CardContent>
                             </Card>
@@ -709,89 +447,101 @@ export default function BrowseCandidatesPage() {
                     <main className="lg:col-span-3">
                         <div className="flex flex-col gap-4 sm:gap-6">
                             {/* Header */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-headline">
-                                        Candidate Marketplace
-                                    </h1>
-                                    {/* Selected Filters Section */}
-                                    <SelectedFilters filters={filters} setFilters={setFilters} />
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-headline">
+                                            Candidate Marketplace
+                                        </h1>
+                                        <p className="text-sm text-muted-foreground mt-2">
+                                            Discover qualified education professionals for your institution
+                                        </p>
+                                    </div>
                                 </div>
-                                
-                                {/* Mobile Filters Sheet for larger mobile screens */}
-                                <div className="block lg:hidden">
-                                    <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
-                                        <SheetTrigger asChild>
-                                            <Button variant="outline" size="sm" className="sm:flex hidden items-center gap-2">
-                                                <ListFilter className="h-4 w-4" />
-                                                <span className="text-sm">Advanced Filters</span>
-                                            </Button>
-                                        </SheetTrigger>
-                                        <SheetContent side="left" className="w-[85vw] sm:w-[400px]">
-                                            <SheetHeader>
-                                                <SheetTitle>Filters</SheetTitle>
-                                                <SheetDescription className="text-sm">
-                                                    Refine your search for the perfect candidate.
-                                                </SheetDescription>
-                                            </SheetHeader>
-                                            <div className="mt-4">
-                                                <MobileFilters {...updatedFilterProps} />
-                                            </div>
-                                        </SheetContent>
-                                    </Sheet>
-                                </div>
-                            </div>
 
-                            {/* Search Bar */}
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-                                <Input 
-                                    placeholder="Search by name or keyword..." 
-                                    className="pl-10 pr-4 h-11 sm:h-12 text-sm sm:text-base"
-                                    value={filters.searchTerm}
-                                    onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
-                                />
+                                {/* Search Bar - Improved mobile layout */}
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search by name, subject, or keyword..." 
+                                        className="pl-10 pr-4 h-11 sm:h-12 text-sm sm:text-base"
+                                        value={filters.searchTerm}
+                                        onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-2">
+                                        <span className="text-xs text-muted-foreground">
+                                            {totalResults} candidates
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Loading State */}
                             {isLoading ? (
-                                <div className="flex flex-col items-center justify-center h-48 sm:h-64 gap-4">
+                                <div className="flex flex-col items-center justify-center h-64 gap-4">
                                     <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-primary" />
                                     <p className="text-sm sm:text-base text-muted-foreground text-center">
-                                        Loading candidates...
+                                        {initialLoad ? 'Loading candidates...' : 'Searching...'}
                                     </p>
                                 </div>
                             ) : (
                                 <>
                                     {/* Results Info */}
-                                    <div className="text-xs sm:text-sm text-muted-foreground flex flex-wrap justify-between items-center gap-2">
-                                        <span className="flex-1 min-w-0">
-                                            Showing {candidates.length > 0 ? (currentPage - 1) * CANDIDATES_PER_PAGE + 1 : 0}–
-                                            {(currentPage - 1) * CANDIDATES_PER_PAGE + candidates.length} of {totalResults} results
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 bg-muted/50 rounded-lg">
+                                        <span className="text-sm font-medium">
+                                            Showing <span className="font-bold">{candidates.length}</span> of <span className="font-bold">{totalResults}</span> candidates
                                         </span>
+                                        <div className="text-xs text-muted-foreground">
+                                            Page {currentPage} of {totalPages}
+                                        </div>
                                     </div>
 
                                     {/* Candidates Grid */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                                        {candidates.length > 0 ? (
-                                            candidates.map(candidate => (
+                                    {candidates.length > 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                                            {candidates.map(candidate => (
                                                 <CandidateCard key={candidate.id} candidate={candidate} />
-                                            ))
-                                        ) : (
-                                            <div className="text-center text-muted-foreground col-span-full py-8 sm:py-12">
-                                                <p className="text-base sm:text-lg font-semibold mb-2">No candidates found.</p>
-                                                <p className="text-sm sm:text-base">Try adjusting your search or filters.</p>
-                                            </div>
-                                        )}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <Card className="border-dashed">
+                                            <CardContent className="py-12 text-center">
+                                                <div className="mx-auto max-w-md space-y-4">
+                                                    <Search className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                                                    <div>
+                                                        <h3 className="text-lg font-semibold">No candidates found</h3>
+                                                        <p className="text-sm text-muted-foreground mt-1">
+                                                            Try adjusting your search criteria or filters
+                                                        </p>
+                                                    </div>
+                                                    <Button 
+                                                        variant="outline" 
+                                                        className="mt-4"
+                                                        onClick={() => {
+                                                            setFilters({
+                                                                searchTerm: '',
+                                                                role: 'all',
+                                                            });
+                                                        }}
+                                                    >
+                                                        Clear all filters
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
                                     
                                     {/* Pagination */}
-                                    {totalPages > 1 && (
+                                    {totalPages > 1 && candidates.length > 0 && (
                                         <div className="mt-6 sm:mt-8">
-                                            <div className="flex justify-center items-center mb-3 sm:mb-4 text-xs sm:text-sm text-muted-foreground">
-                                                Page {currentPage} of {totalPages}
+                                            <PaginationControls 
+                                                currentPage={currentPage} 
+                                                totalPages={totalPages} 
+                                                onPageChange={setCurrentPage} 
+                                            />
+                                            <div className="text-center text-xs text-muted-foreground mt-3">
+                                                {candidates.length} candidates on this page
                                             </div>
-                                            <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                                         </div>
                                     )}
                                 </>

@@ -31,6 +31,21 @@ export type BookingStatus = 'Confirmed' | 'Completed' | 'Pending' | 'Interview' 
 export type ConfirmationStatus = 'Pending' | 'Confirmed' | 'Declined';
 
 
+// export type Booking = {
+//   id: string;
+//   candidateId?: string;
+//   candidateName: string;
+//   candidateRole: string;
+//   date: string; // as ISO date string
+//   startDate: string; // as ISO date string
+//   endDate: string; // as ISO date string
+//   status: BookingStatus;
+//   confirmationStatus?: ConfirmationStatus;
+//   bookingType?: 'Day' | 'Hourly';
+//   session?: 'AllDay' | 'AM' | 'PM';
+//   isReviewed?: boolean;
+// };
+
 export type Booking = {
   id: string;
   candidateId?: string;
@@ -44,6 +59,15 @@ export type Booking = {
   bookingType?: 'Day' | 'Hourly';
   session?: 'AllDay' | 'AM' | 'PM';
   isReviewed?: boolean;
+  // Add missing fields
+  candidateLocation?: string;
+  payRate?: number;
+  charge?: number;
+  recurring?: boolean;
+  bookingPattern?: any[];
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type Timesheet = {
