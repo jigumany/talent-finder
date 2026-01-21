@@ -300,7 +300,7 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto p-0">
-                <div className="sticky top-0 bg-background border-b px-4 sm:px-6 py-4 z-10">
+                <div className="sticky top-0 bg-background border-b px-4 sm:px-6 py-2 z-10">
                     <DialogHeader className="text-left">
                         <DialogTitle className="text-lg sm:text-xl">Booking Details</DialogTitle>
                         <DialogDescription className="text-sm">
@@ -309,9 +309,9 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
                     </DialogHeader>
                 </div>
                 
-                <div className="px-4 sm:px-6 py-4 space-y-5">
+                <div className="px-4 sm:px-6 py-2 space-y-5">
                     {/* Candidate & Role */}
-                    <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="bg-muted/30 rounded-lg p-2">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-primary/10 p-2 rounded-full">
                                 <User className="h-5 w-5 text-primary" />
@@ -328,7 +328,7 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
                     </div>
 
                     {/* Dates */}
-                    <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="bg-muted/30 rounded-lg p-2">
                         <h3 className="text-sm font-medium text-muted-foreground mb-3">Dates</h3>
                         <div className="grid grid-cols-1 gap-3">
                             <div className="bg-background rounded border p-3">
@@ -349,7 +349,7 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
                     </div>
 
                     {/* Booking Info */}
-                    <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="bg-muted/30 rounded-lg p-2">
                         <h3 className="text-sm font-medium text-muted-foreground mb-3">Booking Information</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="bg-background rounded border p-3">
@@ -377,7 +377,7 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
                     </div>
 
                     {/* Status */}
-                    <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="bg-muted/30 rounded-lg p-2">
                         <h3 className="text-sm font-medium text-muted-foreground mb-3">Status</h3>
                         <div className="bg-background rounded border p-3">
                             <Badge
@@ -401,7 +401,7 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
 
                     {/* Booking Pattern */}
                     {booking.bookingPattern && Array.isArray(booking.bookingPattern) && booking.bookingPattern.length > 0 && (
-                        <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="bg-muted/30 rounded-lg p-2">
                             <h3 className="text-sm font-medium text-muted-foreground mb-3">Booking Schedule</h3>
                             <div className="bg-background rounded border">
                                 <div className="max-h-48 overflow-y-auto">
@@ -431,33 +431,10 @@ function BookingDetailsDialog({ booking, open, onOpenChange }: { booking: Bookin
                             </p>
                         </div>
                     )}
-
-                    {/* Metadata */}
-                    <div className="bg-muted/30 rounded-lg p-4">
-                        <h3 className="text-sm font-medium text-muted-foreground mb-3">Additional Information</h3>
-                        <div className="grid grid-cols-1 gap-3">
-                            <div className="bg-background rounded border p-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <User className="h-4 w-4 text-muted-foreground" />
-                                    <h4 className="text-sm font-medium text-muted-foreground">Created By</h4>
-                                </div>
-                                <p className="text-sm">{booking.createdBy || 'System'}</p>
-                            </div>
-                            {booking.createdAt && (
-                                <div className="bg-background rounded border p-3">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                        <h4 className="text-sm font-medium text-muted-foreground">Created At</h4>
-                                    </div>
-                                    <p className="text-sm">{formatDateTime(booking.createdAt)}</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
                 </div>
 
                 {/* Close Button - Mobile Optimized */}
-                <div className="sticky bottom-0 bg-background border-t px-4 sm:px-6 py-3">
+                <div className="sticky bottom-0 bg-background border-t px-4 sm:px-6 py-2">
                     <Button 
                         className="w-full" 
                         onClick={() => onOpenChange(false)}

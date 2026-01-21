@@ -443,19 +443,6 @@ export default function CandidatePublicProfilePage() {
 
         <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-8">
-                 {candidate.bio && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>About Me</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground whitespace-pre-wrap">
-                                {candidate.bio}
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
-
                  {candidate.details && Object.keys(candidate.details).length > 0 && (
                     <Card>
                         <CardHeader>
@@ -484,64 +471,34 @@ export default function CandidatePublicProfilePage() {
                         </CardContent>
                     </Card>
                 )}
-
-
-                 {candidate.reviewsData && candidate.reviewsData.length > 0 && (
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Recent Reviews</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {candidate.reviewsData.map((review, index) => (
-                                <div key={index}>
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-semibold">{review.reviewerName}</p>
-                                            <p className="text-sm text-muted-foreground">{format(new Date(review.date), 'MMMM yyyy')}</p>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-amber-500">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} className={cn("h-5 w-5", i < review.rating ? 'fill-current' : 'fill-muted stroke-muted-foreground')} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <p className="text-muted-foreground mt-2 italic">"{review.comment}"</p>
-                                    {index < candidate.reviewsData!.length - 1 && <Separator className="mt-6" />}
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                )}
             </div>
             <div className="space-y-8">
-                {candidate.rate && candidate.rate > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Rates</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                        <div className="text-2xl font-bold text-primary flex items-center">
-                                £{candidate.rate.toFixed(2)}
-                                <span className="text-sm font-normal text-muted-foreground ml-1">/{candidate.rateType || 'day'}</span>
+              {candidate.reviewsData && candidate.reviewsData.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Reviews</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {candidate.reviewsData.map((review, index) => (
+                            <div key={index}>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold">{review.reviewerName}</p>
+                                        <p className="text-sm text-muted-foreground">{format(new Date(review.date), 'MMMM yyyy')}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-amber-500">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} className={cn("h-5 w-5", i < review.rating ? 'fill-current' : 'fill-muted stroke-muted-foreground')} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-muted-foreground mt-2 italic">"{review.comment}"</p>
+                                {index < candidate.reviewsData!.length - 1 && <Separator className="mt-6" />}
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
-                {candidate.availability && candidate.availability.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Availability</CardTitle>
-                            <CardDescription>
-                                This calendar shows the candidate's general availability.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                        <div className="flex justify-center p-1">
-                            <AvailabilityCalendar candidate={candidate}/>
-                        </div>
-                        </CardContent>
-                    </Card>
-                )}
+                        ))}
+                    </CardContent>
+                </Card>
+              )}
             </div>
         </div>
     </div>

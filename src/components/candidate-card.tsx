@@ -205,27 +205,8 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
       </CardHeader>
       
       <CardContent className="p-3 sm:p-4 flex-grow space-y-2 sm:space-y-3 text-xs sm:text-sm">
-        {/* Bio section */}
-        <div className="flex items-start gap-2 text-muted-foreground">
-            <BookOpenText className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 sm:mt-1 flex-shrink-0" />
-            <p className="italic line-clamp-2 text-xs sm:text-sm leading-relaxed">
-              {candidate.bio}
-            </p>
-        </div>
-
-        <Separator className="my-1 sm:my-2" />
-
         {/* Contact info */}
         <div className="space-y-1.5 sm:space-y-2">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-            <a 
-              href={`mailto:${candidate.email}`} 
-              className="truncate hover:underline text-xs sm:text-sm"
-            >
-              {candidate.email}
-            </a>
-          </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
             <span className="truncate text-xs sm:text-sm">{candidate.location}</span>
@@ -264,14 +245,6 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
             return null;
           })}
         </div>
-             
-        {/* Rate section */}
-        <p className="text-sm sm:text-base lg:text-lg font-semibold text-primary flex items-center pt-2 sm:pt-3">
-          £{candidate.rate.toFixed(2)}
-          <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1">
-            /{candidate.rateType}
-          </span>
-        </p>
       </CardContent>
       
       {/* Footer with buttons */}

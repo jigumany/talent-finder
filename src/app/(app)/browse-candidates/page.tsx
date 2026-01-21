@@ -190,7 +190,6 @@ function DesktopFilters({
                 <AccordionContent>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-xs sm:text-sm">Role</Label>
                             <Select value={filters.role} onValueChange={(v) => updateFilter('role', v)}>
                                 <SelectTrigger className="text-xs sm:text-sm">
                                     <SelectValue placeholder="Select a role" />
