@@ -4,6 +4,7 @@
 import type { Candidate, Booking, UserProfile } from './types';
 import { format, startOfDay } from 'date-fns';
 import { cookies } from 'next/headers';
+import { logout } from '@/app/auth/actions';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gslstaging.mytalentcrm.com/api/v1/talent-finder';
 
@@ -24,6 +25,24 @@ async function getAuthHeaders() {
     }
 
     return headers;
+}
+
+async function fetchWithAuth(url: string, options: RequestInit = {}) {
+    const headers = {
+        ...(await getAuthHeaders()),
+        ...(options.headers || {}),
+    };
+    const response = await fetch(url, {
+        ...options,
+        headers,
+        cache: options.cache ?? 'no-store',
+    });
+
+    if (response.status === 401) {
+        await logout();
+    }
+
+    return response;
 }
 
 // This map translates API short codes into human-readable category names.
@@ -124,10 +143,7 @@ export async function fetchCandidates(): Promise<Candidate[]> {
     while (nextPageUrl) {
         try {
             console.log(`📡 Fetching data from: ${nextPageUrl}`);
-            const response: Response = await fetch(nextPageUrl, {
-                headers: await getAuthHeaders(),
-                cache: 'no-store'
-            });
+            const response: Response = await fetchWithAuth(nextPageUrl);
 
             if (!response.ok) {
                 console.error(`Error ${response.status} from ${nextPageUrl}: ${response.statusText}`);
@@ -195,12 +211,7 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
 
         const url = `${API_BASE_URL}/candidates?${queryParams.toString()}`;
 
-        const authHeaders = await getAuthHeaders();
-
-        const response = await fetch(url, {
-            headers: authHeaders,
-            cache: 'no-store',
-        });
+        const response = await fetchWithAuth(url);
 
         if (!response.ok) {
             console.error(`Error ${response.status} fetching candidates: ${response.statusText}`);
@@ -232,10 +243,7 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
     try {
         const url = `${API_BASE_URL}/metadata/filters`;
         console.log(`📡 Fetching data from: ${url}`);
-        const response = await fetch(url, {
-            headers: await getAuthHeaders(),
-            cache: 'no-store'
-        });
+        const response = await fetchWithAuth(url);
 
         if (!response.ok) {
             console.error(`Error ${response.status} fetching filter metadata: ${response.statusText}`);
@@ -261,10 +269,7 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
 export async function fetchCandidateById(id: string): Promise<Candidate | null> {
     try {
         const url = `${API_BASE_URL}/candidates/${id}`;
-        const response = await fetch(url, {
-            headers: await getAuthHeaders(),
-            cache: 'no-store' 
-        });
+        const response = await fetchWithAuth(url);
 
         if (!response.ok) {
             console.error(`Error ${response.status} fetching candidate with id ${id}: ${response.statusText}`);
@@ -338,10 +343,7 @@ export async function fetchBookings(): Promise<Booking[]> {
     try {
         const url = `${API_BASE_URL}/bookings?per_page=100`;
         console.log(`📡 Fetching data from: ${url}`);
-        const response = await fetch(url, {
-            headers: await getAuthHeaders(),
-            cache: 'no-store'
-        });
+        const response = await fetchWithAuth(url);
         
         if (!response.ok) {
             console.error(`Error ${response.status} fetching bookings: ${response.statusText}`);
@@ -429,10 +431,7 @@ const transformBookingData = (apiBooking: any): Booking => {
 export async function fetchBookingsPaginated(page: number = 1, perPage: number = 10): Promise<{data: Booking[], currentPage: number, totalPages: number, total: number}> {
     try {
         const url = `${API_BASE_URL}/bookings?per_page=${perPage}&page=${page}`;
-        const response = await fetch(url, {
-            headers: await getAuthHeaders(),
-            cache: 'no-store'
-        });
+        const response = await fetchWithAuth(url);
         
         if (!response.ok) {
             console.error(`Error ${response.status} fetching paginated bookings: ${response.statusText}`);
@@ -504,9 +503,8 @@ export async function createBooking(params: CreateBookingParams): Promise<{succe
     try {
         const url = `${API_BASE_URL}/bookings`;
         console.log(`📡 Posting data to: ${url}`);
-        const response = await fetch(url, {
+        const response = await fetchWithAuth(url, {
             method: 'POST',
-            headers: await getAuthHeaders(),
             body: JSON.stringify(bookingData)
         });
 
@@ -563,9 +561,8 @@ export async function updateBooking(params: UpdateBookingParams): Promise<{succe
     if (updateData.role) apiPayload.job_title_id = updateData.role;
 
     try {
-         const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+         const response = await fetchWithAuth(`${API_BASE_URL}/bookings/${id}`, {
             method: 'PUT',
-            headers: await getAuthHeaders(),
             body: JSON.stringify(apiPayload)
         });
 
@@ -601,10 +598,7 @@ export async function fetchUserProfile(): Promise<{ data?: UserProfile; error?: 
     try {
         const url = `${API_BASE_URL}/profile`;
         console.log(`📡 Fetching user profile from: ${url}`);
-        const response = await fetch(url, {
-            headers: await getAuthHeaders(),
-            cache: 'no-store'
-        });
+        const response = await fetchWithAuth(url);
 
         const jsonResponse = await response.json();
 
