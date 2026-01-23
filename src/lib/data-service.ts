@@ -87,7 +87,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
     const status = apiCandidate.availability_status?.name || apiCandidate.status?.name || 'Inactive';
     
     // Parse pay_rate safely, removing currency symbols and whitespace
-    const payRateString = String(apiCandidate.pay_rate || '0');
+    const payRateString = String(apiCandidate.talent_finder?.talent_finder_pay_rate || '0');
     const rate = parseFloat(payRateString.replace(/[^0-9.]/g, '')) || 0;
 
     let rateType: 'hourly' | 'daily' = 'daily';
@@ -109,7 +109,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         details: details,
         availability: apiCandidate.dates?.next_available_date ? [apiCandidate.dates.next_available_date] : [],
         imageUrl: `https://picsum.photos/seed/${apiCandidate.id}/100/100`,
-        cvUrl: '#',
+        cvUrl: apiCandidate.talent_finder?.profile_url || '#',
         bio: `An experienced ${role} based in ${location}.`,
         status: status,
     };
@@ -277,8 +277,10 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         
         // Check both the new structure (success: true, data: {...}) and fallback to old structure
         if (jsonResponse.success && jsonResponse.data) {
+            console.log('Candidate API data (talent_finder):', jsonResponse.data.talent_finder);
             // New API structure - the data is already in the correct format
             const candidate = transformCandidateData(jsonResponse.data);
+            console.log('Transformed candidate cvUrl:', candidate.cvUrl);
             
             // Add bio if available (you might want to ensure bio is in your CandidateResource)
             // candidate.bio = jsonResponse.data.bio || candidate.bio;
@@ -293,6 +295,7 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
         } 
         // Fallback for old API structure (just in case)
         else if (jsonResponse.data) {
+            console.log('Candidate API data (fallback talent_finder):', jsonResponse.data.talent_finder);
             const apiCandidate = jsonResponse.data;
             
             // Reconstruct for old API structure
@@ -307,11 +310,14 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
                 location: { city: apiCandidate.location?.city },
                 pay_rate: 0,
                 pay_frequency: 'daily',
+                talent_finder: apiCandidate.talent_finder,
                 details: [],
                 key_stages: [],
+                cvUrl: apiCandidate.talent_finder.profile_url,
             };
             
             const candidate = transformCandidateData(reconstructedApiData);
+            console.log('Transformed candidate cvUrl (fallback):', candidate.cvUrl);
             candidate.bio = apiCandidate.bio || `An experienced educator.`;
             candidate.reviewsData = [
                 { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },

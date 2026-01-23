@@ -57,6 +57,7 @@ export default function CandidatePublicProfilePage() {
 
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [isBookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [isBookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingType, setBookingType] = useState<'Day' | 'Hourly'>('Day');
   const [recurring, setRecurring] = useState(false);
   const [recurringDays, setRecurringDays] = useState({
@@ -71,6 +72,12 @@ export default function CandidatePublicProfilePage() {
   const [dayDetails, setDayDetails] = useState<Record<string, DayDetail>>({});
   
   const resumeImage = images['document-resume'];
+  const hasCvUrl = Boolean(candidate?.cvUrl && candidate.cvUrl !== '#');
+  const cvPreviewUrl = hasCvUrl
+    ? (candidate.cvUrl.toLowerCase().includes('.pdf')
+        ? `${candidate.cvUrl}#toolbar=0&view=FitH`
+        : `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(candidate.cvUrl)}`)
+    : '';
   const { user } = useUser();
   
   useEffect(() => {
@@ -137,6 +144,7 @@ export default function CandidatePublicProfilePage() {
 
   const handleBooking = async () => {
     if (!candidate || !dates || dates.length === 0) return;
+    setBookingSubmitting(true);
 
     const sortedDates = dates.sort((a,b) => a.getTime() - b.getTime());
     const startDate = sortedDates[0];
@@ -197,6 +205,7 @@ export default function CandidatePublicProfilePage() {
           variant: "destructive",
       });
     }
+    setBookingSubmitting(false);
   }
 
   return (
@@ -397,9 +406,10 @@ export default function CandidatePublicProfilePage() {
                       <Button 
                         type="button" 
                         onClick={handleBooking} 
-                        disabled={!dates || dates.length === 0 || (recurring && !Object.values(recurringDays).some(day => day))}
+                        disabled={isBookingSubmitting || !dates || dates.length === 0 || (recurring && !Object.values(recurringDays).some(day => day))}
                         className="w-full sm:w-auto"
                       >
+                        {isBookingSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Confirm Booking
                       </Button>
                     </DialogFooter>
@@ -420,14 +430,22 @@ export default function CandidatePublicProfilePage() {
                       </DialogDescriptionComponent>
                     </DialogHeader>
                     <div className="relative flex-1 mt-4 rounded-md overflow-hidden bg-muted/50">
-                        <Image 
-                            src={resumeImage.src}
-                            alt="CV Preview"
-                            width={resumeImage.width}
-                            height={resumeImage.height}
-                            style={{objectFit: 'contain', width: '100%', height: '100%'}}
-                            data-ai-hint={resumeImage.hint}
-                        />
+                        {hasCvUrl ? (
+                          <iframe
+                            src={cvPreviewUrl}
+                            title={`${candidate.name} CV`}
+                            className="h-full w-full"
+                          />
+                        ) : (
+                          <Image 
+                              src={resumeImage.src}
+                              alt="CV Preview"
+                              width={resumeImage.width}
+                              height={resumeImage.height}
+                              style={{objectFit: 'contain', width: '100%', height: '100%'}}
+                              data-ai-hint={resumeImage.hint}
+                          />
+                        )}
                     </div>
                      <DialogFooter className="sm:justify-end mt-4">
                       <DialogClose asChild>
