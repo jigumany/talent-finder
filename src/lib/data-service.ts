@@ -19,7 +19,8 @@ async function getAuthHeaders() {
 
     if (token) {
         console.log("✅ Auth token found. Attaching to request header.");
-        headers['Authorization'] = `Bearer ${token}`;
+        const normalizedToken = token.startsWith('Bearer ') ? token.slice(7) : token;
+        headers['Authorization'] = `Bearer ${normalizedToken}`;
     } else {
         console.warn("🚨 Auth token not found for API request.");
     }
@@ -43,6 +44,16 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     }
 
     return response;
+}
+
+function isNextRedirectError(error: unknown): boolean {
+    return (
+        typeof error === 'object' &&
+        error !== null &&
+        'digest' in error &&
+        typeof (error as { digest?: unknown }).digest === 'string' &&
+        (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+    );
 }
 
 // This map translates API short codes into human-readable category names.
@@ -136,7 +147,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
 
 export async function fetchCandidates(): Promise<Candidate[]> {
     const allCandidates: Candidate[] = [];
-    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?per_page=100`;
+    let nextPageUrl: string | null = `${API_BASE_URL}/candidates?with_key_stages=1&per_page=100`;
 
     console.log("Starting to fetch all candidates...");
 
@@ -153,6 +164,10 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             }
 
             const jsonResponse = await response.json();
+            if (!Array.isArray(jsonResponse?.data)) {
+                console.error('Unexpected candidates payload shape:', jsonResponse);
+                break;
+            }
             const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
             allCandidates.push(...candidatesOnPage);
             
@@ -168,6 +183,9 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             }
 
         } catch (error) {
+            if (isNextRedirectError(error)) {
+                throw error;
+            }
             console.error(`Error fetching from ${nextPageUrl}:`, error);
             break;
         }
@@ -195,6 +213,7 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         const perPage = params.perPage || 12;
         
         const queryParams = new URLSearchParams({
+            with_key_stages: '1',
             per_page: perPage.toString(),
             page: page.toString(),
         });
@@ -221,11 +240,16 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         }
 
         const jsonResponse = await response.json();
+        if (!Array.isArray(jsonResponse?.data)) {
+            console.error('Unexpected filtered candidates payload shape:', jsonResponse);
+            return { data: [], currentPage: page, totalPages: 0, total: 0 };
+        }
+
         const candidates = jsonResponse.data.map(transformCandidateData);
 
-        const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
-        const totalPages = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
-        const total = Array.isArray(jsonResponse.meta.total) ? jsonResponse.meta.total[0] : jsonResponse.meta.total;
+        const currentPage = Array.isArray(jsonResponse?.meta?.current_page) ? jsonResponse.meta.current_page[0] : (jsonResponse?.meta?.current_page ?? page);
+        const totalPages = Array.isArray(jsonResponse?.meta?.last_page) ? jsonResponse.meta.last_page[0] : (jsonResponse?.meta?.last_page ?? 0);
+        const total = Array.isArray(jsonResponse?.meta?.total) ? jsonResponse.meta.total[0] : (jsonResponse?.meta?.total ?? candidates.length);
         
         return {
             data: candidates,
@@ -234,6 +258,9 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
             total: total
         };
     } catch (error) {
+        if (isNextRedirectError(error)) {
+            throw error;
+        }
         console.error(`Error fetching candidates:`, error);
         return { data: [], currentPage: 1, totalPages: 0, total: 0 };
     }
@@ -260,6 +287,9 @@ export async function getFilterMetadata(): Promise<{roles: string[], statuses: s
         
         return { roles, statuses };
     } catch (error) {
+        if (isNextRedirectError(error)) {
+            throw error;
+        }
         console.error('Error fetching filter metadata:', error);
         return { roles: [], statuses: [] };
     }
