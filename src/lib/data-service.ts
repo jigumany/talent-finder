@@ -56,6 +56,45 @@ function isNextRedirectError(error: unknown): boolean {
     );
 }
 
+type CandidateListPayload = {
+    candidates: any[];
+    meta?: any;
+    links?: any;
+};
+
+function extractCandidateListPayload(jsonResponse: any): CandidateListPayload {
+    // Shape A: { data: [...], meta, links }
+    if (Array.isArray(jsonResponse?.data)) {
+        return {
+            candidates: jsonResponse.data,
+            meta: jsonResponse.meta,
+            links: jsonResponse.links,
+        };
+    }
+
+    // Shape B: { success: true, data: { data: [...], meta, links } }
+    if (Array.isArray(jsonResponse?.data?.data)) {
+        return {
+            candidates: jsonResponse.data.data,
+            meta: jsonResponse.data.meta ?? jsonResponse.meta,
+            links: jsonResponse.data.links ?? jsonResponse.links,
+        };
+    }
+
+    // Shape C: plain array [...]
+    if (Array.isArray(jsonResponse)) {
+        return {
+            candidates: jsonResponse,
+        };
+    }
+
+    return {
+        candidates: [],
+        meta: jsonResponse?.meta,
+        links: jsonResponse?.links,
+    };
+}
+
 // This map translates API short codes into human-readable category names.
 const detailTypeMap: Record<string, string> = {
     'EYFS': 'Key Stages',
@@ -164,18 +203,20 @@ export async function fetchCandidates(): Promise<Candidate[]> {
             }
 
             const jsonResponse = await response.json();
-            if (!Array.isArray(jsonResponse?.data)) {
+            const { candidates: candidateRows, meta, links } = extractCandidateListPayload(jsonResponse);
+            if (!Array.isArray(candidateRows)) {
+                // Keep this log for debugging response-shape issues across environments.
                 console.error('Unexpected candidates payload shape:', jsonResponse);
                 break;
             }
-            const candidatesOnPage = jsonResponse.data.map(transformCandidateData);
+            const candidatesOnPage = candidateRows.map(transformCandidateData);
             allCandidates.push(...candidatesOnPage);
             
-            const nextLink = Array.isArray(jsonResponse.links.next) ? jsonResponse.links.next[0] : jsonResponse.links.next;
+            const nextLink = Array.isArray(links?.next) ? links.next[0] : links?.next;
             nextPageUrl = nextLink;
 
-            const currentPage = Array.isArray(jsonResponse.meta.current_page) ? jsonResponse.meta.current_page[0] : jsonResponse.meta.current_page;
-            const lastPage = Array.isArray(jsonResponse.meta.last_page) ? jsonResponse.meta.last_page[0] : jsonResponse.meta.last_page;
+            const currentPage = Array.isArray(meta?.current_page) ? meta.current_page[0] : meta?.current_page;
+            const lastPage = Array.isArray(meta?.last_page) ? meta.last_page[0] : meta?.last_page;
 
 
             if (!nextPageUrl || currentPage >= lastPage) {
@@ -240,16 +281,17 @@ export async function fetchCandidatesFilteredPaginated(params: FilteredPaginatio
         }
 
         const jsonResponse = await response.json();
-        if (!Array.isArray(jsonResponse?.data)) {
+        const { candidates: candidateRows, meta } = extractCandidateListPayload(jsonResponse);
+        if (!Array.isArray(candidateRows)) {
             console.error('Unexpected filtered candidates payload shape:', jsonResponse);
             return { data: [], currentPage: page, totalPages: 0, total: 0 };
         }
 
-        const candidates = jsonResponse.data.map(transformCandidateData);
+        const candidates = candidateRows.map(transformCandidateData);
 
-        const currentPage = Array.isArray(jsonResponse?.meta?.current_page) ? jsonResponse.meta.current_page[0] : (jsonResponse?.meta?.current_page ?? page);
-        const totalPages = Array.isArray(jsonResponse?.meta?.last_page) ? jsonResponse.meta.last_page[0] : (jsonResponse?.meta?.last_page ?? 0);
-        const total = Array.isArray(jsonResponse?.meta?.total) ? jsonResponse.meta.total[0] : (jsonResponse?.meta?.total ?? candidates.length);
+        const currentPage = Array.isArray(meta?.current_page) ? meta.current_page[0] : (meta?.current_page ?? page);
+        const totalPages = Array.isArray(meta?.last_page) ? meta.last_page[0] : (meta?.last_page ?? 0);
+        const total = Array.isArray(meta?.total) ? meta.total[0] : (meta?.total ?? candidates.length);
         
         return {
             data: candidates,
