@@ -445,13 +445,6 @@ export function DiaryFullCalendar({ bookings, onMonthChange, onDateClick }: Diar
               </div>
             </div>
 
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full text-xs"
-            >
-              View Details
-            </Button>
           </div>
         </PopoverContent>
       </Popover>

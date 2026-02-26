@@ -196,10 +196,16 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
           </p>
           <div className="flex flex-wrap items-center gap-1 mt-1 text-xs sm:text-sm text-amber-500">
             <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current flex-shrink-0" />
-            <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-            <span className="text-muted-foreground/80 text-xs">
-              ({candidate.reviews} reviews)
-            </span>
+            {candidate.reviews > 0 ? (
+              <>
+                <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                <span className="text-muted-foreground/80 text-xs">
+                  ({candidate.reviews} reviews)
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground/80 text-xs">No reviews yet</span>
+            )}
           </div>
         </div>
       </CardHeader>

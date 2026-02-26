@@ -141,6 +141,7 @@ export default function CandidatePublicProfilePage() {
   }
   
   const qualificationOrder = ['Key Stages', 'Qualifications', 'SEND', 'Languages', 'Additional Qualifications'];
+  const hasRating = candidate.rating > 0 && candidate.reviews > 0;
 
   const handleBooking = async () => {
     if (!candidate || !dates || dates.length === 0) return;
@@ -234,14 +235,17 @@ export default function CandidatePublicProfilePage() {
                         <MapPin className="h-4 w-4" />
                         <span>{candidate.location}</span>
                     </div>
-                     {candidate.rating && candidate.rating > 0 && (
-                        <div className="flex items-center gap-1.5 text-amber-500">
-                            <Star className="w-4 h-4 fill-current" />
-                            <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-                            {candidate.reviews && (
-                              <span>({candidate.reviews} reviews)</span>
-                            )}
-                        </div>
+                    {hasRating ? (
+                      <div className="flex items-center gap-1.5 text-amber-500">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                        <span>({candidate.reviews} reviews)</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>No reviews yet</span>
+                      </div>
                     )}
                 </div>
             </div>
@@ -459,8 +463,18 @@ export default function CandidatePublicProfilePage() {
             </div>
        </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>About</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground leading-relaxed whitespace-pre-line line-clamp-3">
+                            {candidate.bio || `${candidate.name} is an experienced ${candidate.role}.`}
+                        </p>
+                    </CardContent>
+                </Card>
                  {candidate.details && Object.keys(candidate.details).length > 0 && (
                     <Card>
                         <CardHeader>
@@ -491,13 +505,17 @@ export default function CandidatePublicProfilePage() {
                 )}
             </div>
             <div className="space-y-8">
-              {candidate.reviewsData && candidate.reviewsData.length > 0 && (
-                  <Card>
+              <Card>
                     <CardHeader>
                         <CardTitle>Recent Reviews</CardTitle>
+                        {hasRating && (
+                          <CardDescription>
+                            {candidate.rating.toFixed(1)} average from {candidate.reviews} review{candidate.reviews === 1 ? '' : 's'}
+                          </CardDescription>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        {candidate.reviewsData.map((review, index) => (
+                        {candidate.reviewsData && candidate.reviewsData.length > 0 ? candidate.reviewsData.map((review, index) => (
                             <div key={index}>
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -513,10 +531,21 @@ export default function CandidatePublicProfilePage() {
                                 <p className="text-muted-foreground mt-2 italic">"{review.comment}"</p>
                                 {index < candidate.reviewsData!.length - 1 && <Separator className="mt-6" />}
                             </div>
-                        ))}
+                        )) : (
+                          <div className="text-sm text-muted-foreground">
+                            No reviews yet for this candidate.
+                          </div>
+                        )}
                     </CardContent>
                 </Card>
-              )}
+              <Card>
+                  <CardHeader>
+                    <CardTitle>Availability</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex justify-center">
+                    <AvailabilityCalendar candidate={candidate} />
+                  </CardContent>
+              </Card>
             </div>
         </div>
     </div>

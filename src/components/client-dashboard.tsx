@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useMemo, useEffect, useState } from 'react';
 import { fetchBookingsPaginated } from '@/lib/data-service';
 import type { Booking } from '@/lib/types';
-import { CalendarCheck2, Calendar, Briefcase, FilePlus2, Users, Loader2 } from 'lucide-react';
+import { CalendarCheck2, Calendar, Briefcase, Users, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { format, parseISO, subMonths } from 'date-fns';
@@ -170,12 +170,6 @@ export default function ClientDashboard() {
                     <Link href="/browse-candidates">
                         <Users className="md:mr-2 h-4 w-4"/>
                         <span className="hidden md:inline">Go to Marketplace</span>
-                    </Link>
-                </Button>
-                <Button asChild size="sm" id="tour-step-2-action">
-                    <Link href="/post-a-job">
-                        <FilePlus2 className="md:mr-2 h-4 w-4"/>
-                        <span className="hidden md:inline">Post a Job</span>
                     </Link>
                 </Button>
             </div>

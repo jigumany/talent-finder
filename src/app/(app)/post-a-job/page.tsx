@@ -4,11 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRole } from "@/context/role-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock, FilePlus2, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, MapPin, Search } from "lucide-react";
-import { PostJobForm } from "@/components/post-job-form";
+import { Lock, Users, Briefcase, Pencil, ListChecks, CheckSquare, MoreVertical, Trash2, PauseCircle, XCircle, Activity, Info, Star, Calendar as CalendarIcon, MessageSquare, BriefcaseBusiness, Ban, PlusCircle, MapPin, Search } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { mockJobs, mockApplications, mockAuditLogs, mockCandidates } from '@/lib/mock-data';
+import { mockJobs, mockApplications, mockAuditLogs } from '@/lib/mock-data';
 import type { Job, AuditLog, Application, Candidate, ApplicationStatus, Booking } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { postJobAction } from '@/app/(app)/actions';
+import { fetchCandidates } from '@/lib/data-service';
 
 
 interface ApplicantTableProps {
@@ -190,7 +189,6 @@ function JobCard({ job, onManageClick }: JobCardProps) {
     );
 }
 
-const roles = [...new Set(mockCandidates.map(c => c.role))];
 const subjects = ['History', 'Mathematics', 'Science', 'English', 'Chemistry', 'PGCE', 'QTS', 'TESOL'];
 
 export default function PostAJobPage() {
@@ -198,7 +196,7 @@ export default function PostAJobPage() {
     const [jobs, setJobs] = useState<Job[]>(mockJobs);
     const [applications, setApplications] = useState<Application[]>(mockApplications);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs);
-    const [isPostJobDialogOpen, setPostJobDialogOpen] = useState(false);
+    const [liveCandidates, setLiveCandidates] = useState<Candidate[]>([]);
     const [isManageJobDialogOpen, setManageJobDialogOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [isEditingJob, setIsEditingJob] = useState(false);
@@ -216,12 +214,26 @@ export default function PostAJobPage() {
     const [maxRate, setMaxRate] = useState('');
     const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
 
+    useEffect(() => {
+        async function loadCandidates() {
+            try {
+                const candidates = await fetchCandidates();
+                setLiveCandidates(candidates);
+            } catch (error) {
+                console.error('Failed to load candidates for post-a-job view:', error);
+                setLiveCandidates([]);
+            }
+        }
+        loadCandidates();
+    }, []);
+
+    const roles = useMemo(() => [...new Set(liveCandidates.map(c => c.role))], [liveCandidates]);
 
     const jobApplications = useMemo(() => selectedJob 
         ? applications
             .filter(app => app.jobId === selectedJob.id)
             .map(application => {
-                const candidate = mockCandidates.find(c => c.id === application.candidateId);
+                const candidate = liveCandidates.find(c => c.id === application.candidateId);
                 return { application, candidate: candidate! };
             })
             .filter(item => item.candidate)
@@ -229,7 +241,7 @@ export default function PostAJobPage() {
                 const statusOrder: ApplicationStatus[] = ['Offer', 'Hired', 'Interview', 'Shortlisted', 'Applied', 'Rejected'];
                 return statusOrder.indexOf(a.application.status) - statusOrder.indexOf(b.application.status);
             })
-        : [], [selectedJob, applications]);
+        : [], [selectedJob, applications, liveCandidates]);
 
     useEffect(() => {
         const lowercasedTerm = searchTerm.toLowerCase();
@@ -238,7 +250,7 @@ export default function PostAJobPage() {
 
         const currentApplicantIds = new Set(jobApplications.map(app => app.candidate.id));
 
-        const filtered = mockCandidates.filter(candidate => {
+        const filtered = liveCandidates.filter(candidate => {
             // Exclude candidates who are already applicants
             if (currentApplicantIds.has(candidate.id)) {
                 return false;
@@ -260,7 +272,7 @@ export default function PostAJobPage() {
             return true;
         });
         setFilteredCandidates(filtered);
-    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, jobApplications]);
+    }, [searchTerm, roleFilter, subjectFilter, locationFilter, rateTypeFilter, minRate, maxRate, jobApplications, liveCandidates]);
 
     const [currentPage, setCurrentPage] = useState(1);
     const JOBS_PER_PAGE = 6;
@@ -318,12 +330,6 @@ export default function PostAJobPage() {
         };
         setAuditLogs(prev => [newLog, ...prev]);
     };
-
-    const handleJobPosted = (newJob: Job) => {
-        setJobs(prevJobs => [newJob, ...prevJobs]);
-        addAuditLog(newJob.id, 'Job Created', 'Initial posting.');
-        setPostJobDialogOpen(false);
-    }
 
     const handleManageClick = (job: Job) => {
         setSelectedJob(job);
@@ -408,7 +414,7 @@ export default function PostAJobPage() {
 
         setApplications(prev => prev.map(app => app.id === applicationId ? { ...app, status: newStatus } : app));
         
-        const candidate = mockCandidates.find(c => c.id === application.candidateId);
+        const candidate = liveCandidates.find(c => c.id === application.candidateId);
 
         toast({
             title: 'Applicant Status Updated',
@@ -445,7 +451,7 @@ export default function PostAJobPage() {
     const handleAddCandidateToJob = (candidateId: string) => {
         if (!selectedJob) return;
 
-        const candidate = mockCandidates.find(c => c.id === candidateId);
+        const candidate = liveCandidates.find(c => c.id === candidateId);
         if (!candidate) {
             toast({ title: "Error", description: "Could not find selected candidate.", variant: "destructive" });
             return;
@@ -486,24 +492,6 @@ export default function PostAJobPage() {
                     <Briefcase className="h-6 w-6 text-primary" />
                     <span>Booking Management</span>
                 </h1>
-                <div className="flex gap-2">
-                    <Dialog open={isPostJobDialogOpen} onOpenChange={setPostJobDialogOpen}>
-                        <DialogTrigger asChild>
-                             <Button><FilePlus2 className="mr-2" /> Add a Booking</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl">
-                            <DialogHeader>
-                                <DialogTitle>Add your Booking</DialogTitle>
-                                <DialogDescription>
-                                    Fill in the details below. Our AI can then help find the best candidates for you.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="p-1 pt-8">
-                              <PostJobForm onJobPosted={handleJobPosted} />
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
             </div>
             
              <div className="grid gap-4 md:grid-cols-3">
@@ -739,7 +727,7 @@ export default function PostAJobPage() {
                     <div>
                         <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
                         <p className="mt-4 text-lg font-semibold">No jobs posted yet</p>
-                        <p className="mt-1">Click "Post a New Job" to get started.</p>
+                        <p className="mt-1">Posting new jobs is currently unavailable.</p>
                     </div>
                 </div>
             )}

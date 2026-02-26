@@ -109,6 +109,97 @@ const detailTypeMap: Record<string, string> = {
     'SEND': 'SEND',
 };
 
+const toNumber = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        const parsed = parseFloat(value.replace(/[^0-9.-]/g, ''));
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+};
+
+const toNonNegativeInt = (value: unknown): number | null => {
+    const num = toNumber(value);
+    if (num === null) return null;
+    return Math.max(0, Math.round(num));
+};
+
+function extractReviewsData(apiCandidate: any): Candidate['reviewsData'] {
+    if (!Array.isArray(apiCandidate?.reviews)) {
+        return undefined;
+    }
+
+    const reviews = apiCandidate.reviews
+        .map((review: any) => {
+            const rating = Math.min(5, Math.max(0, toNumber(review?.rating) ?? 0));
+            const reviewerName =
+                review?.reviewer_name ||
+                review?.reviewer?.name ||
+                review?.client_name ||
+                'Anonymous';
+            const comment =
+                review?.comment ||
+                review?.review_text ||
+                review?.review ||
+                '';
+            const date =
+                review?.date ||
+                review?.reviewed_at ||
+                review?.created_at ||
+                new Date().toISOString();
+
+            return {
+                reviewerName: String(reviewerName),
+                rating,
+                comment: String(comment),
+                date: String(date),
+            };
+        })
+        .filter((review: any) => review.comment || review.rating > 0);
+
+    return reviews.length > 0 ? reviews : undefined;
+}
+
+function extractRatingAndReviewCount(apiCandidate: any): { rating: number; reviews: number } {
+    const ratingCandidates: unknown[] = [
+        apiCandidate?.rating,
+        apiCandidate?.average_rating,
+        apiCandidate?.reviews_avg_rating,
+        apiCandidate?.reviews_average_rating,
+        apiCandidate?.feedback_average_rating,
+        apiCandidate?.talent_finder?.rating,
+    ];
+
+    const countCandidates: unknown[] = [
+        apiCandidate?.reviews,
+        apiCandidate?.reviews_count,
+        apiCandidate?.rating_count,
+        apiCandidate?.feedback_count,
+        apiCandidate?.total_reviews,
+        apiCandidate?.talent_finder?.reviews_count,
+    ];
+
+    const extractedReviews = extractReviewsData(apiCandidate);
+    const extractedCount = extractedReviews?.length ?? 0;
+    const extractedAverage = extractedCount > 0
+        ? extractedReviews!.reduce((sum, review) => sum + review.rating, 0) / extractedCount
+        : 0;
+
+    const rating =
+        ratingCandidates.map(toNumber).find((n): n is number => n !== null) ??
+        extractedAverage;
+    const reviews =
+        countCandidates.map(toNonNegativeInt).find((n): n is number => n !== null) ??
+        extractedCount;
+
+    return {
+        rating: Math.min(5, Math.max(0, Math.round(rating * 10) / 10)),
+        reviews,
+    };
+}
+
 const transformCandidateData = (apiCandidate: any): Candidate => {
     // This is the structured object we will build.
     const details: Record<string, string[]> = {};
@@ -139,7 +230,7 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         }
     }
 
-    const role = apiCandidate.candidate_type?.name || 'Educator';
+    const role = apiCandidate.candidate_type?.name || apiCandidate.job_title?.name || 'Educator';
     
     const address_line_1 = apiCandidate.location?.address_line_1 || '';
     const city = apiCandidate.location?.city || '';
@@ -164,6 +255,9 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         rateType = 'hourly';
     }
 
+    const { rating, reviews } = extractRatingAndReviewCount(apiCandidate);
+    const reviewsData = extractReviewsData(apiCandidate);
+
     return {
         id: apiCandidate.id.toString(),
         name: `${apiCandidate.first_name} ${apiCandidate.last_name || ''}`.trim(),
@@ -171,8 +265,9 @@ const transformCandidateData = (apiCandidate: any): Candidate => {
         role: role,
         rate: rate,
         rateType: rateType,
-        rating: Math.round((Math.random() * (5 - 4) + 4) * 10) / 10,
-        reviews: Math.floor(Math.random() * 30),
+        rating,
+        reviews,
+        reviewsData,
         location: location,
         qualifications: flatQualifications,
         details: details,
@@ -362,12 +457,6 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
             // Add bio if available (you might want to ensure bio is in your CandidateResource)
             // candidate.bio = jsonResponse.data.bio || candidate.bio;
             
-            // Add mock review data (or fetch from a separate reviews endpoint)
-            candidate.reviewsData = [
-                { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
-                { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
-            ];
-
             return candidate;
         } 
         // Fallback for old API structure (just in case)
@@ -396,10 +485,6 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
             const candidate = transformCandidateData(reconstructedApiData);
             console.log('Transformed candidate cvUrl (fallback):', candidate.cvUrl);
             candidate.bio = apiCandidate.bio || `An experienced educator.`;
-            candidate.reviewsData = [
-                { reviewerName: 'Greenwood Academy', rating: 5, comment: 'An exceptional educator. Their passion is infectious, and our students were thoroughly engaged.', date: '2024-06-10' },
-                { reviewerName: 'Northwood School', rating: 4, comment: 'A very knowledgeable and professional teacher. We would happily have them back.', date: '2024-05-22' },
-            ];
 
             return candidate;
         }
@@ -408,6 +493,88 @@ export async function fetchCandidateById(id: string): Promise<Candidate | null> 
     } catch (error) {
         console.error(`Error fetching candidate with id ${id}:`, error);
         return null;
+    }
+}
+
+export interface CandidateAvailabilityDates {
+    available: string[];
+    booked: string[];
+    interview: string[];
+}
+
+export async function fetchCandidateAvailabilities(candidateId: string): Promise<CandidateAvailabilityDates> {
+    try {
+        const url = `${API_BASE_URL}/candidates/${candidateId}/availabilities`;
+        const response = await fetchWithAuth(url);
+
+        if (!response.ok) {
+            console.error(`Error ${response.status} fetching candidate availabilities for ${candidateId}: ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error body:', errorBody);
+            return { available: [], booked: [], interview: [] };
+        }
+
+        const jsonResponse = await response.json();
+        const rawRows = Array.isArray(jsonResponse?.data)
+            ? jsonResponse.data
+            : Array.isArray(jsonResponse?.data?.data)
+                ? jsonResponse.data.data
+                : Array.isArray(jsonResponse)
+                    ? jsonResponse
+                    : [];
+
+        const available = new Set<string>();
+        const booked = new Set<string>();
+        const interview = new Set<string>();
+
+        rawRows.forEach((row: any) => {
+            const rawDate =
+                row?.date ||
+                row?.availability_date ||
+                row?.available_date ||
+                row?.start_date;
+            if (!rawDate) return;
+
+            const parsedDate = new Date(rawDate);
+            if (Number.isNaN(parsedDate.getTime())) return;
+            const date = format(parsedDate, 'yyyy-MM-dd');
+
+            const rawStatus =
+                row?.status?.name ||
+                row?.availability_status?.name ||
+                row?.status ||
+                row?.availability_status ||
+                row?.type ||
+                'available';
+            const normalizedStatus = String(rawStatus).toLowerCase();
+
+            if (normalizedStatus.includes('interview')) {
+                interview.add(date);
+                return;
+            }
+            if (
+                normalizedStatus.includes('booked') ||
+                normalizedStatus.includes('confirm') ||
+                normalizedStatus.includes('pending') ||
+                normalizedStatus.includes('pencilled')
+            ) {
+                booked.add(date);
+                return;
+            }
+            available.add(date);
+        });
+
+        return {
+            available: Array.from(available),
+            booked: Array.from(booked),
+            interview: Array.from(interview),
+        };
+    } catch (error) {
+        if (isNextRedirectError(error)) {
+            throw error;
+        }
+        console.error(`Error fetching candidate availabilities for ${candidateId}:`, error);
+        return { available: [], booked: [], interview: [] };
     }
 }
 

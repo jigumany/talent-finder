@@ -59,8 +59,14 @@ export function CandidatePublicProfile({ candidate }: { candidate: Candidate }) 
                     </div>
                      <div className="flex items-center gap-1.5 text-amber-500">
                         <Star className="w-4 h-4 fill-current" />
-                        <span className="font-bold">{candidate.rating.toFixed(1)}</span>
-                        <span>({candidate.reviews} reviews)</span>
+                        {candidate.reviews > 0 ? (
+                          <>
+                            <span className="font-bold">{candidate.rating.toFixed(1)}</span>
+                            <span>({candidate.reviews} reviews)</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">No reviews yet</span>
+                        )}
                     </div>
                 </div>
             </div>
