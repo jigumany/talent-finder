@@ -426,32 +426,34 @@ export default function CandidatePublicProfilePage() {
                       <FileText className="mr-2"/> View CV
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-3xl flex flex-col h-[90vh]">
-                    <DialogHeader>
+                  <DialogContent className="w-[96vw] max-w-5xl h-[92vh] sm:h-[90vh] flex flex-col p-3 sm:p-6">
+                    <DialogHeader className="shrink-0">
                       <DialogTitle>CV Preview</DialogTitle>
-                      <DialogDescriptionComponent>
+                      <DialogDescriptionComponent className="text-sm">
                         A preview of the CV for {candidate.name}.
                       </DialogDescriptionComponent>
                     </DialogHeader>
-                    <div className="relative flex-1 mt-4 rounded-md overflow-hidden bg-muted/50">
+                    <div className="relative flex-1 min-h-0 mt-3 sm:mt-4 rounded-md overflow-hidden bg-muted/40 border">
                         {hasCvUrl ? (
                           <iframe
                             src={cvPreviewUrl}
                             title={`${candidate.name} CV`}
-                            className="h-full w-full"
+                            className="h-full w-full border-0"
                           />
                         ) : (
-                          <Image 
-                              src={resumeImage.src}
-                              alt="CV Preview"
-                              width={resumeImage.width}
-                              height={resumeImage.height}
-                              style={{objectFit: 'contain', width: '100%', height: '100%'}}
-                              data-ai-hint={resumeImage.hint}
-                          />
+                          <div className="h-full w-full flex items-center justify-center p-2 sm:p-4">
+                            <Image 
+                                src={resumeImage.src}
+                                alt="CV Preview"
+                                width={resumeImage.width}
+                                height={resumeImage.height}
+                                style={{objectFit: 'contain', width: '100%', height: '100%'}}
+                                data-ai-hint={resumeImage.hint}
+                            />
+                          </div>
                         )}
                     </div>
-                     <DialogFooter className="sm:justify-end mt-4">
+                     <DialogFooter className="sm:justify-end mt-3 sm:mt-4 shrink-0">
                       <DialogClose asChild>
                         <Button type="button" variant="outline">
                           Close
